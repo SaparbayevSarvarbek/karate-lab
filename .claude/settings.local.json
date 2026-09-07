@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(flutter doctor *)",
+      "Bash(flutter pub *)",
+      "Bash(flutter build *)",
+      "Bash(find . -maxdepth 2 -type d -not -path '*/\\\\.*')",
+      "WebFetch(domain:carate.uz)",
+      "Bash(curl -s https://carate.uz/api/docs/)",
+      "Bash(curl -s https://carate.uz/api/schema/)",
+      "Bash(flutter analyze *)",
+      "Bash(flutter test *)",
+      "Bash(./gradlew --stop)",
+      "Skill(mobile-design)",
+      "Bash(awk 'NR>=1840 && NR<=1860' \"C:/Flutter/flutter/packages/flutter/lib/src/material/input_decorator.dart\")",
+      "Bash(awk -F: '$1>1802 && $1<1900')"
+    ]
+  }
+}
