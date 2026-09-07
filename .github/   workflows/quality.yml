@@ -1,0 +1,59 @@
+name: Check code quality
+
+on:
+  pull_request: # on a pull request to each of these branches
+    branches:
+      - main
+      - dev
+      - prod
+
+jobs:
+  check-code-quality:
+    runs-on:  ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.32.2'
+          channel: 'stable'
+      - run: flutter pub get
+      - run: dart format --output=none --set-exit-if-changed .
+      - uses: zgosalvez/github-actions-analyze-dart@v2
+        with:
+          working-directory: "${{github.workspace}}"
+          fail-on-infos: true
+          fail-on-warnings: true
+      - name: Send error telegram notification
+        uses: appleboy/telegram-action@master
+        if: ${{ failure() }}
+        with:
+          to: ${{ secrets.TELEGRAM_TO_BUILD }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          format: html
+          message: |
+            <blockquote>
+            🔴📳 User <b>${{ github.actor }}</b> created PR.
+            🔴📳 Repository: <code>${{ github.repository }}</code>
+            🔴📳 PR Name: <b>${{ github.event.pull_request.title }}</b>
+            🔴📳 Source branch: <code>${{ github.head_ref }}</code>
+            🔴📳 Last commit: <a href="https://github.com/${{ github.repository }}/commit/${{github.sha}}">link</a>
+            </blockquote>
+            
+            🔴📳 See changes in PR: <a href="${{ github.event.pull_request.html_url }}">${{ github.event.pull_request.title }}</a>
+      - name: Send success telegram notification
+        uses: appleboy/telegram-action@master
+        if: ${{ success() }}
+        with:
+          to: ${{ secrets.TELEGRAM_TO_BUILD }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          format: html
+          message: |
+            <blockquote>
+            🟢📳 User <b>${{ github.actor }}</b> created PR.
+            🟢📳 Repository: <code>${{ github.repository }}</code>
+            🟢📳 PR Name: <b>${{ github.event.pull_request.title }}</b>
+            🟢📳 Source branch: <code>${{ github.head_ref }}</code>
+            🟢📳 Last commit: <a href="https://github.com/${{ github.repository }}/commit/${{github.sha}}">link</a>
+            </blockquote>
+            
+            🟢📳 See changes in PR: <a href="${{ github.event.pull_request.html_url }}">${{ github.event.pull_request.title }}</a>
