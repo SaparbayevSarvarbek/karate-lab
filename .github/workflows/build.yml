@@ -29,14 +29,6 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Set Environment Constants (for dev only)
-        if: ${{ github.ref == 'refs/heads/dev' }}
-        run: sed -i 's/static const bool _isTester = false;/static const bool _isTester = true;/g' lib/core/network/service/api_const.dart
-
-      - name: Set Environment Constants (for prod/main)
-        if: ${{ github.ref != 'refs/heads/dev' }}
-        run: sed -i 's/static const bool _isTester = true;/static const bool _isTester = false;/g' lib/core/network/service/api_const.dart
-
       - name: Build APK (Split per ABI)
         run: flutter build apk --release --split-per-abi
 
@@ -44,7 +36,7 @@ jobs:
         run: |
           VERSION=$(grep '^version:' pubspec.yaml | awk '{print $2}')
           BRANCH="${GITHUB_REF##*/}"
-          APPNAME="joy-top_${BRANCH}_v${VERSION}.apk"
+          APPNAME="karate-lab_${BRANCH}_v${VERSION}.apk"
           echo "APPNAME=$APPNAME" >> $GITHUB_ENV
 
       - name: Rename APK
