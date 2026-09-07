@@ -43,3 +43,17 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Android local config & crash artifacts
+android/local.properties
+android/hs_err_pid*.log
+android/java_pid*.hprof
+android/.gradle/
+android/.kotlin/
+
+# Claude local settings
+.claude/
+
+# Project-specific: reference screenshots & exercise packages
+rasm/
+ujt_exercises_package/
