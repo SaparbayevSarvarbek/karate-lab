@@ -6,17 +6,18 @@ class ApiConstants {
   ApiConstants._();
 
   /// Development: kompyuterdagi Django server (`0.0.0.0:8000` da yoniq).
-  /// Fizik qurilma WiFi orqali → `_lanIp` (kompyuter LAN IP'si).
-  /// USB orqali ulashda `adb reverse tcp:8000 tcp:8000` qilib,
-  /// Android return qiymatini `http://127.0.0.1:8000` ga qaytarish mumkin.
-  /// Android emulator → `http://10.0.2.2:8000`.
-  /// Production: `https://carate.uz` (pastdagi `_lanIp` ni o'zgartiring).
+  /// Android → USB/emulator: `adb reverse tcp:8000 tcp:8000` qilib
+  /// `http://127.0.0.1:8000` orqali ulanadi.
+  /// Boshqa platformalar (desktop/web) → `_lanIp` (kompyuter LAN IP'si).
+  /// Fizik qurilma WiFi orqali → `_lanIp` ni LAN IP'ga o'zgartiring.
+  /// Production: `https://carate.uz`.
+  static const String _adbReverse = 'http://127.0.0.1:8000';
   static const String _lanIp = 'http://192.168.13.6:8000';
 
   static String get baseUrl {
     if (kIsWeb) return _lanIp;
     try {
-      if (Platform.isAndroid) return _lanIp;
+      if (Platform.isAndroid) return _adbReverse;
       return _lanIp;
     } catch (_) {
       return _lanIp;
