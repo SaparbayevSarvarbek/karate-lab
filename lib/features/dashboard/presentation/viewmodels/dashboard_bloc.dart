@@ -31,7 +31,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     Emitter<DashboardState> emit,
   ) async {
     emit(DashboardLoading());
-    final result = await _repository.getMyStatistics();
+    final result = await _repository.getDashboard();
     result.fold(
       (error) => emit(DashboardError(error.message)),
       (data) => emit(AthleteDashboardLoaded(data)),

@@ -4,11 +4,13 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/api/models/dashboard_models.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/app_constants.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/l10n/app_translations.dart';
 import '../../../../core/repositories/profile_repository.dart';
 import '../../../../core/theme/app_palette.dart';
 import '../../../../core/widgets/remote_image.dart';
+import '../../../../core/widgets/shimmer_placeholder.dart';
 import '../viewmodels/dashboard_bloc.dart';
 
 class CoachDashboardView extends StatelessWidget {
@@ -58,7 +60,31 @@ class _CoachDashboardContent extends StatelessWidget {
               child: BlocBuilder<DashboardBloc, DashboardState>(
                 builder: (context, state) {
                   if (state is DashboardLoading || state is DashboardInitial) {
-                    return const Center(child: CircularProgressIndicator());
+                    return RefreshIndicator(
+                      onRefresh: () => _reload(context),
+                      child: ListView(
+                        padding: EdgeInsets.fromLTRB(16.w, 14.h, 16.w, 90.h),
+                        children: [
+                          ShimmerPlaceholder(
+                            width: double.infinity,
+                            height: 180.h,
+                            borderRadius: BorderRadius.circular(22.r),
+                          ),
+                          SizedBox(height: 12.h),
+                          Row(
+                            children: [
+                              Expanded(child: ShimmerDashboardStat()),
+                              SizedBox(width: 12.w),
+                              Expanded(child: ShimmerDashboardStat()),
+                            ],
+                          ),
+                          SizedBox(height: 22.h),
+                          ShimmerPlaceholder(width: 120.w, height: 22.h, borderRadius: BorderRadius.circular(11.r)),
+                          SizedBox(height: 12.h),
+                          ...List.generate(4, (index) => ShimmerActionTile()),
+                        ],
+                      ),
+                    );
                   }
 
                   if (state is DashboardError) {
@@ -130,7 +156,10 @@ class _CoachDashboardContent extends StatelessWidget {
                             subtitle: Tr.t('reportsSub'),
                             icon: Icons.insights_rounded,
                             color: AppColors.expert,
-                            onTap: () => context.push('/reports'),
+                            onTap: () => context.push(
+                              '/reports',
+                              extra: AppConstants.roleCoach,
+                            ),
                           ),
                         ],
                       ),

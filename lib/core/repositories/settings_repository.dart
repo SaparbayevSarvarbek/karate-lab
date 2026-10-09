@@ -3,16 +3,11 @@ import 'package:dartz/dartz.dart';
 import '../api/api_client.dart';
 import '../api/api_constants.dart';
 import '../api/api_exception.dart';
-import '../api/models/notification_models.dart';
 import '../api/models/settings_models.dart';
 
 /// Sozlamalar, bildirishnomalar va xavfsizlik repository
 /// (Swagger: Settings, Notifications, Security).
 abstract class SettingsRepository {
-  Future<Either<ApiException, List<AppNotification>>> getNotifications();
-  Future<Either<ApiException, void>> markNotificationRead(int id);
-  Future<Either<ApiException, void>> deleteNotification(int id);
-
   Future<Either<ApiException, AppSettings>> getSettings();
   Future<Either<ApiException, void>> updateLanguage(String language);
   Future<Either<ApiException, void>> updateNotificationPreferences(
@@ -31,36 +26,6 @@ class SettingsRepositoryImpl implements SettingsRepository {
   final ApiClient _apiClient;
 
   SettingsRepositoryImpl(this._apiClient);
-
-  @override
-  Future<Either<ApiException, List<AppNotification>>> getNotifications() async {
-    try {
-      final items = await _apiClient.getList(ApiConstants.notifications);
-      return Right(items.map(AppNotification.fromJson).toList());
-    } on ApiException catch (e) {
-      return Left(e);
-    }
-  }
-
-  @override
-  Future<Either<ApiException, void>> markNotificationRead(int id) async {
-    try {
-      await _apiClient.patchObject(ApiConstants.markNotificationRead(id));
-      return const Right(null);
-    } on ApiException catch (e) {
-      return Left(e);
-    }
-  }
-
-  @override
-  Future<Either<ApiException, void>> deleteNotification(int id) async {
-    try {
-      await _apiClient.deleteItem(ApiConstants.notificationDetail(id));
-      return const Right(null);
-    } on ApiException catch (e) {
-      return Left(e);
-    }
-  }
 
   @override
   Future<Either<ApiException, AppSettings>> getSettings() async {

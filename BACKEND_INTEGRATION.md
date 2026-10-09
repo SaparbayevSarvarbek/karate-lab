@@ -36,7 +36,7 @@ Barcha API request/response modellari JSON serialization bilan:
 - `auth_models.dart` - Login, Logout, Refresh token
 - `athlete_models.dart` - Athletes CRUD
 - `exercise_models.dart` - Exercises CRUD
-- `test_models.dart` - Tests va assignments
+- `test_models.dart` - Testlar va natijalar
 - `dashboard_models.dart` - Dashboard statistikasi
 - `profile_models.dart` - User profile
 
@@ -45,7 +45,7 @@ Clean Architecture pattern asosida:
 - `auth_repository.dart` - Authentication
 - `athlete_repository.dart` - Athletes management
 - `exercise_repository.dart` - Exercises management
-- `test_repository.dart` - Tests va assignments
+- `test_repository.dart` - Testlar va natijalar
 - `dashboard_repository.dart` - Dashboard data
 
 ### 4. **Dependency Injection** (`lib/core/di/injection.dart`)
@@ -96,7 +96,7 @@ Barcha asosiy sahifalar real API ga ulandi:
 - ✅ Exercises Library — `GET /exercises/`
 - ✅ Add Exercise — `POST /exercises/`
 - ✅ Exercise Detail — API `Exercise` modeli orqali
-- ✅ Tests Library — `GET /tests/`, `GET /my-tests/`, `POST /tests/{id}/assign/`
+- ✅ Tests Library — `GET /tests/`, `GET /my-tests/` (barcha faol testlar, biriktirish yo'q)
 - ✅ Test Detail — `POST /my-tests/{id}/start/`, `POST /my-tests/{id}/finish/`
 - ✅ Create Test — `POST /tests/` (mashqlar tanlab biriktiriladi)
 - ✅ Profile View — `GET /profile/`
@@ -105,7 +105,7 @@ Barcha asosiy sahifalar real API ga ulandi:
 - ✅ Logout — `POST /auth/logout/` + tokenni tozalash
 
 Hali API ga ulanmagan (lokal/statik data):
-- Mashqlar bazasi (UJT/MJT) — `assets/mashqlar.json` (bu loyiha ichki bazasi, backend'da endpoint yo'q)
+- UJT/MJT testlari backend'dan: `GET /ujt-tests/`, `GET /mjt-tests/` (`import_ujt`/`import_mjt` buyruqlari bilan yuklanadi)
 - Reports & Analytics — statik demo qiymatlar
 - Bildirishnomalar sozlamalari — UI da lokal switch'lar
 
@@ -133,19 +133,19 @@ build_runner: ^2.4.7
 **Hozirgi holat:**
 - Barcha auth, dashboard, athletes, exercises, tests va profile sahifalari **real API** ga ulandi ✅
 - `MockDataService` va `UserModel` o'chirilgan — mock auth qolmagan
-- Mashqlar bazasi (UJT/MJT) assets'dagi `mashqlar.json` dan yuklanadi (loyiha ichki baza)
+- UJT/MJT testlari backend'dan (`/ujt-tests/`, `/mjt-tests/`) yuklanadi
 - Reports sahifasi hali statik demo data ishlatadi
 
 ---
 
 ## 🖥️ Python Backend (krate_backend)
 
-Backend Django + DRF da yozilgan: `C:\Users\sarva\AndroidStudioProjects\krate_backend`.
+Backend Django + DRF da yozilgan: `C:\Users\sarva\Desktop\Karate\krate_backend`.
 To'liq API spetsifikatsiya uchun o'sha papkadagi `README.md` ni qarang.
 
 **Ishga tushirish:**
 ```powershell
-cd C:\Users\sarva\AndroidStudioProjects\krate_backend
+cd C:\Users\sarva\Desktop\Karate\krate_backend
 .\venv\Scripts\python.exe manage.py runserver 0.0.0.0:8000
 ```
 
@@ -164,9 +164,9 @@ cd C:\Users\sarva\AndroidStudioProjects\krate_backend
 1. **JWT Token Refresh** - Avtomatik ishlaydi, 401 xatolikda token yangilanadi
 2. **Error Handling** - Har bir repository `Either<ApiException, T>` qaytaradi (dartz package)
 3. **Logging** - `PrettyDioLogger` yoqilgan, barcha network call lar consoleda ko'rinadi
-4. **Base URL** - Development'da lokal Django server (`api_constants.dart`):
-   Android emulator uchun `http://10.0.2.2:8000`, boshqa platformalar uchun
-   `http://127.0.0.1:8000`. Production'da real backend domeniga almashtiriladi.
+4. **Base URL** - `--dart-define=API_BASE_URL=...` bilan beriladi (`api_constants.dart`).
+   Berilmasa: release → `https://carate.uz`, debug (Android) → LAN manzil, boshqa → `127.0.0.1:8000`.
+   Emulator uchun `ApiConstants.emulatorUrl` (`10.0.2.2`), USB (`adb reverse`) uchun `localhostUrl`.
 5. **Android cleartext** - `AndroidManifest.xml` da `usesCleartextTraffic="true"`
    va `INTERNET` ruxsati qo'shilgan (lokal HTTP server uchun)
 

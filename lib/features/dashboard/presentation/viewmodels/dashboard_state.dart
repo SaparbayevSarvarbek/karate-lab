@@ -21,7 +21,7 @@ class CoachDashboardLoaded extends DashboardState {
 }
 
 class AthleteDashboardLoaded extends DashboardState {
-  final MyStatistics data;
+  final DashboardData data;
 
   const AthleteDashboardLoaded(this.data);
 

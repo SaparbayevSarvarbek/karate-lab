@@ -15,6 +15,7 @@ Future<void> main() async {
   await SharedPrefsService.getInstance();
   await ThemeController.instance.load();
   await LocaleController.instance.load();
+  await Tr.ensureLoaded();
   await setupDependencies();
   ApiClient.onUnauthorized = () {
     final path = AppRouter.router.state.uri.path;
@@ -30,21 +31,21 @@ class KarateLabApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider(create: (context) => AuthBloc()),
-      ],
-      child: ListenableBuilder(
-        listenable: Listenable.merge([
-          ThemeController.instance,
-          LocaleController.instance,
-        ]),
-        builder: (context, child) {
-          return ScreenUtilInit(
-            designSize: const Size(390, 844),
-            minTextAdapt: true,
-            splitScreenMode: true,
-            useInheritedMediaQuery: true,
+    return ScreenUtilInit(
+      designSize: const Size(390, 844),
+      minTextAdapt: true,
+      splitScreenMode: true,
+      useInheritedMediaQuery: true,
+      builder: (context, child) {
+        return MultiBlocProvider(
+          providers: [
+            BlocProvider(create: (context) => AuthBloc()),
+          ],
+          child: ListenableBuilder(
+            listenable: Listenable.merge([
+              ThemeController.instance,
+              LocaleController.instance,
+            ]),
             builder: (context, child) {
               return MaterialApp.router(
                 title: 'KarateLab AI',
@@ -56,9 +57,9 @@ class KarateLabApp extends StatelessWidget {
                 routerConfig: AppRouter.router,
               );
             },
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 }

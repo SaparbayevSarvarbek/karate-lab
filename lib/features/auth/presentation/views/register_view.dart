@@ -41,6 +41,7 @@ class _RegisterViewState extends State<RegisterView> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
+  String? _serverError;
 
   final _formKeys = [
     GlobalKey<FormState>(),
@@ -95,6 +96,7 @@ class _RegisterViewState extends State<RegisterView> {
     FocusManager.instance.primaryFocus?.unfocus();
 
     if (_currentStep < 2) {
+      if (_serverError != null) setState(() => _serverError = null);
       setState(() => _currentStep++);
       _pageController.nextPage(
         duration: const Duration(milliseconds: 300),
@@ -129,13 +131,10 @@ class _RegisterViewState extends State<RegisterView> {
 
       result.fold(
         (error) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(error.message),
-              backgroundColor: AppColors.error,
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
+          // Xatoni sahifada qoldiradigan (snackbar emas) banner-da ko'rsatish —
+          // masalan username band bo'lsa foydalanuvchi orqaga "qaytib" ketib
+          // qolyapti deb adashmasin; formada turib xabarni ko'radi.
+          setState(() => _serverError = error.message);
         },
         (response) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -209,9 +208,44 @@ class _RegisterViewState extends State<RegisterView> {
             ),
             Padding(
               padding: const EdgeInsets.all(24.0),
-              child: CustomButton(
-                text: _currentStep == 2 ? 'Yakunlash' : 'Davom etish',
-                onPressed: _onNext,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (_serverError != null) ...[
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      margin: const EdgeInsets.only(bottom: 12),
+                      decoration: BoxDecoration(
+                        color: AppColors.error.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: AppColors.error.withValues(alpha: 0.4),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.error_outline,
+                              color: AppColors.error, size: 20),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              _serverError!,
+                              style: const TextStyle(
+                                color: AppColors.error,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                  CustomButton(
+                    text: _currentStep == 2 ? 'Yakunlash' : 'Davom etish',
+                    onPressed: _onNext,
+                  ),
+                ],
               ),
             ),
           ],

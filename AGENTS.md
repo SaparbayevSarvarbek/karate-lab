@@ -4,8 +4,8 @@
 
 Flutter mobil ilova (Dart 3.11, Flutter 3.x) + Python Django backend:
 
-- **Mobil ilova:** `C:\Users\sarva\AndroidStudioProjects\krate_lab`
-- **Backend:** `C:\Users\sarva\AndroidStudioProjects\krate_backend` (Django 5.1 + DRF, PostgreSQL)
+- **Mobil ilova:** `C:\Users\sarva\Desktop\Karate\krate_lab`
+- **Backend:** `C:\Users\sarva\Desktop\Karate\krate_backend` (Django 5.1 + DRF, PostgreSQL)
 - Arxitektura: Clean-ish layered — `core/api` (Dio client, freezed models) → `core/repositories` (dartz `Either`) → `features/*/presentation/viewmodels` (flutter_bloc) → `views`
 - DI: GetIt (`lib/core/di/injection.dart`)
 - Routing: go_router (`lib/core/router/app_router.dart`)
@@ -16,7 +16,7 @@ Flutter mobil ilova (Dart 3.11, Flutter 3.x) + Python Django backend:
 ### Flutter
 
 ```powershell
-cd C:\Users\sarva\AndroidStudioProjects\krate_lab
+cd C:\Users\sarva\Desktop\Karate\krate_lab
 flutter pub get
 flutter analyze --no-pub
 flutter test
@@ -34,13 +34,20 @@ Build'da OutOfMemoryError bo'lsa shu sozlamani tekshiring va Gradle daemon larni
 ### Backend
 
 ```powershell
-cd C:\Users\sarva\AndroidStudioProjects\krate_backend
+cd C:\Users\sarva\Desktop\Karate\krate_backend
 .\venv\Scripts\python.exe manage.py runserver 0.0.0.0:8000
 .\venv\Scripts\python.exe manage.py test          # Django testlar (hozircha yo'q)
 .\venv\Scripts\python.exe manage.py makemigrations
 .\venv\Scripts\python.exe manage.py migrate
 .\venv\Scripts\python.exe manage.py seed_demo     # demo data
+.\venv\Scripts\python.exe manage.py seed_normatives   # test qadamlari uchun taxminiy me'yor
 ```
+
+- **Knowledge/loyiha manbasi:** `krate_backend` seed/import va mobil ilova `mjt_exercises_package` / `ujt_exercises_package` JSON dan foydalanadi.
+- **Mashq (Exercise):** title, age, category (Texnik/UJT/MJT), image, goal, qualities + `steps` (title, description, repetitions, rest, duration, image).
+- **Test (Test):** name, cover, age, category, goal, qualities + `steps` (title, description, repetitions, duration, image). Atlet qadamlarni taymer bilan bajaradi; `finish` da `stepTimes` yuboriladi va backend `Normative` (yoshga mos me'yor) asosida `result` (foizli diagramma + umumiy ball) qaytaradi.
+- **Test ko'rinishi:** murabbiy yaratgan har bir faol (`is_active=True`) test **barcha sportchilarga darhol ko'rinadi** — alohida biriktirish (assign) yo'q. Natija `TestResult` yozuvida saqlanadi va u testni birinchi boshlashda yaratiladi. `/my-tests/{id}/...` dagi `id` — **test id**.
+- **Normative:** `python manage.py seed_normatives` taxminiy me'yor yaratadi; aniq raqamlar `admin` (`/admin/` → Normative) orqali tahrirlanadi.
 
 - Swagger: http://127.0.0.1:8000/api/docs/
 - Admin: http://127.0.0.1:8000/admin/ (`admin` / `admin1234`)
@@ -49,11 +56,14 @@ cd C:\Users\sarva\AndroidStudioProjects\krate_backend
 
 ## Muhim sozlamalar
 
-- **Mobile baseUrl** (`lib/core/api/api_constants.dart`): development'da lokal Django server.
-  Android emulator → `http://10.0.2.2:8000`, boshqa → `http://127.0.0.1:8000`. Production'da `https://carate.uz` ga o'zgartiriladi.
+- **Mobile baseUrl** (`lib/core/api/api_constants.dart`): `--dart-define=API_BASE_URL=...` bilan beriladi.
+  Berilmasa: release build → `https://carate.uz`; debug (Android) → LAN manzil (`devLanUrl`),
+  boshqa platformalar → `http://127.0.0.1:8000`.
+  Fizik qurilma Wi-Fi'da ishlaydi; emulator uchun `ApiConstants.emulatorUrl` (`10.0.2.2`),
+  USB (`adb reverse tcp:8000 tcp:8000`) uchun `ApiConstants.localhostUrl`.
 - **Android** (`android/app/src/main/AndroidManifest.xml`): `INTERNET` ruxsati va `usesCleartextTraffic="true"` qo'shilgan (lokal HTTP uchun).
 - **PostgreSQL:** server service `postgresql-x64-18`, DB `krate_lab`, foydalanuvchi `postgres`. Maxfiy qiymatlar `krate_backend/.env` da.
-- **JWT:** simplejwt, access 1 soat / refresh 14 kun; refresh logout'da `RefreshTokenRecord` orqali bekor qilinadi.
+- **JWT:** simplejwt, access 7 kun / refresh 30 kun; refresh logout'da `RefreshTokenRecord` orqali bekor qilinadi.
 
 ## Kod yozish qoidalari
 

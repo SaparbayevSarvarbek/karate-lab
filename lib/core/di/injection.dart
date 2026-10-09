@@ -1,6 +1,7 @@
 import 'package:get_it/get_it.dart';
 
 import '../api/api_client.dart';
+import '../repositories/analytics_repository.dart';
 import '../repositories/athlete_repository.dart';
 import '../repositories/auth_repository.dart';
 import '../repositories/dashboard_repository.dart';
@@ -14,6 +15,7 @@ import '../../features/athletes/presentation/viewmodels/athlete_bloc.dart';
 import '../../features/dashboard/presentation/viewmodels/dashboard_bloc.dart';
 import '../../features/exercises/presentation/viewmodels/exercise_bloc.dart';
 import '../../features/mashqlar/presentation/viewmodels/mashqlar_bloc.dart';
+import '../../features/profile/presentation/viewmodels/analytics_bloc.dart';
 import '../../features/profile/presentation/viewmodels/profile_bloc.dart';
 import '../../features/tests/presentation/viewmodels/test_bloc.dart';
 
@@ -57,6 +59,10 @@ Future<void> setupDependencies() async {
     () => UjtRepositoryImpl(getIt<ApiClient>()),
   );
 
+  getIt.registerLazySingleton<AnalyticsRepository>(
+    () => AnalyticsRepositoryImpl(getIt<ApiClient>()),
+  );
+
   getIt.registerFactory<DashboardBloc>(
     () => DashboardBloc(getIt<DashboardRepository>()),
   );
@@ -79,5 +85,9 @@ Future<void> setupDependencies() async {
 
   getIt.registerFactory<MashqlarBloc>(
     () => MashqlarBloc(getIt<UjtRepository>()),
+  );
+
+  getIt.registerFactory<AnalyticsBloc>(
+    () => AnalyticsBloc(getIt<AnalyticsRepository>()),
   );
 }

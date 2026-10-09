@@ -1,9 +1,13 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../core/l10n/app_translations.dart';
 import '../../../../core/theme/app_palette.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
+import '../../../exercises/presentation/views/my_exercises_view.dart';
 import '../../../mashqlar/presentation/views/mashqlar_view.dart';
 import '../../../tests/presentation/views/tests_library_view.dart';
 import '../../../profile/presentation/views/profile_view.dart';
@@ -22,12 +26,40 @@ class MainLayoutView extends StatefulWidget {
 
 class _MainLayoutViewState extends State<MainLayoutView> {
   int _currentIndex = 0;
+  DateTime? _lastBackPress;
+
+  /// Orqaga tugmasini birinchi bosishda snackbar, ikkinchisida chiqish.
+  Future<bool> _onWillPop() async {
+    final now = DateTime.now();
+    if (_lastBackPress != null && now.difference(_lastBackPress!) < const Duration(seconds: 2)) {
+      return true; // chiqishga ruxsat
+    }
+    _lastBackPress = now;
+    if (!mounted) return false;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: const Text(
+            'Chiqish uchun yana bir marta bosing',
+            textAlign: TextAlign.center,
+          ),
+          duration: const Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: AppColors.primaryNavy,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          margin: EdgeInsets.symmetric(horizontal: 40.w, vertical: 20.h),
+        ),
+      );
+    return false;
+  }
 
   bool get isCoach => widget.role == AppConstants.roleCoach;
 
   List<Widget> get _coachScreens => [
         CoachDashboardView(onSelectTab: _selectTab),
         const AthletesListView(),
+        const MyExercisesView(),
         TestsLibraryView(userRole: widget.role),
         ProfileView(userRole: widget.role),
       ];
@@ -45,16 +77,31 @@ class _MainLayoutViewState extends State<MainLayoutView> {
   Widget build(BuildContext context) {
     final screens = isCoach ? _coachScreens : _athleteScreens;
 
-    return Scaffold(
-      backgroundColor: context.palette.background,
-      body: IndexedStack(
-        index: _currentIndex,
-        children: screens,
-      ),
-      bottomNavigationBar: MainBottomNavBar(
-        currentIndex: _currentIndex,
-        isCoach: isCoach,
-        onTap: _selectTab,
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (!didPop) {
+          final shouldPop = await _onWillPop();
+          if (shouldPop && mounted) {
+            if (Platform.isAndroid) {
+              SystemNavigator.pop();
+            } else {
+              exit(0);
+            }
+          }
+        }
+      },
+      child: Scaffold(
+        backgroundColor: context.palette.background,
+        body: IndexedStack(
+          index: _currentIndex,
+          children: screens,
+        ),
+        bottomNavigationBar: MainBottomNavBar(
+          currentIndex: _currentIndex,
+          isCoach: isCoach,
+          onTap: _selectTab,
+        ),
       ),
     );
   }
@@ -117,6 +164,7 @@ class MainBottomNavBar extends StatelessWidget {
   List<_NavItemData> get _coachItems => [
     _NavItemData(icon: Icons.dashboard_outlined, activeIcon: Icons.dashboard, label: Tr.t('navDashboard')),
     _NavItemData(icon: Icons.people_outline, activeIcon: Icons.people, label: Tr.t('navAthletes')),
+    _NavItemData(icon: Icons.fitness_center_outlined, activeIcon: Icons.fitness_center, label: Tr.t('navExercises')),
     _NavItemData(icon: Icons.assignment_outlined, activeIcon: Icons.assignment, label: Tr.t('navTests')),
     _NavItemData(icon: Icons.person_outline, activeIcon: Icons.person, label: Tr.t('navProfile')),
   ];
@@ -200,12 +248,16 @@ class _NavBarItem extends StatelessWidget {
               ),
             ),
             SizedBox(height: 4.h),
-            Text(
-              label,
-              style: TextStyle(
-                color: isSelected ? Colors.white : palette.textSecondary,
-                fontSize: 10.5.sp,
-                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: isSelected ? Colors.white : palette.textSecondary,
+                  fontSize: 10.5.sp,
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                ),
               ),
             ),
           ],

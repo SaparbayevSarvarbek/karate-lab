@@ -7,6 +7,10 @@ abstract class TestEvent extends Equatable {
   List<Object?> get props => [];
 }
 
+class LoadAllTests extends TestEvent {
+  const LoadAllTests();
+}
+
 class LoadMyTests extends TestEvent {
   const LoadMyTests();
 }
@@ -34,22 +38,29 @@ class LoadCoachTests extends TestEvent {
   const LoadCoachTests();
 }
 
-class CreateCoachTest extends TestEvent {
-  final CreateTestRequest request;
-  final List<int> athleteIds;
+class FinishMyTestWithResult extends TestEvent {
+  final int id;
+  final FinishTestRequest request;
 
-  const CreateCoachTest({required this.request, this.athleteIds = const []});
+  const FinishMyTestWithResult({required this.id, required this.request});
 
   @override
-  List<Object?> get props => [request, athleteIds];
+  List<Object?> get props => [id, request];
 }
 
-class AssignCoachTest extends TestEvent {
-  final int testId;
-  final AssignTestRequest request;
+class CreateCoachTest extends TestEvent {
+  final CreateTestRequest request;
+  final List<TestStepInput> steps;
+  final List<Object?> stepImages;
+  final Object? cover;
 
-  const AssignCoachTest({required this.testId, required this.request});
+  const CreateCoachTest({
+    required this.request,
+    this.steps = const [],
+    this.stepImages = const [],
+    this.cover,
+  });
 
   @override
-  List<Object?> get props => [testId, request];
+  List<Object?> get props => [request, steps, cover];
 }

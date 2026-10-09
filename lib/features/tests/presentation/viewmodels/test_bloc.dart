@@ -1,7 +1,10 @@
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'dart:io';
+
 import 'package:equatable/equatable.dart';
-import '../../../../core/repositories/test_repository.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
 import '../../../../core/api/models/test_models.dart';
+import '../../../../core/repositories/test_repository.dart';
 
 part 'test_event.dart';
 part 'test_state.dart';
@@ -10,12 +13,25 @@ class TestBloc extends Bloc<TestEvent, TestState> {
   final TestRepository _repository;
 
   TestBloc(this._repository) : super(TestInitial()) {
+    on<LoadAllTests>(_onLoadAllTests);
     on<LoadMyTests>(_onLoadMyTests);
     on<StartMyTest>(_onStartMyTest);
     on<FinishMyTest>(_onFinishMyTest);
+    on<FinishMyTestWithResult>(_onFinishMyTestWithResult);
     on<LoadCoachTests>(_onLoadCoachTests);
     on<CreateCoachTest>(_onCreateCoachTest);
-    on<AssignCoachTest>(_onAssignCoachTest);
+  }
+
+  Future<void> _onLoadAllTests(
+    LoadAllTests event,
+    Emitter<TestState> emit,
+  ) async {
+    emit(TestLoading());
+    final result = await _repository.getAllTests();
+    result.fold(
+      (error) => emit(TestError(error.message)),
+      (tests) => emit(AllTestsLoaded(tests)),
+    );
   }
 
   Future<void> _onLoadMyTests(
@@ -54,6 +70,18 @@ class TestBloc extends Bloc<TestEvent, TestState> {
     );
   }
 
+  Future<void> _onFinishMyTestWithResult(
+    FinishMyTestWithResult event,
+    Emitter<TestState> emit,
+  ) async {
+    emit(TestActionLoading());
+    final result = await _repository.finishTest(event.id, event.request);
+    result.fold(
+      (error) => emit(TestError(error.message)),
+      (result) => emit(TestFinished(result)),
+    );
+  }
+
   Future<void> _onLoadCoachTests(
     LoadCoachTests event,
     Emitter<TestState> emit,
@@ -71,47 +99,18 @@ class TestBloc extends Bloc<TestEvent, TestState> {
     Emitter<TestState> emit,
   ) async {
     emit(TestActionLoading());
-    final result = await _repository.createTest(event.request);
+    final result = await _repository.createTest(
+      event.request,
+      cover: event.cover as File?,
+      steps: event.steps,
+      stepImages: event.stepImages.cast<File?>(),
+    );
     result.fold(
       (error) => emit(TestError(error.message)),
       (test) {
-        if (event.athleteIds.isNotEmpty) {
-          _assignAfterCreate(test.id, event.athleteIds, emit);
-        } else {
-          emit(TestCreated(test));
-          add(const LoadCoachTests());
-        }
-      },
-    );
-  }
-
-  Future<void> _assignAfterCreate(
-    int testId,
-    List<int> athleteIds,
-    Emitter<TestState> emit,
-  ) async {
-    final result = await _repository.assignTest(
-      testId,
-      AssignTestRequest(athleteIds: athleteIds),
-    );
-    result.fold(
-      (error) => emit(TestError(error.message)),
-      (_) {
-        emit(TestCreated(null));
+        emit(TestCreated(test));
         add(const LoadCoachTests());
       },
-    );
-  }
-
-  Future<void> _onAssignCoachTest(
-    AssignCoachTest event,
-    Emitter<TestState> emit,
-  ) async {
-    emit(TestActionLoading());
-    final result = await _repository.assignTest(event.testId, event.request);
-    result.fold(
-      (error) => emit(TestError(error.message)),
-      (_) => emit(TestAssigned()),
     );
   }
 }

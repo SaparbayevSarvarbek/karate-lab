@@ -37,6 +37,11 @@ _UjtTest _$UjtTestFromJson(Map<String, dynamic> json) => _UjtTest(
   qualities:
       (json['qualities'] as List<dynamic>?)?.map((e) => e as String).toList() ??
       const <String>[],
+  steps:
+      (json['steps'] as List<dynamic>?)
+          ?.map((e) => UjtStep.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const <UjtStep>[],
   createdAt: json['createdAt'] as String?,
 );
 
@@ -47,5 +52,6 @@ Map<String, dynamic> _$UjtTestToJson(_UjtTest instance) => <String, dynamic>{
   'ageGroup': instance.ageGroup,
   'coverUrl': instance.coverUrl,
   'qualities': instance.qualities,
+  'steps': instance.steps,
   'createdAt': instance.createdAt,
 };

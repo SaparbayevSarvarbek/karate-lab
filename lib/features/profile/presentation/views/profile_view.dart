@@ -9,6 +9,7 @@ import '../../../../core/l10n/app_translations.dart';
 import '../../../../core/theme/app_palette.dart';
 import '../../../../core/theme/theme_controller.dart';
 import '../../../../core/widgets/remote_image.dart';
+import '../../../../core/widgets/shimmer_placeholder.dart';
 import '../../../auth/presentation/viewmodels/bloc/auth_bloc.dart';
 import '../viewmodels/profile_bloc.dart';
 
@@ -62,15 +63,19 @@ class _ProfileViewState extends State<ProfileView> {
                   padding: const EdgeInsets.all(24.0),
                   child: Column(
                     children: [
-                      ProfileAvatarSection(isCoach: isCoach, profile: profile),
                       if (state is ProfileLoading && profile == null)
-                        const Padding(
-                          padding: EdgeInsets.only(top: 24),
-                          child: Center(child: CircularProgressIndicator()),
-                        ),
-                      const SizedBox(height: 32),
-                      ProfileMenuList(isCoach: isCoach),
-                      const SizedBox(height: 32),
+                        const ShimmerProfileAvatar()
+                      else
+                        ProfileAvatarSection(isCoach: isCoach, profile: profile),
+                      if (state is ProfileLoading && profile == null)
+                        const SizedBox(height: 24.0)
+                      else
+                        const SizedBox(height: 24.0),
+                      if (state is ProfileLoading && profile == null)
+                        const ShimmerListTile(hasLeading: true, lines: 1)
+                      else
+                        ProfileMenuList(isCoach: isCoach),
+                      const SizedBox(height: 32.0),
                       const ProfileLogoutButton(),
                     ],
                   ),
@@ -109,13 +114,14 @@ class ProfileAvatarSection extends StatelessWidget {
         ProfileAvatar(isCoach: isCoach, profile: profile),
         const SizedBox(height: 14),
         ProfileName(isCoach: isCoach, name: profile?.fullName ?? ''),
-        const SizedBox(height: 4),
-        ProfileBadge(isCoach: isCoach),
         if (profile != null && profile!.username.isNotEmpty) ...[
-          const SizedBox(height: 4),
+          const SizedBox(height: 6),
           Text(
-            '@${profile!.username}',
-            style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+            profile!.username,
+            style: TextStyle(
+              color: context.palette.textSecondary,
+              fontSize: 13,
+            ),
           ),
         ],
       ],
@@ -184,27 +190,6 @@ class ProfileName extends StatelessWidget {
   }
 }
 
-class ProfileBadge extends StatelessWidget {
-  final bool isCoach;
-
-  const ProfileBadge({super.key, required this.isCoach});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-      decoration: BoxDecoration(
-        color: AppColors.primaryBlue.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(
-        isCoach ? Tr.t('badgeCoach') : Tr.t('badgeAthlete'),
-        style: const TextStyle(color: AppColors.primaryBlue, fontWeight: FontWeight.w600, fontSize: 13),
-      ),
-    );
-  }
-}
-
 class ProfileMenuList extends StatelessWidget {
   final bool isCoach;
 
@@ -235,20 +220,6 @@ class ProfileMenuList extends StatelessWidget {
               }
             },
           ),
-          if (isCoach) ...[
-            const ProfileMenuDivider(),
-            ProfileMenuItem(
-              title: Tr.t('menuAddTest'),
-              icon: Icons.add_chart,
-              onTap: () => context.push('/create-test'),
-            ),
-            const ProfileMenuDivider(),
-            ProfileMenuItem(
-              title: Tr.t('menuAddExercise'),
-              icon: Icons.add_circle_outline,
-              onTap: () => context.push('/add-exercise'),
-            ),
-          ],
           const ProfileMenuDivider(),
           ProfileMenuItem(
             title: Tr.t('menuNotifications'),
@@ -265,7 +236,10 @@ class ProfileMenuList extends StatelessWidget {
           ProfileMenuItem(
             title: Tr.t('menuReports'),
             icon: Icons.bar_chart,
-            onTap: () => context.push('/reports'),
+            onTap: () => context.push(
+              '/reports',
+              extra: isCoach ? AppConstants.roleCoach : AppConstants.roleAthlete,
+            ),
           ),
           const ProfileMenuDivider(),
           const ProfileThemeToggleItem(),
@@ -297,8 +271,9 @@ class ProfileMenuItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = context.palette;
     return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       leading: Container(
-        padding: const EdgeInsets.all(8),
+        padding: const EdgeInsets.all(6),
         decoration: BoxDecoration(
           color: palette.backgroundLight,
           borderRadius: BorderRadius.circular(8),
@@ -308,8 +283,9 @@ class ProfileMenuItem extends StatelessWidget {
       title: Text(
         title,
         style: TextStyle(
-          fontWeight: FontWeight.w500,
+          fontWeight: FontWeight.w600,
           color: palette.textPrimary,
+          height: 1.35,
         ),
       ),
       trailing: Icon(Icons.chevron_right, color: palette.textHint),
@@ -324,28 +300,41 @@ class ProfileThemeToggleItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
-    return ListTile(
-      leading: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: palette.backgroundLight,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Icon(
-          ThemeController.instance.isDark ? Icons.dark_mode : Icons.light_mode,
-          color: AppColors.primaryBlue,
-          size: 20,
-        ),
-      ),
-      title: Text(
-        ThemeController.instance.isDark ? Tr.t('themeDark') : Tr.t('themeLight'),
-        style: TextStyle(fontWeight: FontWeight.w500, color: palette.textPrimary),
-      ),
-      trailing: Switch(
-        value: ThemeController.instance.isDark,
-        onChanged: (v) => ThemeController.instance.setDark(v),
-        activeTrackColor: AppColors.primaryBlue,
-      ),
+    // `ThemeController` singleton bo'lgani uchun unga to'g'ridan-to'g'ri
+    // bog'lanish shart: aks holda switch va yozuv darhol yangilanmaydi.
+    return ListenableBuilder(
+      listenable: ThemeController.instance,
+      builder: (context, _) {
+        final isDark = ThemeController.instance.isDark;
+        return ListTile(
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          leading: Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: palette.backgroundLight,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(
+              isDark ? Icons.dark_mode : Icons.light_mode,
+              color: AppColors.primaryBlue,
+              size: 20,
+            ),
+          ),
+          title: Text(
+            isDark ? Tr.t('themeDark') : Tr.t('themeLight'),
+            style: TextStyle(
+              fontWeight: FontWeight.w500,
+              color: palette.textPrimary,
+            ),
+          ),
+          trailing: Switch(
+            value: isDark,
+            onChanged: (v) => ThemeController.instance.setDark(v),
+            activeTrackColor: AppColors.primaryBlue,
+          ),
+        );
+      },
     );
   }
 }

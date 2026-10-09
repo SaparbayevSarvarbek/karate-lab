@@ -1,4 +1,8 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 
 import '../api/api_client.dart';
 import '../api/api_constants.dart';
@@ -7,18 +11,20 @@ import '../api/models/test_models.dart';
 
 /// Testlar repository (Swagger: Tests, Athlete Tests).
 abstract class TestRepository {
-  Future<Either<ApiException, List<TestAssignment>>> getMyTests();
-  Future<Either<ApiException, TestAssignment>> startTest(int id);
-  Future<Either<ApiException, void>> finishTest(
+  Future<Either<ApiException, List<TestResult>>> getMyTests();
+  Future<Either<ApiException, List<TestEntity>>> getAllTests();
+  Future<Either<ApiException, TestResult>> startTest(int id);
+  Future<Either<ApiException, TestResult>> finishTest(
     int id,
     FinishTestRequest request,
   );
   Future<Either<ApiException, List<TestEntity>>> getCoachTests();
-  Future<Either<ApiException, TestEntity>> createTest(CreateTestRequest request);
-  Future<Either<ApiException, void>> assignTest(
-    int id,
-    AssignTestRequest request,
-  );
+  Future<Either<ApiException, TestEntity>> createTest(
+    CreateTestRequest request, {
+    File? cover,
+    List<TestStepInput> steps = const [],
+    List<File?> stepImages = const [],
+  });
 }
 
 class TestRepositoryImpl implements TestRepository {
@@ -27,39 +33,52 @@ class TestRepositoryImpl implements TestRepository {
   TestRepositoryImpl(this._apiClient);
 
   @override
-  Future<Either<ApiException, List<TestAssignment>>> getMyTests() async {
+  Future<Either<ApiException, List<TestResult>>> getMyTests() async {
     try {
       final items = await _apiClient.getList(ApiConstants.myTests);
-      return Right(items.map(TestAssignment.fromJson).toList());
+      return Right(items.map(TestResult.fromJson).toList());
     } on ApiException catch (e) {
       return Left(e);
     }
   }
 
   @override
-  Future<Either<ApiException, TestAssignment>> startTest(int id) async {
+  Future<Either<ApiException, TestResult>> startTest(int id) async {
     try {
       final data = await _apiClient.postObject(ApiConstants.startTest(id));
       if (data == null) {
         return const Left(ApiException(message: 'Server javob bermadi'));
       }
-      return Right(TestAssignment.fromJson(data));
+      return Right(TestResult.fromJson(data));
     } on ApiException catch (e) {
       return Left(e);
     }
   }
 
   @override
-  Future<Either<ApiException, void>> finishTest(
+  Future<Either<ApiException, TestResult>> finishTest(
     int id,
     FinishTestRequest request,
   ) async {
     try {
-      await _apiClient.postObject(
+      final data = await _apiClient.postObject(
         ApiConstants.finishTest(id),
         data: request.toJson(),
       );
-      return const Right(null);
+      if (data == null) {
+        return const Left(ApiException(message: 'Server javob bermadi'));
+      }
+      return Right(TestResult.fromJson(data));
+    } on ApiException catch (e) {
+      return Left(e);
+    }
+  }
+
+  @override
+  Future<Either<ApiException, List<TestEntity>>> getAllTests() async {
+    try {
+      final items = await _apiClient.getList(ApiConstants.tests);
+      return Right(items.map(TestEntity.fromJson).toList());
     } on ApiException catch (e) {
       return Left(e);
     }
@@ -77,33 +96,61 @@ class TestRepositoryImpl implements TestRepository {
 
   @override
   Future<Either<ApiException, TestEntity>> createTest(
-    CreateTestRequest request,
-  ) async {
+    CreateTestRequest request, {
+    File? cover,
+    List<TestStepInput> steps = const [],
+    List<File?> stepImages = const [],
+  }) async {
     try {
+      final hasSteps = steps.isNotEmpty;
+      if (cover == null && !hasSteps) {
+        final data = await _apiClient.postObject(
+          ApiConstants.tests,
+          data: request.toJson(),
+        );
+        if (data == null) {
+          return const Left(ApiException(message: 'Server javob bermadi'));
+        }
+        return Right(TestEntity.fromJson(data));
+      }
+
+      final formData = FormData.fromMap({
+        'name': request.name,
+        'description': request.description,
+        'category': request.category,
+        'age': request.age,
+        'goal': request.goal,
+        'qualities': jsonEncode(request.qualities),
+        if (cover != null)
+          'cover': await MultipartFile.fromFile(
+            cover.path,
+            filename: cover.path.split(Platform.pathSeparator).last,
+          ),
+        if (hasSteps)
+          'steps': jsonEncode(steps.map((s) => s.toJson()).toList()),
+      });
+
+      for (var i = 0; i < stepImages.length; i++) {
+        final f = stepImages[i];
+        if (f != null) {
+          formData.files.add(MapEntry(
+            'step_image_$i',
+            await MultipartFile.fromFile(
+              f.path,
+              filename: f.path.split(Platform.pathSeparator).last,
+            ),
+          ));
+        }
+      }
+
       final data = await _apiClient.postObject(
         ApiConstants.tests,
-        data: request.toJson(),
+        formData: formData,
       );
       if (data == null) {
         return const Left(ApiException(message: 'Server javob bermadi'));
       }
       return Right(TestEntity.fromJson(data));
-    } on ApiException catch (e) {
-      return Left(e);
-    }
-  }
-
-  @override
-  Future<Either<ApiException, void>> assignTest(
-    int id,
-    AssignTestRequest request,
-  ) async {
-    try {
-      await _apiClient.postObject(
-        ApiConstants.assignTest(id),
-        data: request.toJson(),
-      );
-      return const Right(null);
     } on ApiException catch (e) {
       return Left(e);
     }

@@ -7,6 +7,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_palette.dart';
 import '../../../../core/widgets/remote_image.dart';
+import '../../../../core/widgets/shimmer_placeholder.dart';
 import '../viewmodels/athlete_bloc.dart';
 
 /// Sportchi profili (Swagger: `GET /athletes/{id}/`).
@@ -41,6 +42,7 @@ class _AthleteProfileContent extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<AthleteBloc, AthleteState>(
       builder: (context, state) {
+        final isLoading = state is AthleteLoading && (initial == null || initial!.id == 0);
         final athlete =
             state is AthleteLoaded ? state.athlete : (initial ?? const Athlete());
 
@@ -48,43 +50,52 @@ class _AthleteProfileContent extends StatelessWidget {
           backgroundColor: context.palette.background,
           body: CustomScrollView(
             slivers: [
-              _ProfileAppBar(athlete: athlete),
+              if (isLoading)
+                SliverToBoxAdapter(child: ShimmerProfileAvatar())
+              else
+                _ProfileAppBar(athlete: athlete),
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.all(24),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _ProfileHeader(athlete: athlete),
-                      const SizedBox(height: 24),
-                      _InfoCard(
-                        title: 'Shaxsiy ma\'lumotlar',
-                        rows: [
-                          InfoRow(label: 'Ism', value: athlete.firstName),
-                          InfoRow(label: 'Familiya', value: athlete.lastName),
-                          InfoRow(
-                            label: 'Tug\'ilgan sana',
-                            value: athlete.birthDate ?? '—',
-                          ),
-                          InfoRow(
-                            label: 'Telefon',
-                            value: (athlete.phone == null || athlete.phone!.isEmpty)
-                                ? '—'
-                                : athlete.phone!,
-                          ),
-                          InfoRow(
-                            label: 'Yosh',
-                            value:
-                                athlete.age > 0 ? '${athlete.age} yosh' : '—',
-                          ),
-                          InfoRow(label: 'Username', value: athlete.username),
-                        ],
-                      ),
-                      if (state is AthleteLoading)
-                        const Padding(
-                          padding: EdgeInsets.only(top: 24),
-                          child: Center(child: CircularProgressIndicator()),
+                      if (isLoading) ...[
+                        ShimmerPlaceholder(width: 180.w, height: 28.h, borderRadius: BorderRadius.circular(14.r)),
+                        SizedBox(height: 8.h),
+                        ShimmerPlaceholder(width: 100.w, height: 16.h, borderRadius: BorderRadius.circular(8.r)),
+                        SizedBox(height: 24.h),
+                        ...List.generate(6, (index) => Padding(
+                          padding: EdgeInsets.only(bottom: 12.h),
+                          child: ShimmerListTile(hasLeading: false, lines: 1),
+                        )),
+                      ] else ...[
+                        _ProfileHeader(athlete: athlete),
+                        const SizedBox(height: 24),
+                        _InfoCard(
+                          title: 'Shaxsiy ma\'lumotlar',
+                          rows: [
+                            InfoRow(label: 'Ism', value: athlete.firstName),
+                            InfoRow(label: 'Familiya', value: athlete.lastName),
+                            InfoRow(
+                              label: 'Tug\'ilgan sana',
+                              value: athlete.birthDate ?? '—',
+                            ),
+                            InfoRow(
+                              label: 'Telefon',
+                              value: (athlete.phone == null || athlete.phone!.isEmpty)
+                                  ? '—'
+                                  : athlete.phone!,
+                            ),
+                            InfoRow(
+                              label: 'Yosh',
+                              value:
+                                  athlete.age > 0 ? '${athlete.age} yosh' : '—',
+                            ),
+                            InfoRow(label: 'Username', value: athlete.username),
+                          ],
                         ),
+                      ],
                     ],
                   ),
                 ),

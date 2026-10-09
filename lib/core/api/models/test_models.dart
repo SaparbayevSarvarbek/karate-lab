@@ -2,8 +2,6 @@
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-import 'exercise_models.dart';
-
 part 'test_models.freezed.dart';
 part 'test_models.g.dart';
 
@@ -31,37 +29,27 @@ enum TestStatus {
   }
 }
 
-/// Swagger: `TestAssignment` — atletga biriktirilgan test.
+/// Test ichidagi bitta qadam. Atlet taymer bilan bajaradi.
 @freezed
-abstract class TestAssignment with _$TestAssignment {
-  const TestAssignment._();
+abstract class TestStep with _$TestStep {
+  const TestStep._();
 
-  const factory TestAssignment({
+  const factory TestStep({
     @Default(0) int id,
-    @Default(0) int testId,
-    @Default('') String name,
-    @Default([]) List<Exercise> exercises,
-    @JsonKey(unknownEnumValue: TestStatus.unknown)
-    @Default(TestStatus.unknown)
-    TestStatus status,
-    double? score,
-    @Default('') String notes,
-    DateTime? assignedAt,
-    DateTime? startedAt,
-    DateTime? finishedAt,
-  }) = _TestAssignment;
+    @Default('') String title,
+    @Default('') String description,
+    @Default('') String repetitions,
+    @Default(0) int duration,
+    @JsonKey(name: 'image') String? imageUrl,
+  }) = _TestStep;
 
-  factory TestAssignment.fromJson(Map<String, dynamic> json) =>
-      _$TestAssignmentFromJson(json);
+  factory TestStep.fromJson(Map<String, dynamic> json) =>
+      _$TestStepFromJson(json);
 
-  bool get isCompleted => status == TestStatus.completed;
-  bool get isInProgress => status == TestStatus.inProgress;
+  bool get hasImage => imageUrl != null && imageUrl!.isNotEmpty;
 }
 
-/// Swagger: `Test` — murabbiy yaratgan test (mashqlar bilan).
-///
-/// Swagger'da `exerciseIds` faqat yozish uchun (`writeOnly`), javob
-/// obyektiga kirmaydi — yaratish uchun [CreateTestRequest] ishlatiladi.
+/// Swagger: `Test` — murabbiy yaratgan test (qadamlari bilan).
 @freezed
 abstract class TestEntity with _$TestEntity {
   const TestEntity._();
@@ -69,48 +57,154 @@ abstract class TestEntity with _$TestEntity {
   const factory TestEntity({
     @Default(0) int id,
     @Default('') String name,
-    @Default([]) List<Exercise> exercises,
+    @Default('') String description,
+    @Default('') String category,
+    @Default('') String age,
+    @Default('') String goal,
+    @Default(<String>[]) List<String> qualities,
+    String? coverUrl,
+    @Default(<TestStep>[]) List<TestStep> steps,
     DateTime? createdAt,
+    @Default(true) bool isActive,
+    int? ownerId,
+    @Default('') String ownerName,
   }) = _TestEntity;
 
   factory TestEntity.fromJson(Map<String, dynamic> json) =>
       _$TestEntityFromJson(json);
 
-  int get totalDuration =>
-      exercises.fold<int>(0, (sum, e) => sum + e.duration);
+  bool get hasCover => coverUrl != null && coverUrl!.isNotEmpty;
+
+  int get totalDuration => steps.fold<int>(0, (sum, s) => sum + s.duration);
 }
 
-/// Swagger: `POST /tests/` — testni yaratish so'rovi
-/// (`{"name":"Balance Test","exerciseIds":[1,2]}`).
+/// Swagger: `/my-tests/` — test + sportchining natijasi (biriktirish yo'q).
+@freezed
+abstract class TestResult with _$TestResult {
+  const TestResult._();
+
+  const factory TestResult({
+    @Default(0) int id,
+    @Default(0) int testId,
+    @Default('') String name,
+    @Default('') String description,
+    @Default('') String category,
+    @Default('') String age,
+    @Default('') String goal,
+    @Default(<String>[]) List<String> qualities,
+    String? coverUrl,
+    @Default(<TestStep>[]) List<TestStep> steps,
+    @JsonKey(unknownEnumValue: TestStatus.unknown)
+    @Default(TestStatus.unknown)
+    TestStatus status,
+    double? score,
+    @Default('') String notes,
+    TestEvaluation? result,
+    DateTime? startedAt,
+    DateTime? finishedAt,
+    int? athleteId,
+  }) = _TestResult;
+
+  factory TestResult.fromJson(Map<String, dynamic> json) =>
+      _$TestResultFromJson(json);
+
+  bool get isCompleted => status == TestStatus.completed;
+  bool get isInProgress => status == TestStatus.inProgress;
+  bool get hasCover => coverUrl != null && coverUrl!.isNotEmpty;
+}
+
+/// Baholash natijasi — umumiy ball, baho va qadamlar diagrammasi.
+@freezed
+abstract class TestEvaluation with _$TestEvaluation {
+  const factory TestEvaluation({
+    @Default(0) double score,
+    @Default('') String rating,
+    @Default('grey') String color,
+    int? age,
+    @Default(<StepResult>[]) List<StepResult> steps,
+  }) = _TestEvaluation;
+
+  factory TestEvaluation.fromJson(Map<String, dynamic> json) =>
+      _$TestEvaluationFromJson(json);
+}
+
+/// Bitta qadam natijasi (me'yor bilan solishtirilgan).
+@freezed
+abstract class StepResult with _$StepResult {
+  const factory StepResult({
+    @Default(0) int stepId,
+    @Default(0) int order,
+    @Default('') String title,
+    @Default(0) double seconds,
+    @Default(0) int reps,
+    @Default('') String target,
+    @Default(0) double percent,
+    @Default('') String rating,
+    @Default('grey') String color,
+  }) = _StepResult;
+
+  factory StepResult.fromJson(Map<String, dynamic> json) =>
+      _$StepResultFromJson(json);
+}
+
+/// Swagger: `POST /tests/` — testni yaratish so'rovi.
 @freezed
 abstract class CreateTestRequest with _$CreateTestRequest {
   const factory CreateTestRequest({
     required String name,
-    required List<int> exerciseIds,
+    @Default('') String description,
+    @Default('') String category,
+    @Default('') String age,
+    @Default('') String goal,
+    @Default(<String>[]) List<String> qualities,
   }) = _CreateTestRequest;
 
   factory CreateTestRequest.fromJson(Map<String, dynamic> json) =>
       _$CreateTestRequestFromJson(json);
 }
 
-/// Swagger: `POST /tests/{id}/assign/` — testni atletlarga biriktirish
-/// (`{"athleteIds":[1,2,3]}`).
-@freezed
-abstract class AssignTestRequest with _$AssignTestRequest {
-  const factory AssignTestRequest({
-    required List<int> athleteIds,
-  }) = _AssignTestRequest;
+/// Yaratilayotgan test ichidagi bitta qadam metadatasi.
+/// Rasm fayli repository'ga alohida parallel ro'yxatda beriladi.
+class TestStepInput {
+  final String title;
+  final String description;
+  final String repetitions;
+  final int duration;
 
-  factory AssignTestRequest.fromJson(Map<String, dynamic> json) =>
-      _$AssignTestRequestFromJson(json);
+  TestStepInput({
+    this.title = '',
+    this.description = '',
+    this.repetitions = '',
+    this.duration = 0,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'title': title,
+        'description': description,
+        'repetitions': repetitions,
+        'duration': duration,
+      };
 }
 
-/// Swagger: `FinishTest` — testni yakunlash (`{"score":95,"notes":"..."}`).
+/// Test bajarilganda bitta qadam natijasi (`finish` so'rovida).
+@freezed
+abstract class FinishStepInput with _$FinishStepInput {
+  const factory FinishStepInput({
+    required int stepId,
+    @Default(0) double seconds,
+    @Default(0) int reps,
+  }) = _FinishStepInput;
+
+  factory FinishStepInput.fromJson(Map<String, dynamic> json) =>
+      _$FinishStepInputFromJson(json);
+}
+
+/// Swagger: `finish` — testni yakunlash (`notes` + `stepTimes`).
 @freezed
 abstract class FinishTestRequest with _$FinishTestRequest {
   const factory FinishTestRequest({
-    required double score,
     @Default('') String notes,
+    @Default(<FinishStepInput>[]) List<FinishStepInput> stepTimes,
   }) = _FinishTestRequest;
 
   factory FinishTestRequest.fromJson(Map<String, dynamic> json) =>

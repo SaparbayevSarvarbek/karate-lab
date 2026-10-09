@@ -302,7 +302,7 @@ as List<String>,
 /// @nodoc
 mixin _$UjtTest {
 
- int get id; String get title; String get goal; String get ageGroup; String? get coverUrl; List<String> get qualities;@JsonKey(includeFromJson: false) List<UjtStep> get steps; String? get createdAt;
+ int get id; String get title; String get goal; String get ageGroup; String? get coverUrl; List<String> get qualities; List<UjtStep> get steps; String? get createdAt;
 /// Create a copy of UjtTest
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -335,7 +335,7 @@ abstract mixin class $UjtTestCopyWith<$Res>  {
   factory $UjtTestCopyWith(UjtTest value, $Res Function(UjtTest) _then) = _$UjtTestCopyWithImpl;
 @useResult
 $Res call({
- int id, String title, String goal, String ageGroup, String? coverUrl, List<String> qualities,@JsonKey(includeFromJson: false) List<UjtStep> steps, String? createdAt
+ int id, String title, String goal, String ageGroup, String? coverUrl, List<String> qualities, List<UjtStep> steps, String? createdAt
 });
 
 
@@ -447,7 +447,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  String title,  String goal,  String ageGroup,  String? coverUrl,  List<String> qualities, @JsonKey(includeFromJson: false)  List<UjtStep> steps,  String? createdAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  String title,  String goal,  String ageGroup,  String? coverUrl,  List<String> qualities,  List<UjtStep> steps,  String? createdAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _UjtTest() when $default != null:
 return $default(_that.id,_that.title,_that.goal,_that.ageGroup,_that.coverUrl,_that.qualities,_that.steps,_that.createdAt);case _:
@@ -468,7 +468,7 @@ return $default(_that.id,_that.title,_that.goal,_that.ageGroup,_that.coverUrl,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  String title,  String goal,  String ageGroup,  String? coverUrl,  List<String> qualities, @JsonKey(includeFromJson: false)  List<UjtStep> steps,  String? createdAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  String title,  String goal,  String ageGroup,  String? coverUrl,  List<String> qualities,  List<UjtStep> steps,  String? createdAt)  $default,) {final _that = this;
 switch (_that) {
 case _UjtTest():
 return $default(_that.id,_that.title,_that.goal,_that.ageGroup,_that.coverUrl,_that.qualities,_that.steps,_that.createdAt);case _:
@@ -488,7 +488,7 @@ return $default(_that.id,_that.title,_that.goal,_that.ageGroup,_that.coverUrl,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  String title,  String goal,  String ageGroup,  String? coverUrl,  List<String> qualities, @JsonKey(includeFromJson: false)  List<UjtStep> steps,  String? createdAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  String title,  String goal,  String ageGroup,  String? coverUrl,  List<String> qualities,  List<UjtStep> steps,  String? createdAt)?  $default,) {final _that = this;
 switch (_that) {
 case _UjtTest() when $default != null:
 return $default(_that.id,_that.title,_that.goal,_that.ageGroup,_that.coverUrl,_that.qualities,_that.steps,_that.createdAt);case _:
@@ -503,7 +503,7 @@ return $default(_that.id,_that.title,_that.goal,_that.ageGroup,_that.coverUrl,_t
 @JsonSerializable()
 
 class _UjtTest extends UjtTest {
-  const _UjtTest({this.id = 0, this.title = '', this.goal = '', this.ageGroup = '', this.coverUrl, final  List<String> qualities = const <String>[], @JsonKey(includeFromJson: false) final  List<UjtStep> steps = const <UjtStep>[], this.createdAt}): _qualities = qualities,_steps = steps,super._();
+  const _UjtTest({this.id = 0, this.title = '', this.goal = '', this.ageGroup = '', this.coverUrl, final  List<String> qualities = const <String>[], final  List<UjtStep> steps = const <UjtStep>[], this.createdAt}): _qualities = qualities,_steps = steps,super._();
   factory _UjtTest.fromJson(Map<String, dynamic> json) => _$UjtTestFromJson(json);
 
 @override@JsonKey() final  int id;
@@ -519,7 +519,7 @@ class _UjtTest extends UjtTest {
 }
 
  final  List<UjtStep> _steps;
-@override@JsonKey(includeFromJson: false) List<UjtStep> get steps {
+@override@JsonKey() List<UjtStep> get steps {
   if (_steps is EqualUnmodifiableListView) return _steps;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_steps);
@@ -560,7 +560,7 @@ abstract mixin class _$UjtTestCopyWith<$Res> implements $UjtTestCopyWith<$Res> {
   factory _$UjtTestCopyWith(_UjtTest value, $Res Function(_UjtTest) _then) = __$UjtTestCopyWithImpl;
 @override @useResult
 $Res call({
- int id, String title, String goal, String ageGroup, String? coverUrl, List<String> qualities,@JsonKey(includeFromJson: false) List<UjtStep> steps, String? createdAt
+ int id, String title, String goal, String ageGroup, String? coverUrl, List<String> qualities, List<UjtStep> steps, String? createdAt
 });
 
 

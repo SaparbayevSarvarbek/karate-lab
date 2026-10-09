@@ -1,0 +1,488 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+
+import '../../../../core/api/api_constants.dart';
+import '../../../../core/api/models/mjt_models.dart';
+import '../../../../core/constants/app_colors.dart';
+import '../../../../core/di/injection.dart';
+import '../../../../core/repositories/ujt_repository.dart';
+import '../../../../core/theme/app_palette.dart';
+import '../../../../core/widgets/remote_image.dart';
+
+/// Bitta MJT testi: maqsad, sifatlar va 5 ta step (rasm, takrorlash, dam olish, maqsad).
+class MjtTestDetailView extends StatefulWidget {
+  final int testId;
+
+  const MjtTestDetailView({super.key, required this.testId});
+
+  @override
+  State<MjtTestDetailView> createState() => _MjtTestDetailViewState();
+}
+
+class _MjtTestDetailViewState extends State<MjtTestDetailView> {
+  late Future<MjtTest?> _future;
+
+  @override
+  void initState() {
+    super.initState();
+    _future = _load();
+  }
+
+  Future<MjtTest?> _load() async {
+    final result = await getIt<UjtRepository>().getMjtTestById(widget.testId);
+    return result.fold(
+      (error) {
+        if (mounted) {
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(
+              SnackBar(
+                content: Text(error.message),
+                backgroundColor: AppColors.error,
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+        }
+        return null;
+      },
+      (test) => test,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: context.palette.background,
+      body: FutureBuilder<MjtTest?>(
+        future: _future,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState != ConnectionState.done) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          final test = snapshot.data;
+          if (test == null) {
+            return Scaffold(
+              appBar: AppBar(title: const Text('MJT testi')),
+              body: const Center(child: Text('Test topilmadi')),
+            );
+          }
+          return CustomScrollView(
+            slivers: [
+              _AppBar(test: test),
+              SliverToBoxAdapter(child: _Content(test: test)),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _AppBar extends StatelessWidget {
+  final MjtTest test;
+
+  const _AppBar({required this.test});
+
+  @override
+  Widget build(BuildContext context) {
+    return SliverAppBar(
+      expandedHeight: 230.h,
+      pinned: true,
+      stretch: true,
+      backgroundColor: AppColors.primaryNavy,
+      iconTheme: const IconThemeData(color: Colors.white),
+      flexibleSpace: FlexibleSpaceBar(
+        stretchModes: const [StretchMode.zoomBackground],
+        background: Stack(
+          fit: StackFit.expand,
+          children: [
+            if (test.hasCover)
+              RemoteImage(
+                url: ApiConstants.resolveMediaUrl(test.coverUrl!),
+                borderRadius: BorderRadius.zero,
+                fit: BoxFit.cover,
+              )
+            else
+              Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [AppColors.primaryNavy, Color(0xFF7C3AED)],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                  ),
+                ),
+                child: Center(
+                  child: Icon(
+                    Icons.fitness_center_rounded,
+                    size: 90.w,
+                    color: Colors.white.withValues(alpha: 0.2),
+                  ),
+                ),
+              ),
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.black.withValues(alpha: 0.1),
+                    Colors.black.withValues(alpha: 0.68),
+                  ],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+              ),
+            ),
+            Positioned(
+              left: 18.w,
+              right: 18.w,
+              bottom: 14.h,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      _HeroChip(label: 'MJT', color: AppColors.warning),
+                      SizedBox(width: 8.w),
+                      if (test.ageGroup.isNotEmpty)
+                        _HeroChip(
+                          label: test.ageGroup,
+                          color: Colors.white.withValues(alpha: 0.18),
+                        ),
+                    ],
+                  ),
+                  SizedBox(height: 8.h),
+                  Text(
+                    test.title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20.sp,
+                      fontWeight: FontWeight.w800,
+                      shadows: const [
+                        Shadow(
+                          color: Colors.black45,
+                          blurRadius: 8,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _HeroChip extends StatelessWidget {
+  final String label;
+  final Color color;
+
+  const _HeroChip({required this.label, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(999.r),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: 11.sp,
+          fontWeight: FontWeight.w800,
+          letterSpacing: 0.4,
+        ),
+      ),
+    );
+  }
+}
+
+class _Content extends StatelessWidget {
+  final MjtTest test;
+
+  const _Content({required this.test});
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    return Padding(
+      padding: EdgeInsets.fromLTRB(16.w, 18.h, 16.w, 32.h),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (test.goal.isNotEmpty) ...[
+            _SectionTitle(title: 'Maqsad', icon: Icons.flag_rounded),
+            SizedBox(height: 10.h),
+            Text(
+              test.goal,
+              style: TextStyle(
+                color: palette.textSecondary,
+                fontSize: 13.sp,
+                height: 1.55,
+              ),
+            ),
+          ],
+          if (test.qualities.isNotEmpty) ...[
+            SizedBox(height: 16.h),
+            _SectionTitle(title: 'Rivojlanadigan sifatlar', icon: Icons.stars_rounded),
+            SizedBox(height: 10.h),
+            Wrap(
+              spacing: 8.w,
+              runSpacing: 8.h,
+              children: test.qualities
+                  .map((q) => Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 12.w,
+                          vertical: 6.h,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.warning.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(999.r),
+                        ),
+                        child: Text(
+                          q,
+                          style: TextStyle(
+                            color: AppColors.warning,
+                            fontSize: 11.5.sp,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ))
+                  .toList(),
+            ),
+          ],
+          SizedBox(height: 22.h),
+          _SectionTitle(
+            title: 'Mashqlar (${test.steps.length})',
+            icon: Icons.list_alt_rounded,
+          ),
+          SizedBox(height: 12.h),
+          if (test.steps.isEmpty)
+            Text(
+              'Mashqlar kiritilmagan',
+              style: TextStyle(
+                color: palette.textSecondary,
+                fontSize: 13.sp,
+              ),
+            )
+          else
+            for (int i = 0; i < test.steps.length; i++)
+              Padding(
+                padding: EdgeInsets.only(bottom: 12.h),
+                child: _StepCard(step: test.steps[i], index: i + 1),
+              ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SectionTitle extends StatelessWidget {
+  final String title;
+  final IconData icon;
+
+  const _SectionTitle({required this.title, required this.icon});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, size: 19.w, color: AppColors.warning),
+        SizedBox(width: 8.w),
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 16.sp,
+            fontWeight: FontWeight.w800,
+            color: context.palette.textPrimary,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _StepCard extends StatelessWidget {
+  final MjtStep step;
+  final int index;
+
+  const _StepCard({required this.step, required this.index});
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    return Container(
+      padding: EdgeInsets.all(14.w),
+      decoration: BoxDecoration(
+        color: palette.surface,
+        borderRadius: BorderRadius.circular(16.r),
+        border: Border.all(color: palette.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 32.w,
+                height: 32.w,
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [AppColors.warning, Color(0xFFD97706)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: Text(
+                    '$index',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 13.sp,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(width: 10.w),
+              Expanded(
+                child: Text(
+                  step.title,
+                  style: TextStyle(
+                    color: palette.textPrimary,
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          if (step.description.isNotEmpty) ...[
+            SizedBox(height: 10.h),
+            Text(
+              step.description,
+              style: TextStyle(
+                color: palette.textSecondary,
+                fontSize: 12.5.sp,
+                height: 1.55,
+              ),
+            ),
+          ],
+          if (step.goal.isNotEmpty) ...[
+            SizedBox(height: 10.h),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  Icons.flag_outlined,
+                  size: 14.w,
+                  color: AppColors.warning,
+                ),
+                SizedBox(width: 6.w),
+                Expanded(
+                  child: Text(
+                    step.goal,
+                    style: TextStyle(
+                      color: palette.textPrimary,
+                      fontSize: 12.5.sp,
+                      height: 1.5,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+          if (step.images.isNotEmpty) ...[
+            SizedBox(height: 10.h),
+            for (final img in step.images)
+              Padding(
+                padding: EdgeInsets.only(bottom: 8.h),
+                child: RemoteImage(
+                  url: ApiConstants.resolveMediaUrl(img),
+                  width: double.infinity,
+                  fit: BoxFit.fitWidth,
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
+              ),
+          ],
+          if (step.repetitions.isNotEmpty || step.rest.isNotEmpty) ...[
+            SizedBox(height: 10.h),
+            Wrap(
+              spacing: 14.w,
+              runSpacing: 6.h,
+              children: [
+                if (step.repetitions.isNotEmpty)
+                  _StepMeta(
+                    icon: Icons.repeat_rounded,
+                    label: 'Takrorlash',
+                    value: step.repetitions,
+                  ),
+                if (step.rest.isNotEmpty)
+                  _StepMeta(
+                    icon: Icons.timer_outlined,
+                    label: 'Dam olish',
+                    value: step.rest,
+                  ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _StepMeta extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+
+  const _StepMeta({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+      decoration: BoxDecoration(
+        color: AppColors.warning.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(999.r),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 13.w, color: AppColors.warning),
+          SizedBox(width: 5.w),
+          Text(
+            '$label: ',
+            style: TextStyle(
+              color: palette.textSecondary,
+              fontSize: 11.sp,
+            ),
+          ),
+          Text(
+            value,
+            style: TextStyle(
+              color: palette.textPrimary,
+              fontSize: 11.sp,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

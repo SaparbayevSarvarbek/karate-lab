@@ -38,7 +38,10 @@ class _MashqlarViewState extends State<MashqlarView> {
   List<MashqItem> _filtered(List<MashqItem> items) {
     Iterable<MashqItem> result = items;
     if (_category != 'all') {
-      result = result.where((m) => m.kind == _category);
+      result = result.where((m) =>
+          m.kind == _category ||
+          (m.kind == 'texnik' &&
+              m.subtitle.toUpperCase() == _category.toUpperCase()));
     }
     if (_query.isNotEmpty) {
       final q = _query.toLowerCase();
@@ -300,15 +303,25 @@ class _MashqCard extends StatelessWidget {
                 Container(
                   padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
                   decoration: BoxDecoration(
-                    color: item.isUjt
-                        ? AppColors.success.withValues(alpha: 0.12)
-                        : AppColors.primaryBlue.withValues(alpha: 0.1),
+                    color: item.isMjt
+                        ? AppColors.warning.withValues(alpha: 0.14)
+                        : item.isUjt
+                            ? AppColors.success.withValues(alpha: 0.12)
+                            : AppColors.primaryBlue.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(999.r),
                   ),
                   child: Text(
-                    item.isUjt ? 'UJT' : 'Texnik',
+                    item.isMjt
+                        ? 'MJT'
+                        : item.isUjt
+                            ? 'UJT'
+                            : 'Texnik',
                     style: TextStyle(
-                      color: item.isUjt ? AppColors.success : AppColors.primaryBlue,
+                      color: item.isMjt
+                          ? AppColors.warning
+                          : item.isUjt
+                              ? AppColors.success
+                              : AppColors.primaryBlue,
                       fontSize: 10.sp,
                       fontWeight: FontWeight.w800,
                     ),
@@ -327,9 +340,14 @@ class _MashqCard extends StatelessWidget {
     );
   }
 
+  /// Faqat `kind` bo'yicha yo'naltiriladi. Kategoriya bo'yicha tekshirish
+  /// xato edi: murabbiy qo'shgan "UJT"/"MJT" kategoriyali mashq test emas,
+  /// shuning uchun test detali o'rniga mashq detaliga o'tishi kerak.
   void _open(BuildContext context) {
-    if (item.isUjt) {
+    if (item.kind == 'ujt') {
       context.push('/ujt-test-detail', extra: item.id);
+    } else if (item.kind == 'mjt') {
+      context.push('/mjt-test-detail', extra: item.id);
     } else if (item.exercise != null) {
       context.push('/exercise-detail', extra: item.exercise);
     }

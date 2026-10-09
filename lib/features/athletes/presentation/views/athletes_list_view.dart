@@ -53,14 +53,6 @@ class _AthletesListViewState extends State<AthletesListView> {
       appBar: AppBar(
         title: Text(Tr.t('navAthletes')),
         centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.person_add_alt_1_rounded),
-            onPressed: state is AthleteActionLoading
-                ? null
-                : () => _showAddAthleteSheet(context),
-          ),
-        ],
       ),
       body: Column(
         children: [
@@ -204,8 +196,8 @@ class _AthletesListViewState extends State<AthletesListView> {
                       SizedBox(height: 2.h),
                       Text(
                         athlete.age > 0
-                            ? '${Tr.t('yearsOld', {'age': '${athlete.age}'})} • @${athlete.username}'
-                            : '@${athlete.username}',
+                            ? '${Tr.t('yearsOld', {'age': '${athlete.age}'})} • ${athlete.username}'
+                            : athlete.username,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
@@ -232,154 +224,6 @@ class _AthletesListViewState extends State<AthletesListView> {
           ),
         ),
       ),
-    );
-  }
-
-  void _showAddAthleteSheet(BuildContext context) {
-    final bloc = context.read<AthleteBloc>();
-    final firstNameController = TextEditingController();
-    final lastNameController = TextEditingController();
-    DateTime? birthDate;
-
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (sheetContext) {
-        final palette = sheetContext.palette;
-        return Container(
-          decoration: BoxDecoration(
-            color: palette.background,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
-          ),
-          child: Padding(
-            padding: EdgeInsets.only(
-              bottom: MediaQuery.of(sheetContext).viewInsets.bottom,
-              left: 24.w,
-              right: 24.w,
-              top: 20.h,
-            ),
-            child: StatefulBuilder(
-              builder: (context, setSheetState) {
-                String birthLabel = Tr.t('birthDate');
-                if (birthDate != null) {
-                  birthLabel =
-                      '${birthDate!.year.toString().padLeft(4, '0')}-'
-                      '${birthDate!.month.toString().padLeft(2, '0')}-'
-                      '${birthDate!.day.toString().padLeft(2, '0')}';
-                }
-
-                return SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Center(
-                        child: Container(
-                          margin: EdgeInsets.only(bottom: 14.h),
-                          width: 40.w,
-                          height: 4.h,
-                          decoration: BoxDecoration(
-                            color: palette.border,
-                            borderRadius: BorderRadius.circular(999.r),
-                          ),
-                        ),
-                      ),
-                      Text(
-                        Tr.t('addNewAthlete'),
-                        style: TextStyle(
-                          fontSize: 17.sp,
-                          fontWeight: FontWeight.w800,
-                          color: palette.textPrimary,
-                        ),
-                      ),
-                      SizedBox(height: 16.h),
-                      TextField(
-                        controller: firstNameController,
-                        style: TextStyle(fontSize: 14.sp),
-                        decoration: InputDecoration(labelText: Tr.t('firstName')),
-                      ),
-                      SizedBox(height: 12.h),
-                      TextField(
-                        controller: lastNameController,
-                        style: TextStyle(fontSize: 14.sp),
-                        decoration: InputDecoration(labelText: Tr.t('lastName')),
-                      ),
-                      SizedBox(height: 12.h),
-                      OutlinedButton.icon(
-                        icon: const Icon(Icons.calendar_today_rounded),
-                        label: Text(birthLabel, style: TextStyle(fontSize: 13.sp)),
-                        onPressed: () async {
-                          final picked = await showDatePicker(
-                            context: context,
-                            initialDate: DateTime(2005),
-                            firstDate: DateTime(1950),
-                            lastDate: DateTime.now(),
-                          );
-                          if (picked != null) {
-                            birthDate = picked;
-                            setSheetState(() {});
-                          }
-                        },
-                      ),
-                      SizedBox(height: 18.h),
-                      SizedBox(
-                        width: double.infinity,
-                        child: FilledButton(
-                          onPressed: () {
-                            final firstName = firstNameController.text.trim();
-                            final lastName = lastNameController.text.trim();
-
-                            if (firstName.isEmpty || lastName.isEmpty) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(Tr.t('nameRequired')),
-                                  backgroundColor: AppColors.error,
-                                  behavior: SnackBarBehavior.floating,
-                                ),
-                              );
-                              return;
-                            }
-                            final date = birthDate;
-                            if (date == null) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(Tr.t('selectBirthDate')),
-                                  backgroundColor: AppColors.error,
-                                  behavior: SnackBarBehavior.floating,
-                                ),
-                              );
-                              return;
-                            }
-
-                            final isoDate =
-                                '${date.year.toString().padLeft(4, '0')}-'
-                                '${date.month.toString().padLeft(2, '0')}-'
-                                '${date.day.toString().padLeft(2, '0')}';
-
-                            bloc.add(
-                              AddAthlete(
-                                CreateAthleteRequest(
-                                  firstName: firstName,
-                                  lastName: lastName,
-                                  birthDate: isoDate,
-                                ),
-                              ),
-                            );
-                            Navigator.of(sheetContext).pop();
-                          },
-                          child: Text(Tr.t('add')),
-                        ),
-                      ),
-                      SizedBox(height: 16.h),
-                    ],
-                  ),
-                );
-              },
-            ),
-          ),
-        );
-      },
     );
   }
 

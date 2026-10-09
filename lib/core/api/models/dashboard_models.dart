@@ -27,20 +27,6 @@ abstract class DashboardData with _$DashboardData {
       _$DashboardDataFromJson(json);
 }
 
-/// Swagger: `GET /my-statistics/` — atletning shaxsiy statistikasi.
-@freezed
-abstract class MyStatistics with _$MyStatistics {
-  const factory MyStatistics({
-    double? avgScore,
-    int? activeDays,
-    int? completedTests,
-    @Default([]) List<RecentTestResult> recentTests,
-  }) = _MyStatistics;
-
-  factory MyStatistics.fromJson(Map<String, dynamic> json) =>
-      _$MyStatisticsFromJson(json);
-}
-
 /// Atletning so'nggi test natijalari.
 @freezed
 abstract class RecentTestResult with _$RecentTestResult {

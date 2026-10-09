@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../constants/app_colors.dart';
+import '../theme/app_palette.dart';
 
 class CustomTextField extends StatelessWidget {
   final String hintText;
@@ -8,6 +8,7 @@ class CustomTextField extends StatelessWidget {
   final Widget? prefixIcon;
   final Widget? suffixIcon;
   final String? prefixText;
+  final String? suffixText;
   final TextInputType keyboardType;
   final String? Function(String?)? validator;
   final void Function(String)? onChanged;
@@ -20,6 +21,7 @@ class CustomTextField extends StatelessWidget {
     this.prefixIcon,
     this.suffixIcon,
     this.prefixText,
+    this.suffixText,
     this.keyboardType = TextInputType.text,
     this.validator,
     this.onChanged,
@@ -27,6 +29,7 @@ class CustomTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final hintColor = context.palette.textHint;
     return TextFormField(
       controller: controller,
       obscureText: obscureText,
@@ -35,9 +38,10 @@ class CustomTextField extends StatelessWidget {
       onChanged: onChanged,
       decoration: InputDecoration(
         hintText: hintText,
-        prefixIcon: prefixIcon != null ? IconTheme(data: const IconThemeData(color: AppColors.textHint), child: prefixIcon!) : null,
+        prefixIcon: prefixIcon != null ? IconTheme(data: IconThemeData(color: hintColor), child: prefixIcon!) : null,
         prefixText: prefixText,
-        suffixIcon: suffixIcon != null ? IconTheme(data: const IconThemeData(color: AppColors.textHint), child: suffixIcon!) : null,
+        suffixText: suffixText,
+        suffixIcon: suffixIcon != null ? IconTheme(data: IconThemeData(color: hintColor), child: suffixIcon!) : null,
       ),
     );
   }

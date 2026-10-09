@@ -28,7 +28,7 @@ class ApiException implements Exception {
       case DioExceptionType.receiveTimeout:
         return 'Serverga ulanish vaqti tugadi. Internetni tekshirib qayta urinib ko\'ring.';
       case DioExceptionType.connectionError:
-        return 'Internet bilan bog\'lanish imkoni bo\'lmadi.';
+        return 'Serverga ulanib bo\'lmadi. WiFi tarmog\'ini tekshiring yoki server ishlayotganini sinab ko\'ring.';
       case DioExceptionType.badResponse:
         return _mapHttpError(e);
       case DioExceptionType.cancel:

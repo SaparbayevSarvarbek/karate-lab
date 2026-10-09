@@ -18,11 +18,13 @@ class MashqlarLoading extends MashqlarState {
 class MashqlarLoaded extends MashqlarState {
   final List<Exercise> texnik;
   final List<UjtTest> ujt;
+  final List<MjtTest> mjt;
   final String? warning;
 
   const MashqlarLoaded({
     required this.texnik,
     required this.ujt,
+    required this.mjt,
     this.warning,
   });
 
@@ -47,10 +49,20 @@ class MashqlarLoaded extends MashqlarState {
             ujtTest: t,
           ),
         ),
+        ...mjt.map(
+          (t) => MashqItem(
+            kind: 'mjt',
+            id: t.id,
+            title: t.title,
+            subtitle: t.ageGroup,
+            imageUrl: t.coverUrl,
+            mjtTest: t,
+          ),
+        ),
       ];
 
   @override
-  List<Object?> get props => [texnik, ujt, warning];
+  List<Object?> get props => [texnik, ujt, mjt, warning];
 }
 
 class MashqlarError extends MashqlarState {

@@ -65,6 +65,27 @@ class ApiPayload {
     }
     if (data is Map) {
       final map = Map<String, dynamic>.from(data);
+
+      // {success, data:{count, results:[...]}} → avval data ichiga kiraymiz.
+      var container = map['data'];
+      if (container is Map) {
+        for (final k in ['results', 'items']) {
+          if (container[k] is List) {
+            return (container[k] as List)
+                .whereType<Map>()
+                .map((e) => normalizeKeys(Map<String, dynamic>.from(e)))
+                .toList(growable: true);
+          }
+        }
+        container = container['results'] ?? container['items'];
+      }
+      if (container is List) {
+        return container
+            .whereType<Map>()
+            .map((e) => normalizeKeys(Map<String, dynamic>.from(e)))
+            .toList(growable: true);
+      }
+
       final candidates = <dynamic>[map['data'], map['results'], map['items']];
       for (final c in candidates) {
         if (c is List) {

@@ -1,45 +1,103 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+
+import '../../../../core/api/api_constants.dart';
 import '../../../../core/api/models/exercise_models.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/theme/app_palette.dart';
 import '../../../../core/widgets/remote_image.dart';
+import '../../../../core/widgets/shimmer_placeholder.dart';
 import '../widgets/exercise_video_player.dart';
 
 /// Mashq tafsilotlari sahifasi (Swagger: `Exercise` — `GET /exercises/{id}/`).
-class ExerciseDetailView extends StatelessWidget {
+///
+/// Ko'rinishi UJT/MJT test detali bilan bir xil: hero rasm va chiplar,
+/// bo'limlar hamda bosqich kartalari.
+class ExerciseDetailView extends StatefulWidget {
   final Exercise? exercise;
 
   const ExerciseDetailView({super.key, this.exercise});
 
   @override
+  State<ExerciseDetailView> createState() => _ExerciseDetailViewState();
+}
+
+class _ExerciseDetailViewState extends State<ExerciseDetailView> {
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    // Simulate loading or use a FutureBuilder pattern
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (mounted) setState(() => _isLoading = false);
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final ex = exercise ?? const Exercise(title: 'Mashq topilmadi');
+    final ex = widget.exercise ?? const Exercise(title: 'Mashq topilmadi');
 
     return Scaffold(
       backgroundColor: context.palette.background,
-      body: CustomScrollView(
-        slivers: [
-          ExerciseDetailAppBar(exercise: ex),
-          SliverToBoxAdapter(
-            child: ExerciseDetailContent(exercise: ex),
-          ),
-        ],
-      ),
+      body: _isLoading
+          ? CustomScrollView(
+              slivers: [
+                SliverAppBar(
+                  expandedHeight: 230.h,
+                  pinned: true,
+                  backgroundColor: AppColors.primaryNavy,
+                  flexibleSpace: FlexibleSpaceBar(
+                    background: ShimmerPlaceholder(
+                      width: double.infinity,
+                      height: 230.h,
+                      borderRadius: BorderRadius.zero,
+                    ),
+                  ),
+                ),
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(16.w, 18.h, 16.w, 32.h),
+                    child: ShimmerExerciseDetail(),
+                  ),
+                ),
+              ],
+            )
+          : CustomScrollView(
+              slivers: [
+                _AppBar(exercise: ex),
+                SliverToBoxAdapter(child: _Content(exercise: ex)),
+              ],
+            ),
     );
   }
 }
 
-class ExerciseDetailAppBar extends StatelessWidget {
+/// Mashq kategoriyasiga mos rang: MJT → warning, UJT → success, aks holda brand.
+Color _accentOf(String category) {
+  switch (category.toUpperCase()) {
+    case 'MJT':
+      return AppColors.warning;
+    case 'UJT':
+      return AppColors.success;
+    default:
+      return AppColors.primaryBlue;
+  }
+}
+
+class _AppBar extends StatelessWidget {
   final Exercise exercise;
-  const ExerciseDetailAppBar({super.key, required this.exercise});
+
+  const _AppBar({required this.exercise});
 
   @override
   Widget build(BuildContext context) {
+    final accent = _accentOf(exercise.category);
     return SliverAppBar(
-      expandedHeight: 260,
+      expandedHeight: 230.h,
       pinned: true,
       stretch: true,
-      backgroundColor: AppColors.primaryBlue,
+      backgroundColor: AppColors.primaryNavy,
       iconTheme: const IconThemeData(color: Colors.white),
       flexibleSpace: FlexibleSpaceBar(
         stretchModes: const [StretchMode.zoomBackground],
@@ -48,15 +106,14 @@ class ExerciseDetailAppBar extends StatelessWidget {
           children: [
             if (exercise.hasImage)
               RemoteImage(
-                url: exercise.image,
+                url: ApiConstants.resolveMediaUrl(exercise.image!),
                 borderRadius: BorderRadius.zero,
-                fallbackIcon: Icons.sports_martial_arts,
               )
             else
               Container(
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [AppColors.primaryBlue, Color(0xFF003DA5)],
+                    colors: [AppColors.primaryNavy, accent],
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                   ),
@@ -64,8 +121,8 @@ class ExerciseDetailAppBar extends StatelessWidget {
                 child: Center(
                   child: Icon(
                     Icons.sports_martial_arts_rounded,
-                    size: 110,
-                    color: Colors.white.withValues(alpha: 0.22),
+                    size: 90.w,
+                    color: Colors.white.withValues(alpha: 0.2),
                   ),
                 ),
               ),
@@ -74,7 +131,7 @@ class ExerciseDetailAppBar extends StatelessWidget {
                 gradient: LinearGradient(
                   colors: [
                     Colors.black.withValues(alpha: 0.1),
-                    Colors.black.withValues(alpha: 0.65),
+                    Colors.black.withValues(alpha: 0.68),
                   ],
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
@@ -82,37 +139,35 @@ class ExerciseDetailAppBar extends StatelessWidget {
               ),
             ),
             Positioned(
-              left: 20,
-              right: 20,
-              bottom: 24,
+              left: 18.w,
+              right: 18.w,
+              bottom: 14.h,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (exercise.category.isNotEmpty)
-                    Container(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryBlue,
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                      child: Text(
-                        exercise.category,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
+                  Row(
+                    children: [
+                      if (exercise.category.isNotEmpty) ...[
+                        _HeroChip(label: exercise.category, color: accent),
+                        SizedBox(width: 8.w),
+                      ],
+                      if (exercise.duration > 0)
+                        _HeroChip(
+                          label: exercise.durationLabel,
+                          color: Colors.white.withValues(alpha: 0.18),
                         ),
-                      ),
-                    ),
+                    ],
+                  ),
+                  SizedBox(height: 8.h),
                   Text(
                     exercise.title,
-                    style: const TextStyle(
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
                       color: Colors.white,
-                      fontSize: 24,
+                      fontSize: 20.sp,
                       fontWeight: FontWeight.w800,
-                      shadows: [
+                      shadows: const [
                         Shadow(
                           color: Colors.black45,
                           blurRadius: 8,
@@ -131,207 +186,286 @@ class ExerciseDetailAppBar extends StatelessWidget {
   }
 }
 
-class ExerciseDetailContent extends StatelessWidget {
-  final Exercise exercise;
-  const ExerciseDetailContent({super.key, required this.exercise});
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = context.palette;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ExerciseStatsRow(duration: exercise.duration),
-          if (exercise.hasVideo) ...[
-            const SizedBox(height: 24),
-            const ExerciseSectionTitle(
-              title: 'Video dars',
-              icon: Icons.play_circle_fill_rounded,
-            ),
-            const SizedBox(height: 12),
-            ExerciseVideoPlayer(url: exercise.videoUrl!),
-          ],
-          const SizedBox(height: 24),
-          const ExerciseSectionTitle(
-            title: 'Tavsif',
-            icon: Icons.subject_rounded,
-          ),
-          const SizedBox(height: 12),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: palette.card,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: palette.border),
-            ),
-            child: Text(
-              exercise.description.isEmpty
-                  ? 'Tavsif kiritilmagan'
-                  : exercise.description,
-              style: TextStyle(
-                color: palette.textSecondary,
-                fontSize: 14,
-                height: 1.7,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class ExerciseStatsRow extends StatelessWidget {
-  final int duration;
-
-  const ExerciseStatsRow({
-    super.key,
-    required this.duration,
-  });
-
-  String get _durationLabel => duration >= 60
-      ? '${duration ~/ 60} daqiqa ${(duration % 60).toString().padLeft(2, '0')} soniya'
-      : '$duration soniya';
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: ExerciseStatCard(
-            label: 'Davomiyligi',
-            value: _durationLabel,
-            icon: Icons.timer_rounded,
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: ExerciseStatCard(
-            label: 'Yo\'nalish',
-            value: duration >= 480 ? 'Kata / kompleks' : 'Texnika',
-            icon: Icons.track_changes_rounded,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class ExerciseStatCard extends StatelessWidget {
+class _HeroChip extends StatelessWidget {
   final String label;
-  final String value;
-  final IconData icon;
+  final Color color;
 
-  const ExerciseStatCard({
-    super.key,
-    required this.label,
-    required this.value,
-    required this.icon,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = context.palette;
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: palette.card,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: palette.border),
-      ),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: AppColors.primaryBlue.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: AppColors.primaryBlue, size: 22),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            value,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontWeight: FontWeight.w800,
-              fontSize: 14,
-              color: palette.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            label,
-            style: TextStyle(color: palette.textSecondary, fontSize: 11),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class ExerciseSectionTitle extends StatelessWidget {
-  final String title;
-  final IconData? icon;
-  const ExerciseSectionTitle({super.key, required this.title, this.icon});
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = context.palette;
-    return Row(
-      children: [
-        if (icon != null) ...[
-          Icon(icon, size: 20, color: AppColors.primaryBlue),
-          const SizedBox(width: 8),
-        ],
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: 17,
-            fontWeight: FontWeight.w800,
-            color: palette.textPrimary,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class ExerciseTagsRow extends StatelessWidget {
-  final List<String> tags;
-  const ExerciseTagsRow({super.key, required this.tags});
-
-  @override
-  Widget build(BuildContext context) {
-    return Wrap(
-      spacing: 8,
-      children: tags.map((t) => ExerciseTag(label: t)).toList(),
-    );
-  }
-}
-
-class ExerciseTag extends StatelessWidget {
-  final String label;
-  const ExerciseTag({super.key, required this.label});
+  const _HeroChip({required this.label, required this.color});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
       decoration: BoxDecoration(
-        color: AppColors.primaryBlue.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(20),
+        color: color,
+        borderRadius: BorderRadius.circular(999.r),
       ),
       child: Text(
         label,
-        style: const TextStyle(
-          color: AppColors.primaryBlue,
-          fontSize: 12,
-          fontWeight: FontWeight.bold,
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: 11.sp,
+          fontWeight: FontWeight.w800,
+          letterSpacing: 0.4,
         ),
+      ),
+    );
+  }
+}
+
+class _Content extends StatelessWidget {
+  final Exercise exercise;
+
+  const _Content({required this.exercise});
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    final accent = _accentOf(exercise.category);
+    return Padding(
+      padding: EdgeInsets.fromLTRB(16.w, 18.h, 16.w, 32.h),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (exercise.description.isNotEmpty) ...[
+            _SectionTitle(
+              title: 'Tavsif',
+              icon: Icons.subject_rounded,
+              color: accent,
+            ),
+            SizedBox(height: 10.h),
+            Text(
+              exercise.description,
+              style: TextStyle(
+                color: palette.textSecondary,
+                fontSize: 13.sp,
+                height: 1.55,
+              ),
+            ),
+          ],
+          if (exercise.hasVideo) ...[
+            SizedBox(height: 22.h),
+            _SectionTitle(
+              title: 'Video dars',
+              icon: Icons.play_circle_fill_rounded,
+              color: accent,
+            ),
+            SizedBox(height: 12.h),
+            ExerciseVideoPlayer(url: exercise.videoUrl!),
+          ],
+          SizedBox(height: 22.h),
+          _SectionTitle(
+            title: 'Bosqichlar (${exercise.steps.length})',
+            icon: Icons.list_alt_rounded,
+            color: accent,
+          ),
+          SizedBox(height: 12.h),
+          if (exercise.steps.isEmpty)
+            Text(
+              'Bosqichlar kiritilmagan',
+              style: TextStyle(
+                color: palette.textSecondary,
+                fontSize: 13.sp,
+              ),
+            )
+          else
+            for (int i = 0; i < exercise.steps.length; i++)
+              Padding(
+                padding: EdgeInsets.only(bottom: 12.h),
+                child: _StepCard(
+                  step: exercise.steps[i],
+                  index: i + 1,
+                  color: accent,
+                ),
+              ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SectionTitle extends StatelessWidget {
+  final String title;
+  final IconData icon;
+  final Color color;
+
+  const _SectionTitle({
+    required this.title,
+    required this.icon,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, size: 19.w, color: color),
+        SizedBox(width: 8.w),
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 16.sp,
+            fontWeight: FontWeight.w800,
+            color: context.palette.textPrimary,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Bosqich kartasi — UJT/MJT detalidagi `_StepCard` bilan bir xil ko'rinish.
+class _StepCard extends StatelessWidget {
+  final ExerciseStep step;
+  final int index;
+  final Color color;
+
+  const _StepCard({
+    required this.step,
+    required this.index,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    return Container(
+      padding: EdgeInsets.all(14.w),
+      decoration: BoxDecoration(
+        color: palette.surface,
+        borderRadius: BorderRadius.circular(16.r),
+        border: Border.all(color: palette.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 32.w,
+                height: 32.w,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [color, color.withValues(alpha: 0.72)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: Text(
+                    '$index',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 13.sp,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(width: 10.w),
+              Expanded(
+                child: step.title.isEmpty
+                    ? const SizedBox.shrink()
+                    : Text(
+                        step.title,
+                        style: TextStyle(
+                          color: palette.textPrimary,
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+              ),
+            ],
+          ),
+          if (step.description.isNotEmpty) ...[
+            SizedBox(height: 10.h),
+            Text(
+              step.description,
+              style: TextStyle(
+                color: palette.textSecondary,
+                fontSize: 12.5.sp,
+                height: 1.55,
+              ),
+            ),
+          ],
+          if (step.hasImage) ...[
+            SizedBox(height: 10.h),
+            RemoteImage(
+              url: ApiConstants.resolveMediaUrl(step.imageUrl!),
+              width: double.infinity,
+              fit: BoxFit.fitWidth,
+              borderRadius: BorderRadius.circular(12.r),
+            ),
+          ],
+          if (step.repetitions.isNotEmpty || step.rest.isNotEmpty) ...[
+            SizedBox(height: 10.h),
+            Wrap(
+              spacing: 14.w,
+              runSpacing: 6.h,
+              children: [
+                if (step.repetitions.isNotEmpty)
+                  _StepMeta(
+                    icon: Icons.repeat_rounded,
+                    label: 'Takrorlash',
+                    value: step.repetitions,
+                  ),
+                if (step.rest.isNotEmpty)
+                  _StepMeta(
+                    icon: Icons.timer_outlined,
+                    label: 'Dam olish',
+                    value: step.rest,
+                  ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _StepMeta extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+
+  const _StepMeta({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+      decoration: BoxDecoration(
+        color: AppColors.primaryBlue.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(999.r),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 13.w, color: AppColors.primaryBlue),
+          SizedBox(width: 5.w),
+          Text(
+            '$label: ',
+            style: TextStyle(
+              color: palette.textSecondary,
+              fontSize: 11.sp,
+            ),
+          ),
+          Text(
+            value,
+            style: TextStyle(
+              color: palette.textPrimary,
+              fontSize: 11.sp,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
       ),
     );
   }

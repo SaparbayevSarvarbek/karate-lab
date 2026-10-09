@@ -31,7 +31,7 @@ abstract class UjtTest with _$UjtTest {
     @Default('') String ageGroup,
     String? coverUrl,
     @Default(<String>[]) List<String> qualities,
-    @Default(<UjtStep>[]) @JsonKey(includeFromJson: false) List<UjtStep> steps,
+    @Default(<UjtStep>[]) List<UjtStep> steps,
     String? createdAt,
   }) = _UjtTest;
 

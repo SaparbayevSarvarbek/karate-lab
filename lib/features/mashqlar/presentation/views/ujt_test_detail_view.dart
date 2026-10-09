@@ -100,6 +100,7 @@ class _AppBar extends StatelessWidget {
               RemoteImage(
                 url: ApiConstants.resolveMediaUrl(test.coverUrl!),
                 borderRadius: BorderRadius.zero,
+                fit: BoxFit.cover,
               )
             else
               Container(
@@ -272,10 +273,10 @@ class _Content extends StatelessWidget {
               ),
             )
           else
-            for (final s in test.steps)
+            for (int i = 0; i < test.steps.length; i++)
               Padding(
                 padding: EdgeInsets.only(bottom: 12.h),
-                child: _StepCard(step: s),
+                child: _StepCard(step: test.steps[i], index: i + 1),
               ),
         ],
       ),
@@ -310,8 +311,9 @@ class _SectionTitle extends StatelessWidget {
 
 class _StepCard extends StatelessWidget {
   final UjtStep step;
+  final int index;
 
-  const _StepCard({required this.step});
+  const _StepCard({required this.step, required this.index});
 
   @override
   Widget build(BuildContext context) {
@@ -329,7 +331,8 @@ class _StepCard extends StatelessWidget {
           Row(
             children: [
               Container(
-                padding: EdgeInsets.all(7.w),
+                width: 32.w,
+                height: 32.w,
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(
                     colors: [AppColors.success, Color(0xFF16A34A)],
@@ -338,10 +341,15 @@ class _StepCard extends StatelessWidget {
                   ),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
-                  Icons.fitness_center_rounded,
-                  color: Colors.white,
-                  size: 13.w,
+                child: Center(
+                  child: Text(
+                    '$index',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 13.sp,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
                 ),
               ),
               SizedBox(width: 10.w),
@@ -375,8 +383,8 @@ class _StepCard extends StatelessWidget {
                 padding: EdgeInsets.only(bottom: 8.h),
                 child: RemoteImage(
                   url: ApiConstants.resolveMediaUrl(img),
-                  height: 170.h,
                   width: double.infinity,
+                  fit: BoxFit.fitWidth,
                   borderRadius: BorderRadius.circular(12.r),
                 ),
               ),

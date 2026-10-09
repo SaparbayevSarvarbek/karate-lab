@@ -60,41 +60,53 @@ class _ProfileEditViewState extends State<ProfileEditView> {
   }
 
   Future<void> _load(bool isCoach) async {
+    // Lokal zaxira: API ishlamay qolsa ishlatiladi.
+    ProfileModel? saved;
     try {
       final prefs = await SharedPrefsService.getInstance();
-      final saved = await prefs.getUserProfile();
+      saved = await prefs.getUserProfile();
+    } catch (_) {
+      saved = null;
+    }
 
-      // Ism, telefon, tug'ilgan sana API dan; bo'y/vazn lokal yoki API dan.
+    // API asosiy manba.
+    try {
       final result = await getIt<ProfileRepository>().getProfile();
       result.fold(
-        (_) => _fillFromLocal(saved),
-        (profile) {
-          final names = profile.fullName.trim().split(RegExp(r'\s+'));
-          _firstNameController.text = names.isNotEmpty ? names.first : '';
-          _lastNameController.text =
-              names.length > 1 ? names.sublist(1).join(' ') : '';
-          _phoneController.text = UzPhoneFormatter.field(profile.phone);
-          _setBirthDate(DateTime.tryParse(profile.birthDate ?? ''));
-          if (profile.avatar != null && profile.avatar!.isNotEmpty) {
-            _avatarUrl = profile.avatar;
-          }
-          final height = saved?.heightCm ?? profile.heightCm;
-          final weight = saved?.weightKg ?? profile.weightKg;
-          _heightController.text = height?.toString() ?? '';
-          _weightController.text = weight?.toString() ?? '';
+        (error) {
+          _fillFromLocal(saved);
+          // Lokal zaxira ham bo'lmasa, sahifa sababsiz bo'sh ko'rinmasin.
+          if (saved == null) _showSnackBar(error.message, AppColors.error);
         },
+        _fillFromApi,
       );
-      if (_heightController.text.isEmpty) {
-        _heightController.text = saved?.heightCm?.toString() ?? '';
-      }
-      if (_weightController.text.isEmpty) {
-        _weightController.text = saved?.weightKg?.toString() ?? '';
-      }
     } catch (_) {
-      _fillFromLocal(null);
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
+      _fillFromLocal(saved);
     }
+
+    // API bo'y/vazn keltirmagan bo'lsa lokal zaxirani ishlat.
+    if (_heightController.text.isEmpty && saved?.heightCm != null) {
+      _heightController.text = saved!.heightCm!.toString();
+    }
+    if (_weightController.text.isEmpty && saved?.weightKg != null) {
+      _weightController.text = saved!.weightKg!.toString();
+    }
+
+    if (mounted) setState(() => _isLoading = false);
+  }
+
+  void _fillFromApi(Profile profile) {
+    final names = profile.fullName.trim().split(RegExp(r'\s+'));
+    _firstNameController.text = names.isNotEmpty ? names.first : '';
+    _lastNameController.text =
+        names.length > 1 ? names.sublist(1).join(' ') : '';
+    _phoneController.text = UzPhoneFormatter.field(profile.phone);
+    _setBirthDate(DateTime.tryParse(profile.birthDate ?? ''));
+    if (profile.avatar != null && profile.avatar!.isNotEmpty) {
+      _avatarUrl = profile.avatar;
+    }
+    _heightController.text = profile.heightCm?.toString() ?? '';
+    _weightController.text = profile.weightKg?.toString() ?? '';
   }
 
   void _fillFromLocal(ProfileModel? saved) {
@@ -102,6 +114,13 @@ class _ProfileEditViewState extends State<ProfileEditView> {
     _firstNameController.text = saved.firstName;
     _lastNameController.text = saved.lastName;
     _phoneController.text = UzPhoneFormatter.field(saved.phone);
+    _setBirthDate(DateTime.tryParse(saved.dateOfBirth ?? ''));
+    if (saved.heightCm != null) {
+      _heightController.text = saved.heightCm!.toString();
+    }
+    if (saved.weightKg != null) {
+      _weightController.text = saved.weightKg!.toString();
+    }
   }
 
   void _setBirthDate(DateTime? date) {
@@ -158,6 +177,7 @@ class _ProfileEditViewState extends State<ProfileEditView> {
   }
 
   void _showSnackBar(String message, Color color) {
+    if (!mounted) return;
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
@@ -321,26 +341,20 @@ class _ProfileEditViewState extends State<ProfileEditView> {
                           Expanded(
                             child: CustomTextField(
                               controller: _heightController,
-                              hintText: 'Bo\'y (sm)',
+                              hintText: 'Bo\'y',
                               keyboardType: TextInputType.number,
                               prefixIcon: const Icon(Icons.height),
-                              suffixIcon: const Padding(
-                                padding: EdgeInsets.only(right: 12),
-                                child: Center(child: Text('sm', style: TextStyle(color: AppColors.textHint))),
-                              ),
+                              suffixText: 'sm',
                             ),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
                             child: CustomTextField(
                               controller: _weightController,
-                              hintText: 'Vazn (kg)',
+                              hintText: 'Vazn',
                               keyboardType: TextInputType.number,
                               prefixIcon: const Icon(Icons.monitor_weight_outlined),
-                              suffixIcon: const Padding(
-                                padding: EdgeInsets.only(right: 12),
-                                child: Center(child: Text('kg', style: TextStyle(color: AppColors.textHint))),
-                              ),
+                              suffixText: 'kg',
                             ),
                           ),
                         ],
@@ -390,7 +404,8 @@ class _AvatarSection extends StatelessWidget {
             backgroundImage: hasAvatar ? NetworkImage(avatarUrl!) : null,
             child: hasAvatar
                 ? null
-                : const Icon(Icons.person, size: 48, color: AppColors.textHint),
+                : Icon(Icons.person,
+                    size: 48, color: context.palette.textHint),
           ),
           if (busy)
             Positioned.fill(

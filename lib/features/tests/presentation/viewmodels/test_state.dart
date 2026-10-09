@@ -13,8 +13,17 @@ class TestLoading extends TestState {}
 
 class TestActionLoading extends TestState {}
 
+class AllTestsLoaded extends TestState {
+  final List<TestEntity> tests;
+
+  const AllTestsLoaded(this.tests);
+
+  @override
+  List<Object?> get props => [tests];
+}
+
 class MyTestsLoaded extends TestState {
-  final List<TestAssignment> tests;
+  final List<TestResult> tests;
 
   const MyTestsLoaded(this.tests);
 
@@ -40,7 +49,14 @@ class TestCreated extends TestState {
   List<Object?> get props => [test];
 }
 
-class TestAssigned extends TestState {}
+class TestFinished extends TestState {
+  final TestResult result;
+
+  const TestFinished(this.result);
+
+  @override
+  List<Object?> get props => [result];
+}
 
 class TestError extends TestState {
   final String message;

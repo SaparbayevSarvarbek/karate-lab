@@ -2,27 +2,28 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/api/models/exercise_models.dart';
+import '../../../../core/api/api_constants.dart';
 import '../../../../core/api/models/test_models.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/repositories/test_repository.dart';
 import '../../../../core/theme/app_palette.dart';
 import '../../../../core/widgets/remote_image.dart';
+import '../../../../core/widgets/shimmer_placeholder.dart';
 
-/// Atletga biriktirilgan test tafsilotlari
-/// (Swagger: `POST /my-tests/{id}/start/`, `POST /my-tests/{id}/finish/`).
+/// Test tafsilotlari: umumiy rasm, maqsad/sifatlar va
+/// qadamlar. Testni boshlash orqali taymerli bajarish sahifasiga o'tiladi.
 class TestDetailView extends StatefulWidget {
-  final TestAssignment? assignment;
+  final TestResult? result;
 
-  const TestDetailView({super.key, this.assignment});
+  const TestDetailView({super.key, this.result});
 
   @override
   State<TestDetailView> createState() => _TestDetailViewState();
 }
 
 class _TestDetailViewState extends State<TestDetailView> {
-  late TestAssignment? _assignment = widget.assignment;
+  late TestResult? _result = widget.result;
   bool _busy = false;
 
   String _formatDate(DateTime? date) {
@@ -32,41 +33,27 @@ class _TestDetailViewState extends State<TestDetailView> {
   }
 
   Future<void> _startTest() async {
-    final assignment = _assignment;
-    if (assignment == null || _busy) return;
+    final current = _result;
+    if (current == null || _busy) return;
     setState(() => _busy = true);
-    final result = await getIt<TestRepository>().startTest(assignment.id);
+    final response = await getIt<TestRepository>().startTest(current.id);
     if (!mounted) return;
     setState(() => _busy = false);
-    result.fold(
+    response.fold(
       (error) => _showError(error.message),
-      (updated) => setState(() => _assignment = updated),
+      (updated) async {
+        setState(() => _result = updated);
+        await _openRun(updated);
+      },
     );
   }
 
-  Future<void> _finishTest(double score, String notes) async {
-    final assignment = _assignment;
-    if (assignment == null || _busy) return;
-    setState(() => _busy = true);
-    final result = await getIt<TestRepository>().finishTest(
-      assignment.id,
-      FinishTestRequest(score: score, notes: notes),
-    );
-    if (!mounted) return;
-    setState(() => _busy = false);
-    result.fold(
-      (error) => _showError(error.message),
-      (_) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Test yakunlandi! Ball: ${score.toStringAsFixed(1)}'),
-            backgroundColor: AppColors.success,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-        context.pop();
-      },
-    );
+  Future<void> _openRun(TestResult result) async {
+    final finished = await context.push<TestResult>('/test-run', extra: result);
+    if (finished != null && mounted) {
+      setState(() => _result = finished);
+      await context.push('/test-result', extra: finished);
+    }
   }
 
   void _showError(String message) {
@@ -84,7 +71,7 @@ class _TestDetailViewState extends State<TestDetailView> {
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
-    final test = _assignment;
+    final test = _result;
 
     if (test == null) {
       return Scaffold(
@@ -107,23 +94,81 @@ class _TestDetailViewState extends State<TestDetailView> {
               _TestHero(test: test),
               SizedBox(height: 16.h),
               _StatusRow(test: test, formatDate: _formatDate),
-              SizedBox(height: 20.h),
-              _SectionTitle(title: 'Mashqlar (${test.exercises.length})'),
-              SizedBox(height: 12.h),
-              if (test.exercises.isEmpty)
+              if (test.goal.isNotEmpty) ...[
+                SizedBox(height: 20.h),
+                const _SectionTitle(title: 'Maqsad', icon: Icons.flag_rounded),
+                SizedBox(height: 10.h),
                 Text(
-                  'Mashqlar biriktirilmagan',
+                  test.goal,
+                  style: TextStyle(
+                    color: palette.textSecondary,
+                    fontSize: 13.sp,
+                    height: 1.55,
+                  ),
+                ),
+              ],
+              if (test.description.isNotEmpty) ...[
+                SizedBox(height: 18.h),
+                const _SectionTitle(title: 'Qo\'shimcha ma\'lumot', icon: Icons.info_outline_rounded),
+                SizedBox(height: 10.h),
+                Text(
+                  test.description,
+                  style: TextStyle(
+                    color: palette.textSecondary,
+                    fontSize: 13.sp,
+                    height: 1.55,
+                  ),
+                ),
+              ],
+              if (test.qualities.isNotEmpty) ...[
+                SizedBox(height: 18.h),
+                const _SectionTitle(
+                    title: 'Rivojlanadigan sifatlar', icon: Icons.stars_rounded),
+                SizedBox(height: 10.h),
+                Wrap(
+                  spacing: 8.w,
+                  runSpacing: 8.h,
+                  children: test.qualities
+                      .map((q) => Container(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 12.w, vertical: 6.h),
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryBlue.withValues(alpha: 0.08),
+                              borderRadius: BorderRadius.circular(999.r),
+                            ),
+                            child: Text(
+                              q,
+                              style: TextStyle(
+                                color: AppColors.primaryBlue,
+                                fontSize: 11.5.sp,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ))
+                      .toList(),
+                ),
+              ],
+              SizedBox(height: 20.h),
+              _SectionTitle(
+                title: 'Qadamlar (${test.steps.length})',
+                icon: Icons.list_alt_rounded,
+              ),
+              SizedBox(height: 12.h),
+              if (test.steps.isEmpty)
+                Text(
+                  'Qadamlar qo\'shilmagan',
                   style: TextStyle(color: palette.textSecondary, fontSize: 13.sp),
                 )
               else
-                for (final e in test.exercises)
+                for (int i = 0; i < test.steps.length; i++)
                   Padding(
                     padding: EdgeInsets.only(bottom: 10.h),
-                    child: _ExerciseRow(exercise: e),
+                    child: _StepRow(step: test.steps[i], index: i + 1),
                   ),
               if (test.notes.isNotEmpty) ...[
                 SizedBox(height: 18.h),
-                _SectionTitle(title: 'Murabbiy izohi'),
+                const _SectionTitle(
+                    title: 'Murabbiy izohi', icon: Icons.comment_rounded),
                 SizedBox(height: 10.h),
                 Container(
                   width: double.infinity,
@@ -152,14 +197,16 @@ class _TestDetailViewState extends State<TestDetailView> {
           if (_busy)
             Container(
               color: Colors.black.withValues(alpha: 0.18),
-              child: const Center(child: CircularProgressIndicator()),
+              child: Center(
+                child: ShimmerTestDetail(),
+              ),
             ),
         ],
       ),
     );
   }
 
-  Widget _buildActionButton(TestAssignment test) {
+  Widget _buildActionButton(TestResult test) {
     switch (test.status) {
       case TestStatus.pending:
         return SizedBox(
@@ -177,132 +224,86 @@ class _TestDetailViewState extends State<TestDetailView> {
         return SizedBox(
           width: double.infinity,
           child: FilledButton.icon(
-            onPressed: _busy ? null : () => _showFinishDialog(context),
+            onPressed: _busy ? null : () => _openRun(test),
             style: FilledButton.styleFrom(
               padding: EdgeInsets.symmetric(vertical: 15.h),
-              backgroundColor: AppColors.success,
+              backgroundColor: AppColors.warning,
             ),
-            icon: const Icon(Icons.flag_rounded),
-            label: Text('Testni yakunlash', style: TextStyle(fontSize: 14.sp)),
+            icon: const Icon(Icons.timer_rounded),
+            label: Text('Davom etish', style: TextStyle(fontSize: 14.sp)),
           ),
         );
       case TestStatus.completed:
       case TestStatus.unknown:
-        return Container(
-          padding: EdgeInsets.all(16.w),
-          decoration: BoxDecoration(
-            color: AppColors.success.withValues(alpha: 0.08),
-            borderRadius: BorderRadius.circular(14.r),
-            border: Border.all(color: AppColors.success.withValues(alpha: 0.35)),
-          ),
-          child: Row(
-            children: [
-              Icon(Icons.check_circle_rounded, color: AppColors.success, size: 22.w),
-              SizedBox(width: 12.w),
-              Expanded(
-                child: Text(
-                  test.score == null
-                      ? 'Test yakunlangan'
-                      : 'Test yakunlangan. Ball: ${test.score!.toStringAsFixed(1)}',
-                  style: TextStyle(
-                    color: AppColors.success,
-                    fontSize: 13.5.sp,
-                    fontWeight: FontWeight.w600,
-                  ),
+        return Column(
+          children: [
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: () => context.push('/test-result', extra: test),
+                style: FilledButton.styleFrom(
+                  padding: EdgeInsets.symmetric(vertical: 15.h),
+                  backgroundColor: AppColors.success,
                 ),
+                icon: const Icon(Icons.bar_chart_rounded),
+                label: Text('Natijani ko\'rish', style: TextStyle(fontSize: 14.sp)),
               ),
-            ],
-          ),
-        );
-    }
-  }
-
-  void _showFinishDialog(BuildContext context) {
-    final scoreController = TextEditingController();
-    final notesController = TextEditingController();
-
-    showDialog<void>(
-      context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20.r),
-          ),
-          title: Text('Testni yakunlash', style: TextStyle(fontSize: 17.sp)),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: scoreController,
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
-                style: TextStyle(fontSize: 14.sp),
-                decoration: const InputDecoration(
-                  labelText: 'Ball (0 - 100)',
-                  prefixIcon: Icon(Icons.stars_rounded),
-                ),
-              ),
-              SizedBox(height: 14.h),
-              TextField(
-                controller: notesController,
-                maxLines: 3,
-                style: TextStyle(fontSize: 14.sp),
-                decoration: const InputDecoration(
-                  labelText: 'Izohlar (ixtiyoriy)',
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('Bekor qilish'),
             ),
-            FilledButton(
-              onPressed: () {
-                final score = double.tryParse(scoreController.text.trim());
-                if (score == null || score < 0 || score > 100) {
-                  ScaffoldMessenger.of(dialogContext).showSnackBar(
-                    SnackBar(
-                      content: const Text('Ballni 0 dan 100 gacha kiriting'),
-                      backgroundColor: AppColors.error,
-                      behavior: SnackBarBehavior.floating,
+            SizedBox(height: 10.h),
+            Container(
+              padding: EdgeInsets.all(16.w),
+              decoration: BoxDecoration(
+                color: AppColors.success.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(14.r),
+                border: Border.all(
+                    color: AppColors.success.withValues(alpha: 0.35)),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.check_circle_rounded,
+                      color: AppColors.success, size: 22.w),
+                  SizedBox(width: 12.w),
+                  Expanded(
+                    child: Text(
+                      test.score == null
+                          ? 'Test yakunlangan'
+                          : 'Test yakunlangan. Ball: ${test.score!.toStringAsFixed(1)}',
+                      style: TextStyle(
+                        color: AppColors.success,
+                        fontSize: 13.5.sp,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                  );
-                  return;
-                }
-                Navigator.of(dialogContext).pop();
-                _finishTest(score, notesController.text.trim());
-              },
-              child: const Text('Yakunlash'),
+                  ),
+                ],
+              ),
             ),
           ],
         );
-      },
-    );
+    }
   }
 }
 
 class _TestHero extends StatelessWidget {
-  final TestAssignment test;
+  final TestResult test;
 
   const _TestHero({required this.test});
 
   @override
   Widget build(BuildContext context) {
-    final imageExercise = test.exercises.where((e) => e.hasImage);
-    final cover = imageExercise.isEmpty ? null : imageExercise.first.image;
     return Container(
       height: 150.h,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20.r),
-      ),
+      decoration: BoxDecoration(borderRadius: BorderRadius.circular(20.r)),
       clipBehavior: Clip.antiAlias,
       child: Stack(
         fit: StackFit.expand,
         children: [
-          if (cover != null)
-            RemoteImage(url: cover, borderRadius: BorderRadius.zero)
+          if (test.hasCover)
+            RemoteImage(
+              url: ApiConstants.resolveMediaUrl(test.coverUrl!),
+              borderRadius: BorderRadius.zero,
+              fit: BoxFit.cover,
+            )
           else
             Container(
               decoration: const BoxDecoration(
@@ -332,20 +333,15 @@ class _TestHero extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.18),
-                    borderRadius: BorderRadius.circular(999.r),
-                  ),
-                  child: Text(
-                    '${test.exercises.length} mashq • ${_totalDuration(test)}',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 11.sp,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                Row(
+                  children: [
+                    if (test.category.isNotEmpty)
+                      _HeroChip(label: test.category),
+                    if (test.age.isNotEmpty) ...[
+                      SizedBox(width: 8.w),
+                      _HeroChip(label: test.age),
+                    ],
+                  ],
                 ),
                 SizedBox(height: 8.h),
                 Text(
@@ -365,16 +361,35 @@ class _TestHero extends StatelessWidget {
       ),
     );
   }
+}
 
-  String _totalDuration(TestAssignment test) {
-    final total = test.exercises.fold<int>(0, (sum, e) => sum + e.duration);
-    if (total >= 60) return '${total ~/ 60} daqiqa';
-    return '$total soniya';
+class _HeroChip extends StatelessWidget {
+  final String label;
+
+  const _HeroChip({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.18),
+        borderRadius: BorderRadius.circular(999.r),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: 11.sp,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
   }
 }
 
 class _StatusRow extends StatelessWidget {
-  final TestAssignment test;
+  final TestResult test;
   final String Function(DateTime?) formatDate;
 
   const _StatusRow({required this.test, required this.formatDate});
@@ -416,19 +431,25 @@ class _StatusRow extends StatelessWidget {
 
 class _SectionTitle extends StatelessWidget {
   final String title;
+  final IconData icon;
 
-  const _SectionTitle({required this.title});
+  const _SectionTitle({required this.title, required this.icon});
 
   @override
   Widget build(BuildContext context) {
-    final palette = context.palette;
-    return Text(
-      title,
-      style: TextStyle(
-        fontSize: 16.sp,
-        fontWeight: FontWeight.w800,
-        color: palette.textPrimary,
-      ),
+    return Row(
+      children: [
+        Icon(icon, size: 19.w, color: AppColors.primaryBlue),
+        SizedBox(width: 8.w),
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 16.sp,
+            fontWeight: FontWeight.w800,
+            color: context.palette.textPrimary,
+          ),
+        ),
+      ],
     );
   }
 }
@@ -490,10 +511,11 @@ class _InfoCard extends StatelessWidget {
   }
 }
 
-class _ExerciseRow extends StatelessWidget {
-  final Exercise exercise;
+class _StepRow extends StatelessWidget {
+  final TestStep step;
+  final int index;
 
-  const _ExerciseRow({required this.exercise});
+  const _StepRow({required this.step, required this.index});
 
   @override
   Widget build(BuildContext context) {
@@ -507,64 +529,68 @@ class _ExerciseRow extends StatelessWidget {
       ),
       child: Row(
         children: [
-          GestureDetector(
-            onTap: () => context.push('/exercise-detail', extra: exercise),
-            child: RemoteImage(
-              url: exercise.image,
-              width: 56.w,
-              height: 56.w,
-              borderRadius: BorderRadius.circular(12.r),
+          Container(
+            width: 32.w,
+            height: 32.w,
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [AppColors.primaryBlue, Color(0xFF2B7AFF)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: Text(
+                '$index',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 13.sp,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
             ),
           ),
           SizedBox(width: 12.w),
           Expanded(
-            child: GestureDetector(
-              onTap: () => context.push('/exercise-detail', extra: exercise),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    exercise.title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 13.5.sp,
-                      color: palette.textPrimary,
-                    ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  step.title.isEmpty ? 'Qadam $index' : step.title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 13.5.sp,
+                    color: palette.textPrimary,
                   ),
-                  SizedBox(height: 3.h),
-                  Row(
-                    children: [
+                ),
+                SizedBox(height: 4.h),
+                Row(
+                  children: [
+                    if (step.repetitions.isNotEmpty) ...[
+                      Icon(Icons.repeat_rounded,
+                          size: 13.w, color: palette.textHint),
+                      SizedBox(width: 3.w),
+                      Text(step.repetitions,
+                          style: TextStyle(
+                              color: palette.textSecondary, fontSize: 11.5.sp)),
+                      SizedBox(width: 10.w),
+                    ],
+                    if (step.duration > 0) ...[
                       Icon(Icons.timer_outlined,
                           size: 13.w, color: palette.textHint),
-                      SizedBox(width: 4.w),
-                      Text(
-                        exercise.durationLabel,
-                        style: TextStyle(
-                            color: palette.textSecondary, fontSize: 11.5.sp),
-                      ),
-                      if (exercise.hasVideo) ...[
-                        SizedBox(width: 10.w),
-                        Icon(Icons.play_circle_fill_rounded,
-                            size: 13.w, color: AppColors.primaryBlue),
-                        SizedBox(width: 3.w),
-                        Text(
-                          'video',
+                      SizedBox(width: 3.w),
+                      Text('${step.duration}s',
                           style: TextStyle(
-                            color: AppColors.primaryBlue,
-                            fontSize: 11.sp,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
+                              color: palette.textSecondary, fontSize: 11.5.sp)),
                     ],
-                  ),
-                ],
-              ),
+                  ],
+                ),
+              ],
             ),
           ),
-          Icon(Icons.chevron_right_rounded, size: 20.w, color: palette.textHint),
         ],
       ),
     );

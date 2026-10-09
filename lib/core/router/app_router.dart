@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/athletes/presentation/views/athlete_profile_view.dart';
@@ -11,7 +12,9 @@ import '../../features/auth/presentation/views/splash_view.dart';
 import '../../features/dashboard/presentation/views/main_layout_view.dart';
 import '../../features/exercises/presentation/views/add_exercise_view.dart';
 import '../../features/exercises/presentation/views/exercise_detail_view.dart';
+import '../../features/exercises/presentation/views/my_exercises_view.dart';
 import '../../features/mashqlar/presentation/views/mashqlar_view.dart';
+import '../../features/mashqlar/presentation/views/mjt_test_detail_view.dart';
 import '../../features/mashqlar/presentation/views/ujt_test_detail_view.dart';
 import '../../features/profile/presentation/views/notification_settings_view.dart';
 import '../../features/profile/presentation/views/profile_edit_view.dart';
@@ -19,6 +22,8 @@ import '../../features/profile/presentation/views/reports_analytics_view.dart';
 import '../../features/profile/presentation/views/security_settings_view.dart';
 import '../../features/tests/presentation/views/create_test_view.dart';
 import '../../features/tests/presentation/views/test_detail_view.dart';
+import '../../features/tests/presentation/views/test_result_view.dart';
+import '../../features/tests/presentation/views/test_run_view.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/api/models/athlete_models.dart';
 import '../../core/api/models/exercise_models.dart';
@@ -83,14 +88,36 @@ class AppRouter {
         builder: (context, state) => const AddExerciseView(),
       ),
       GoRoute(
+        path: '/my-exercises',
+        builder: (context, state) => const MyExercisesView(),
+      ),
+      GoRoute(
         path: '/test-detail',
         builder: (context, state) {
-          return TestDetailView(assignment: state.extra as TestAssignment?);
+          return TestDetailView(result: state.extra as TestResult?);
         },
       ),
       GoRoute(
         path: '/create-test',
         builder: (context, state) => const CreateTestView(),
+      ),
+      GoRoute(
+        path: '/test-run',
+        builder: (context, state) {
+          final result = state.extra as TestResult?;
+          if (result == null) {
+            return const Scaffold(
+              body: Center(child: Text('Test topilmadi')),
+            );
+          }
+          return TestRunView(result: result);
+        },
+      ),
+      GoRoute(
+        path: '/test-result',
+        builder: (context, state) {
+          return TestResultView(result: state.extra as TestResult?);
+        },
       ),
       GoRoute(
         path: '/athlete-profile',
@@ -110,6 +137,13 @@ class AppRouter {
         },
       ),
       GoRoute(
+        path: '/mjt-test-detail',
+        builder: (context, state) {
+          final id = state.extra as int?;
+          return MjtTestDetailView(testId: id ?? 0);
+        },
+      ),
+      GoRoute(
         path: '/profile-edit',
         builder: (context, state) => ProfileEditView(
           role: state.extra as String?,
@@ -125,7 +159,8 @@ class AppRouter {
       ),
       GoRoute(
         path: '/reports',
-        builder: (context, state) => const ReportsAnalyticsView(),
+        builder: (context, state) =>
+            ReportsAnalyticsView(userRole: state.extra as String?),
       ),
     ],
   );

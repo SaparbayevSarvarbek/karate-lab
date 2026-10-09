@@ -13,9 +13,290 @@ part of 'exercise_models.dart';
 T _$identity<T>(T value) => value;
 
 /// @nodoc
+mixin _$ExerciseStep {
+
+ int get id; String get title; String get description; String get repetitions; String get rest; int get duration;@JsonKey(name: 'image') String? get imageUrl;
+/// Create a copy of ExerciseStep
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$ExerciseStepCopyWith<ExerciseStep> get copyWith => _$ExerciseStepCopyWithImpl<ExerciseStep>(this as ExerciseStep, _$identity);
+
+  /// Serializes this ExerciseStep to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ExerciseStep&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.repetitions, repetitions) || other.repetitions == repetitions)&&(identical(other.rest, rest) || other.rest == rest)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,title,description,repetitions,rest,duration,imageUrl);
+
+@override
+String toString() {
+  return 'ExerciseStep(id: $id, title: $title, description: $description, repetitions: $repetitions, rest: $rest, duration: $duration, imageUrl: $imageUrl)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $ExerciseStepCopyWith<$Res>  {
+  factory $ExerciseStepCopyWith(ExerciseStep value, $Res Function(ExerciseStep) _then) = _$ExerciseStepCopyWithImpl;
+@useResult
+$Res call({
+ int id, String title, String description, String repetitions, String rest, int duration,@JsonKey(name: 'image') String? imageUrl
+});
+
+
+
+
+}
+/// @nodoc
+class _$ExerciseStepCopyWithImpl<$Res>
+    implements $ExerciseStepCopyWith<$Res> {
+  _$ExerciseStepCopyWithImpl(this._self, this._then);
+
+  final ExerciseStep _self;
+  final $Res Function(ExerciseStep) _then;
+
+/// Create a copy of ExerciseStep
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? title = null,Object? description = null,Object? repetitions = null,Object? rest = null,Object? duration = null,Object? imageUrl = freezed,}) {
+  return _then(_self.copyWith(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as int,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
+as String,description: null == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
+as String,repetitions: null == repetitions ? _self.repetitions : repetitions // ignore: cast_nullable_to_non_nullable
+as String,rest: null == rest ? _self.rest : rest // ignore: cast_nullable_to_non_nullable
+as String,duration: null == duration ? _self.duration : duration // ignore: cast_nullable_to_non_nullable
+as int,imageUrl: freezed == imageUrl ? _self.imageUrl : imageUrl // ignore: cast_nullable_to_non_nullable
+as String?,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [ExerciseStep].
+extension ExerciseStepPatterns on ExerciseStep {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _ExerciseStep value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _ExerciseStep() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _ExerciseStep value)  $default,){
+final _that = this;
+switch (_that) {
+case _ExerciseStep():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _ExerciseStep value)?  $default,){
+final _that = this;
+switch (_that) {
+case _ExerciseStep() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  String title,  String description,  String repetitions,  String rest,  int duration, @JsonKey(name: 'image')  String? imageUrl)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _ExerciseStep() when $default != null:
+return $default(_that.id,_that.title,_that.description,_that.repetitions,_that.rest,_that.duration,_that.imageUrl);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  String title,  String description,  String repetitions,  String rest,  int duration, @JsonKey(name: 'image')  String? imageUrl)  $default,) {final _that = this;
+switch (_that) {
+case _ExerciseStep():
+return $default(_that.id,_that.title,_that.description,_that.repetitions,_that.rest,_that.duration,_that.imageUrl);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  String title,  String description,  String repetitions,  String rest,  int duration, @JsonKey(name: 'image')  String? imageUrl)?  $default,) {final _that = this;
+switch (_that) {
+case _ExerciseStep() when $default != null:
+return $default(_that.id,_that.title,_that.description,_that.repetitions,_that.rest,_that.duration,_that.imageUrl);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _ExerciseStep extends ExerciseStep {
+  const _ExerciseStep({this.id = 0, this.title = '', this.description = '', this.repetitions = '', this.rest = '', this.duration = 0, @JsonKey(name: 'image') this.imageUrl}): super._();
+  factory _ExerciseStep.fromJson(Map<String, dynamic> json) => _$ExerciseStepFromJson(json);
+
+@override@JsonKey() final  int id;
+@override@JsonKey() final  String title;
+@override@JsonKey() final  String description;
+@override@JsonKey() final  String repetitions;
+@override@JsonKey() final  String rest;
+@override@JsonKey() final  int duration;
+@override@JsonKey(name: 'image') final  String? imageUrl;
+
+/// Create a copy of ExerciseStep
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$ExerciseStepCopyWith<_ExerciseStep> get copyWith => __$ExerciseStepCopyWithImpl<_ExerciseStep>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$ExerciseStepToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ExerciseStep&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.repetitions, repetitions) || other.repetitions == repetitions)&&(identical(other.rest, rest) || other.rest == rest)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,title,description,repetitions,rest,duration,imageUrl);
+
+@override
+String toString() {
+  return 'ExerciseStep(id: $id, title: $title, description: $description, repetitions: $repetitions, rest: $rest, duration: $duration, imageUrl: $imageUrl)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$ExerciseStepCopyWith<$Res> implements $ExerciseStepCopyWith<$Res> {
+  factory _$ExerciseStepCopyWith(_ExerciseStep value, $Res Function(_ExerciseStep) _then) = __$ExerciseStepCopyWithImpl;
+@override @useResult
+$Res call({
+ int id, String title, String description, String repetitions, String rest, int duration,@JsonKey(name: 'image') String? imageUrl
+});
+
+
+
+
+}
+/// @nodoc
+class __$ExerciseStepCopyWithImpl<$Res>
+    implements _$ExerciseStepCopyWith<$Res> {
+  __$ExerciseStepCopyWithImpl(this._self, this._then);
+
+  final _ExerciseStep _self;
+  final $Res Function(_ExerciseStep) _then;
+
+/// Create a copy of ExerciseStep
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? title = null,Object? description = null,Object? repetitions = null,Object? rest = null,Object? duration = null,Object? imageUrl = freezed,}) {
+  return _then(_ExerciseStep(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as int,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
+as String,description: null == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
+as String,repetitions: null == repetitions ? _self.repetitions : repetitions // ignore: cast_nullable_to_non_nullable
+as String,rest: null == rest ? _self.rest : rest // ignore: cast_nullable_to_non_nullable
+as String,duration: null == duration ? _self.duration : duration // ignore: cast_nullable_to_non_nullable
+as int,imageUrl: freezed == imageUrl ? _self.imageUrl : imageUrl // ignore: cast_nullable_to_non_nullable
+as String?,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
 mixin _$Exercise {
 
- int get id; String get title; int get duration; String get description; String get category;@JsonKey(includeToJson: false) String? get image;@JsonKey(includeToJson: false) String? get videoUrl;@JsonKey(includeToJson: false) String? get createdAt;
+ int get id; String get title; int get duration; String get description; String get category; String get age; String get goal; List<String> get qualities;@JsonKey(includeToJson: false) String? get image;@JsonKey(includeToJson: false) String? get videoUrl;@JsonKey(includeToJson: false) String? get createdAt; List<ExerciseStep> get steps;
 /// Create a copy of Exercise
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +309,16 @@ $ExerciseCopyWith<Exercise> get copyWith => _$ExerciseCopyWithImpl<Exercise>(thi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Exercise&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.description, description) || other.description == description)&&(identical(other.category, category) || other.category == category)&&(identical(other.image, image) || other.image == image)&&(identical(other.videoUrl, videoUrl) || other.videoUrl == videoUrl)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Exercise&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.description, description) || other.description == description)&&(identical(other.category, category) || other.category == category)&&(identical(other.age, age) || other.age == age)&&(identical(other.goal, goal) || other.goal == goal)&&const DeepCollectionEquality().equals(other.qualities, qualities)&&(identical(other.image, image) || other.image == image)&&(identical(other.videoUrl, videoUrl) || other.videoUrl == videoUrl)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&const DeepCollectionEquality().equals(other.steps, steps));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,title,duration,description,category,image,videoUrl,createdAt);
+int get hashCode => Object.hash(runtimeType,id,title,duration,description,category,age,goal,const DeepCollectionEquality().hash(qualities),image,videoUrl,createdAt,const DeepCollectionEquality().hash(steps));
 
 @override
 String toString() {
-  return 'Exercise(id: $id, title: $title, duration: $duration, description: $description, category: $category, image: $image, videoUrl: $videoUrl, createdAt: $createdAt)';
+  return 'Exercise(id: $id, title: $title, duration: $duration, description: $description, category: $category, age: $age, goal: $goal, qualities: $qualities, image: $image, videoUrl: $videoUrl, createdAt: $createdAt, steps: $steps)';
 }
 
 
@@ -48,7 +329,7 @@ abstract mixin class $ExerciseCopyWith<$Res>  {
   factory $ExerciseCopyWith(Exercise value, $Res Function(Exercise) _then) = _$ExerciseCopyWithImpl;
 @useResult
 $Res call({
- int id, String title, int duration, String description, String category,@JsonKey(includeToJson: false) String? image,@JsonKey(includeToJson: false) String? videoUrl,@JsonKey(includeToJson: false) String? createdAt
+ int id, String title, int duration, String description, String category, String age, String goal, List<String> qualities,@JsonKey(includeToJson: false) String? image,@JsonKey(includeToJson: false) String? videoUrl,@JsonKey(includeToJson: false) String? createdAt, List<ExerciseStep> steps
 });
 
 
@@ -65,17 +346,21 @@ class _$ExerciseCopyWithImpl<$Res>
 
 /// Create a copy of Exercise
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? title = null,Object? duration = null,Object? description = null,Object? category = null,Object? image = freezed,Object? videoUrl = freezed,Object? createdAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? title = null,Object? duration = null,Object? description = null,Object? category = null,Object? age = null,Object? goal = null,Object? qualities = null,Object? image = freezed,Object? videoUrl = freezed,Object? createdAt = freezed,Object? steps = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,duration: null == duration ? _self.duration : duration // ignore: cast_nullable_to_non_nullable
 as int,description: null == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String,category: null == category ? _self.category : category // ignore: cast_nullable_to_non_nullable
-as String,image: freezed == image ? _self.image : image // ignore: cast_nullable_to_non_nullable
+as String,age: null == age ? _self.age : age // ignore: cast_nullable_to_non_nullable
+as String,goal: null == goal ? _self.goal : goal // ignore: cast_nullable_to_non_nullable
+as String,qualities: null == qualities ? _self.qualities : qualities // ignore: cast_nullable_to_non_nullable
+as List<String>,image: freezed == image ? _self.image : image // ignore: cast_nullable_to_non_nullable
 as String?,videoUrl: freezed == videoUrl ? _self.videoUrl : videoUrl // ignore: cast_nullable_to_non_nullable
 as String?,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,steps: null == steps ? _self.steps : steps // ignore: cast_nullable_to_non_nullable
+as List<ExerciseStep>,
   ));
 }
 
@@ -160,10 +445,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  String title,  int duration,  String description,  String category, @JsonKey(includeToJson: false)  String? image, @JsonKey(includeToJson: false)  String? videoUrl, @JsonKey(includeToJson: false)  String? createdAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  String title,  int duration,  String description,  String category,  String age,  String goal,  List<String> qualities, @JsonKey(includeToJson: false)  String? image, @JsonKey(includeToJson: false)  String? videoUrl, @JsonKey(includeToJson: false)  String? createdAt,  List<ExerciseStep> steps)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Exercise() when $default != null:
-return $default(_that.id,_that.title,_that.duration,_that.description,_that.category,_that.image,_that.videoUrl,_that.createdAt);case _:
+return $default(_that.id,_that.title,_that.duration,_that.description,_that.category,_that.age,_that.goal,_that.qualities,_that.image,_that.videoUrl,_that.createdAt,_that.steps);case _:
   return orElse();
 
 }
@@ -181,10 +466,10 @@ return $default(_that.id,_that.title,_that.duration,_that.description,_that.cate
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  String title,  int duration,  String description,  String category, @JsonKey(includeToJson: false)  String? image, @JsonKey(includeToJson: false)  String? videoUrl, @JsonKey(includeToJson: false)  String? createdAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  String title,  int duration,  String description,  String category,  String age,  String goal,  List<String> qualities, @JsonKey(includeToJson: false)  String? image, @JsonKey(includeToJson: false)  String? videoUrl, @JsonKey(includeToJson: false)  String? createdAt,  List<ExerciseStep> steps)  $default,) {final _that = this;
 switch (_that) {
 case _Exercise():
-return $default(_that.id,_that.title,_that.duration,_that.description,_that.category,_that.image,_that.videoUrl,_that.createdAt);case _:
+return $default(_that.id,_that.title,_that.duration,_that.description,_that.category,_that.age,_that.goal,_that.qualities,_that.image,_that.videoUrl,_that.createdAt,_that.steps);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -201,10 +486,10 @@ return $default(_that.id,_that.title,_that.duration,_that.description,_that.cate
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  String title,  int duration,  String description,  String category, @JsonKey(includeToJson: false)  String? image, @JsonKey(includeToJson: false)  String? videoUrl, @JsonKey(includeToJson: false)  String? createdAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  String title,  int duration,  String description,  String category,  String age,  String goal,  List<String> qualities, @JsonKey(includeToJson: false)  String? image, @JsonKey(includeToJson: false)  String? videoUrl, @JsonKey(includeToJson: false)  String? createdAt,  List<ExerciseStep> steps)?  $default,) {final _that = this;
 switch (_that) {
 case _Exercise() when $default != null:
-return $default(_that.id,_that.title,_that.duration,_that.description,_that.category,_that.image,_that.videoUrl,_that.createdAt);case _:
+return $default(_that.id,_that.title,_that.duration,_that.description,_that.category,_that.age,_that.goal,_that.qualities,_that.image,_that.videoUrl,_that.createdAt,_that.steps);case _:
   return null;
 
 }
@@ -216,7 +501,7 @@ return $default(_that.id,_that.title,_that.duration,_that.description,_that.cate
 @JsonSerializable()
 
 class _Exercise extends Exercise {
-  const _Exercise({this.id = 0, this.title = '', this.duration = 0, this.description = '', this.category = '', @JsonKey(includeToJson: false) this.image, @JsonKey(includeToJson: false) this.videoUrl, @JsonKey(includeToJson: false) this.createdAt}): super._();
+  const _Exercise({this.id = 0, this.title = '', this.duration = 0, this.description = '', this.category = '', this.age = '', this.goal = '', final  List<String> qualities = const <String>[], @JsonKey(includeToJson: false) this.image, @JsonKey(includeToJson: false) this.videoUrl, @JsonKey(includeToJson: false) this.createdAt, final  List<ExerciseStep> steps = const <ExerciseStep>[]}): _qualities = qualities,_steps = steps,super._();
   factory _Exercise.fromJson(Map<String, dynamic> json) => _$ExerciseFromJson(json);
 
 @override@JsonKey() final  int id;
@@ -224,9 +509,25 @@ class _Exercise extends Exercise {
 @override@JsonKey() final  int duration;
 @override@JsonKey() final  String description;
 @override@JsonKey() final  String category;
+@override@JsonKey() final  String age;
+@override@JsonKey() final  String goal;
+ final  List<String> _qualities;
+@override@JsonKey() List<String> get qualities {
+  if (_qualities is EqualUnmodifiableListView) return _qualities;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_qualities);
+}
+
 @override@JsonKey(includeToJson: false) final  String? image;
 @override@JsonKey(includeToJson: false) final  String? videoUrl;
 @override@JsonKey(includeToJson: false) final  String? createdAt;
+ final  List<ExerciseStep> _steps;
+@override@JsonKey() List<ExerciseStep> get steps {
+  if (_steps is EqualUnmodifiableListView) return _steps;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_steps);
+}
+
 
 /// Create a copy of Exercise
 /// with the given fields replaced by the non-null parameter values.
@@ -241,16 +542,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Exercise&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.description, description) || other.description == description)&&(identical(other.category, category) || other.category == category)&&(identical(other.image, image) || other.image == image)&&(identical(other.videoUrl, videoUrl) || other.videoUrl == videoUrl)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Exercise&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.description, description) || other.description == description)&&(identical(other.category, category) || other.category == category)&&(identical(other.age, age) || other.age == age)&&(identical(other.goal, goal) || other.goal == goal)&&const DeepCollectionEquality().equals(other._qualities, _qualities)&&(identical(other.image, image) || other.image == image)&&(identical(other.videoUrl, videoUrl) || other.videoUrl == videoUrl)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&const DeepCollectionEquality().equals(other._steps, _steps));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,title,duration,description,category,image,videoUrl,createdAt);
+int get hashCode => Object.hash(runtimeType,id,title,duration,description,category,age,goal,const DeepCollectionEquality().hash(_qualities),image,videoUrl,createdAt,const DeepCollectionEquality().hash(_steps));
 
 @override
 String toString() {
-  return 'Exercise(id: $id, title: $title, duration: $duration, description: $description, category: $category, image: $image, videoUrl: $videoUrl, createdAt: $createdAt)';
+  return 'Exercise(id: $id, title: $title, duration: $duration, description: $description, category: $category, age: $age, goal: $goal, qualities: $qualities, image: $image, videoUrl: $videoUrl, createdAt: $createdAt, steps: $steps)';
 }
 
 
@@ -261,7 +562,7 @@ abstract mixin class _$ExerciseCopyWith<$Res> implements $ExerciseCopyWith<$Res>
   factory _$ExerciseCopyWith(_Exercise value, $Res Function(_Exercise) _then) = __$ExerciseCopyWithImpl;
 @override @useResult
 $Res call({
- int id, String title, int duration, String description, String category,@JsonKey(includeToJson: false) String? image,@JsonKey(includeToJson: false) String? videoUrl,@JsonKey(includeToJson: false) String? createdAt
+ int id, String title, int duration, String description, String category, String age, String goal, List<String> qualities,@JsonKey(includeToJson: false) String? image,@JsonKey(includeToJson: false) String? videoUrl,@JsonKey(includeToJson: false) String? createdAt, List<ExerciseStep> steps
 });
 
 
@@ -278,17 +579,21 @@ class __$ExerciseCopyWithImpl<$Res>
 
 /// Create a copy of Exercise
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? title = null,Object? duration = null,Object? description = null,Object? category = null,Object? image = freezed,Object? videoUrl = freezed,Object? createdAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? title = null,Object? duration = null,Object? description = null,Object? category = null,Object? age = null,Object? goal = null,Object? qualities = null,Object? image = freezed,Object? videoUrl = freezed,Object? createdAt = freezed,Object? steps = null,}) {
   return _then(_Exercise(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,duration: null == duration ? _self.duration : duration // ignore: cast_nullable_to_non_nullable
 as int,description: null == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String,category: null == category ? _self.category : category // ignore: cast_nullable_to_non_nullable
-as String,image: freezed == image ? _self.image : image // ignore: cast_nullable_to_non_nullable
+as String,age: null == age ? _self.age : age // ignore: cast_nullable_to_non_nullable
+as String,goal: null == goal ? _self.goal : goal // ignore: cast_nullable_to_non_nullable
+as String,qualities: null == qualities ? _self._qualities : qualities // ignore: cast_nullable_to_non_nullable
+as List<String>,image: freezed == image ? _self.image : image // ignore: cast_nullable_to_non_nullable
 as String?,videoUrl: freezed == videoUrl ? _self.videoUrl : videoUrl // ignore: cast_nullable_to_non_nullable
 as String?,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,steps: null == steps ? _self._steps : steps // ignore: cast_nullable_to_non_nullable
+as List<ExerciseStep>,
   ));
 }
 
@@ -299,7 +604,7 @@ as String?,
 /// @nodoc
 mixin _$CreateExerciseRequest {
 
- String get title; int get duration; String get description;
+ String get title; int get duration; String get description; String get category; String get age; String get goal; List<String> get qualities;
 /// Create a copy of CreateExerciseRequest
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -312,16 +617,16 @@ $CreateExerciseRequestCopyWith<CreateExerciseRequest> get copyWith => _$CreateEx
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CreateExerciseRequest&&(identical(other.title, title) || other.title == title)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.description, description) || other.description == description));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CreateExerciseRequest&&(identical(other.title, title) || other.title == title)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.description, description) || other.description == description)&&(identical(other.category, category) || other.category == category)&&(identical(other.age, age) || other.age == age)&&(identical(other.goal, goal) || other.goal == goal)&&const DeepCollectionEquality().equals(other.qualities, qualities));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,title,duration,description);
+int get hashCode => Object.hash(runtimeType,title,duration,description,category,age,goal,const DeepCollectionEquality().hash(qualities));
 
 @override
 String toString() {
-  return 'CreateExerciseRequest(title: $title, duration: $duration, description: $description)';
+  return 'CreateExerciseRequest(title: $title, duration: $duration, description: $description, category: $category, age: $age, goal: $goal, qualities: $qualities)';
 }
 
 
@@ -332,7 +637,7 @@ abstract mixin class $CreateExerciseRequestCopyWith<$Res>  {
   factory $CreateExerciseRequestCopyWith(CreateExerciseRequest value, $Res Function(CreateExerciseRequest) _then) = _$CreateExerciseRequestCopyWithImpl;
 @useResult
 $Res call({
- String title, int duration, String description
+ String title, int duration, String description, String category, String age, String goal, List<String> qualities
 });
 
 
@@ -349,12 +654,16 @@ class _$CreateExerciseRequestCopyWithImpl<$Res>
 
 /// Create a copy of CreateExerciseRequest
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? title = null,Object? duration = null,Object? description = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? title = null,Object? duration = null,Object? description = null,Object? category = null,Object? age = null,Object? goal = null,Object? qualities = null,}) {
   return _then(_self.copyWith(
 title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,duration: null == duration ? _self.duration : duration // ignore: cast_nullable_to_non_nullable
 as int,description: null == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
-as String,
+as String,category: null == category ? _self.category : category // ignore: cast_nullable_to_non_nullable
+as String,age: null == age ? _self.age : age // ignore: cast_nullable_to_non_nullable
+as String,goal: null == goal ? _self.goal : goal // ignore: cast_nullable_to_non_nullable
+as String,qualities: null == qualities ? _self.qualities : qualities // ignore: cast_nullable_to_non_nullable
+as List<String>,
   ));
 }
 
@@ -439,10 +748,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String title,  int duration,  String description)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String title,  int duration,  String description,  String category,  String age,  String goal,  List<String> qualities)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CreateExerciseRequest() when $default != null:
-return $default(_that.title,_that.duration,_that.description);case _:
+return $default(_that.title,_that.duration,_that.description,_that.category,_that.age,_that.goal,_that.qualities);case _:
   return orElse();
 
 }
@@ -460,10 +769,10 @@ return $default(_that.title,_that.duration,_that.description);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String title,  int duration,  String description)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String title,  int duration,  String description,  String category,  String age,  String goal,  List<String> qualities)  $default,) {final _that = this;
 switch (_that) {
 case _CreateExerciseRequest():
-return $default(_that.title,_that.duration,_that.description);case _:
+return $default(_that.title,_that.duration,_that.description,_that.category,_that.age,_that.goal,_that.qualities);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -480,10 +789,10 @@ return $default(_that.title,_that.duration,_that.description);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String title,  int duration,  String description)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String title,  int duration,  String description,  String category,  String age,  String goal,  List<String> qualities)?  $default,) {final _that = this;
 switch (_that) {
 case _CreateExerciseRequest() when $default != null:
-return $default(_that.title,_that.duration,_that.description);case _:
+return $default(_that.title,_that.duration,_that.description,_that.category,_that.age,_that.goal,_that.qualities);case _:
   return null;
 
 }
@@ -495,12 +804,22 @@ return $default(_that.title,_that.duration,_that.description);case _:
 @JsonSerializable()
 
 class _CreateExerciseRequest implements CreateExerciseRequest {
-  const _CreateExerciseRequest({required this.title, required this.duration, this.description = ''});
+  const _CreateExerciseRequest({required this.title, this.duration = 0, this.description = '', this.category = '', this.age = '', this.goal = '', final  List<String> qualities = const <String>[]}): _qualities = qualities;
   factory _CreateExerciseRequest.fromJson(Map<String, dynamic> json) => _$CreateExerciseRequestFromJson(json);
 
 @override final  String title;
-@override final  int duration;
+@override@JsonKey() final  int duration;
 @override@JsonKey() final  String description;
+@override@JsonKey() final  String category;
+@override@JsonKey() final  String age;
+@override@JsonKey() final  String goal;
+ final  List<String> _qualities;
+@override@JsonKey() List<String> get qualities {
+  if (_qualities is EqualUnmodifiableListView) return _qualities;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_qualities);
+}
+
 
 /// Create a copy of CreateExerciseRequest
 /// with the given fields replaced by the non-null parameter values.
@@ -515,16 +834,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CreateExerciseRequest&&(identical(other.title, title) || other.title == title)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.description, description) || other.description == description));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CreateExerciseRequest&&(identical(other.title, title) || other.title == title)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.description, description) || other.description == description)&&(identical(other.category, category) || other.category == category)&&(identical(other.age, age) || other.age == age)&&(identical(other.goal, goal) || other.goal == goal)&&const DeepCollectionEquality().equals(other._qualities, _qualities));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,title,duration,description);
+int get hashCode => Object.hash(runtimeType,title,duration,description,category,age,goal,const DeepCollectionEquality().hash(_qualities));
 
 @override
 String toString() {
-  return 'CreateExerciseRequest(title: $title, duration: $duration, description: $description)';
+  return 'CreateExerciseRequest(title: $title, duration: $duration, description: $description, category: $category, age: $age, goal: $goal, qualities: $qualities)';
 }
 
 
@@ -535,7 +854,7 @@ abstract mixin class _$CreateExerciseRequestCopyWith<$Res> implements $CreateExe
   factory _$CreateExerciseRequestCopyWith(_CreateExerciseRequest value, $Res Function(_CreateExerciseRequest) _then) = __$CreateExerciseRequestCopyWithImpl;
 @override @useResult
 $Res call({
- String title, int duration, String description
+ String title, int duration, String description, String category, String age, String goal, List<String> qualities
 });
 
 
@@ -552,12 +871,16 @@ class __$CreateExerciseRequestCopyWithImpl<$Res>
 
 /// Create a copy of CreateExerciseRequest
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? title = null,Object? duration = null,Object? description = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? title = null,Object? duration = null,Object? description = null,Object? category = null,Object? age = null,Object? goal = null,Object? qualities = null,}) {
   return _then(_CreateExerciseRequest(
 title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,duration: null == duration ? _self.duration : duration // ignore: cast_nullable_to_non_nullable
 as int,description: null == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
-as String,
+as String,category: null == category ? _self.category : category // ignore: cast_nullable_to_non_nullable
+as String,age: null == age ? _self.age : age // ignore: cast_nullable_to_non_nullable
+as String,goal: null == goal ? _self.goal : goal // ignore: cast_nullable_to_non_nullable
+as String,qualities: null == qualities ? _self._qualities : qualities // ignore: cast_nullable_to_non_nullable
+as List<String>,
   ));
 }
 

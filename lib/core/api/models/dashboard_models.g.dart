@@ -34,26 +34,6 @@ Map<String, dynamic> _$DashboardDataToJson(_DashboardData instance) =>
       'recentTests': instance.recentTests,
     };
 
-_MyStatistics _$MyStatisticsFromJson(Map<String, dynamic> json) =>
-    _MyStatistics(
-      avgScore: (json['avgScore'] as num?)?.toDouble(),
-      activeDays: (json['activeDays'] as num?)?.toInt(),
-      completedTests: (json['completedTests'] as num?)?.toInt(),
-      recentTests:
-          (json['recentTests'] as List<dynamic>?)
-              ?.map((e) => RecentTestResult.fromJson(e as Map<String, dynamic>))
-              .toList() ??
-          const [],
-    );
-
-Map<String, dynamic> _$MyStatisticsToJson(_MyStatistics instance) =>
-    <String, dynamic>{
-      'avgScore': instance.avgScore,
-      'activeDays': instance.activeDays,
-      'completedTests': instance.completedTests,
-      'recentTests': instance.recentTests,
-    };
-
 _RecentTestResult _$RecentTestResultFromJson(Map<String, dynamic> json) =>
     _RecentTestResult(
       testName: json['testName'] as String? ?? '',

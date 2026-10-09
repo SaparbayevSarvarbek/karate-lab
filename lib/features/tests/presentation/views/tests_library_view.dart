@@ -1,25 +1,23 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/api/models/athlete_models.dart';
 import '../../../../core/api/models/test_models.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/l10n/app_translations.dart';
-import '../../../../core/repositories/athlete_repository.dart';
-import '../../../../core/repositories/test_repository.dart';
 import '../../../../core/theme/app_palette.dart';
 import '../../../../core/widgets/remote_image.dart';
-import '../../../exercises/presentation/widgets/exercise_video_player.dart';
+import '../../../../core/widgets/shimmer_placeholder.dart';
+import '../../../../core/widgets/status_badge.dart';
 import '../viewmodels/test_bloc.dart';
 
 /// Testlar sahifasi.
 ///
-/// - Murabbiy: Swagger `GET /tests/` — o'zi yaratgan testlari.
-/// - Sportchi: Swagger `GET /my-tests/` — biriktirilgan testlar va statuslar.
+/// - Murabbiy: Swagger `GET /tests/` â€” o'zi yaratgan testlari.
+/// - Sportchi: Swagger `GET /my-tests/` â€” barcha faol testlar (avtomatik).
 class TestsLibraryView extends StatefulWidget {
   final String? userRole;
 
@@ -46,7 +44,7 @@ class _TestsLibraryViewState extends State<TestsLibraryView> {
             return Scaffold(
               backgroundColor: palette.background,
               appBar: AppBar(
-                title: Text(_isCoach ? Tr.t('testsMine') : Tr.t('testsAssigned')),
+                title: Text(_isCoach ? Tr.t('testsMine') : Tr.t('testsAthlete')),
                 centerTitle: true,
               ),
               body: _buildBody(context, state),
@@ -72,7 +70,15 @@ class _TestsLibraryViewState extends State<TestsLibraryView> {
 
   Widget _buildBody(BuildContext context, TestState state) {
     if (state is TestLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return RefreshIndicator(
+        onRefresh: () async => context.read<TestBloc>().add(_isCoach ? const LoadCoachTests() : const LoadMyTests()),
+        child: ListView(
+          padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 96.h),
+          children: _isCoach
+              ? List.generate(5, (index) => ShimmerCoachTestCard())
+              : List.generate(5, (index) => ShimmerTestResultCard()),
+        ),
+      );
     }
 
     if (state is CoachTestsLoaded) {
@@ -98,7 +104,7 @@ class _TestsLibraryViewState extends State<TestsLibraryView> {
           padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 24.h),
           itemCount: state.tests.length,
           itemBuilder: (context, index) =>
-              _buildAssignmentCard(context, state.tests[index]),
+              _buildTestCard(context, state.tests[index]),
         ),
       );
     }
@@ -136,12 +142,6 @@ class _TestsLibraryViewState extends State<TestsLibraryView> {
 
   Widget _buildCoachTestCard(BuildContext context, TestEntity test) {
     final palette = context.palette;
-    final images = test.exercises
-        .where((e) => e.hasImage)
-        .take(3)
-        .map((e) => e.image!)
-        .toList();
-
     return Container(
       margin: EdgeInsets.only(bottom: 14.h),
       decoration: BoxDecoration(
@@ -164,51 +164,62 @@ class _TestsLibraryViewState extends State<TestsLibraryView> {
           children: [
             Row(
               children: [
-                Container(
-                  padding: EdgeInsets.all(10.w),
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryBlue.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12.r),
-                  ),
-                  child: Icon(Icons.assignment_rounded,
-                      color: AppColors.primaryBlue, size: 22.w),
+                RemoteImage(
+                  url: test.coverUrl,
+                  width: 56.w,
+                  height: 56.w,
+                  borderRadius: BorderRadius.circular(12.r),
                 ),
                 SizedBox(width: 12.w),
                 Expanded(
-                  child: Text(
-                    test.name,
-                    style: TextStyle(
-                      fontSize: 15.5.sp,
-                      fontWeight: FontWeight.w700,
-                      color: palette.textPrimary,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        test.name,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 15.5.sp,
+                          fontWeight: FontWeight.w700,
+                          color: palette.textPrimary,
+                        ),
+                      ),
+                      if (test.age.isNotEmpty) ...[
+                        SizedBox(height: 3.h),
+                        Text(
+                          test.age,
+                          style: TextStyle(
+                              color: palette.textSecondary, fontSize: 11.5.sp),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                if (test.category.isNotEmpty)
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryBlue.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(999.r),
+                    ),
+                    child: Text(
+                      test.category,
+                      style: TextStyle(
+                        color: AppColors.primaryBlue,
+                        fontSize: 10.sp,
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                   ),
-                ),
               ],
             ),
-            if (images.isNotEmpty) ...[
-              SizedBox(height: 12.h),
-              SizedBox(
-                height: 64.h,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: images.length,
-                  separatorBuilder: (_, i) => SizedBox(width: 8.w),
-                  itemBuilder: (context, index) => RemoteImage(
-                    url: images[index],
-                    width: 88.w,
-                    height: 64.h,
-                    borderRadius: BorderRadius.circular(10.r),
-                  ),
-                ),
-              ),
-            ],
             SizedBox(height: 12.h),
             Row(
               children: [
-                Icon(Icons.fitness_center, size: 14.w, color: palette.textHint),
+                Icon(Icons.list_alt_rounded, size: 14.w, color: palette.textHint),
                 SizedBox(width: 4.w),
-                Text('${test.exercises.length} mashq',
+                Text('${test.steps.length} qadam',
                     style: TextStyle(
                         color: palette.textSecondary, fontSize: 12.sp)),
                 SizedBox(width: 14.w),
@@ -218,31 +229,37 @@ class _TestsLibraryViewState extends State<TestsLibraryView> {
                     style: TextStyle(
                         color: palette.textSecondary, fontSize: 12.sp)),
                 const Spacer(),
-                GestureDetector(
-                  onTap: () => _showAssignSheet(context, test),
-                  child: Container(
-                    padding: EdgeInsets.symmetric(
-                        horizontal: 12.w, vertical: 8.h),
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryBlue,
-                      borderRadius: BorderRadius.circular(12.r),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.person_add_alt_1_rounded,
-                            size: 14.w, color: Colors.white),
-                        SizedBox(width: 6.w),
-                        Text(
-                          'Biriktirish',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 12.sp,
-                            fontWeight: FontWeight.w700,
-                          ),
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
+                  decoration: BoxDecoration(
+                    color: (test.isActive ? AppColors.success : AppColors.textHint)
+                        .withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(999.r),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        test.isActive
+                            ? Icons.check_circle_rounded
+                            : Icons.pause_circle_rounded,
+                        size: 13.w,
+                        color: test.isActive
+                            ? AppColors.success
+                            : AppColors.textHint,
+                      ),
+                      SizedBox(width: 4.w),
+                      Text(
+                        test.isActive ? 'Faol' : 'Nofaol',
+                        style: TextStyle(
+                          color: test.isActive
+                              ? AppColors.success
+                              : AppColors.textHint,
+                          fontSize: 11.sp,
+                          fontWeight: FontWeight.w700,
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -253,7 +270,7 @@ class _TestsLibraryViewState extends State<TestsLibraryView> {
     );
   }
 
-  Widget _buildAssignmentCard(BuildContext context, TestAssignment test) {
+  Widget _buildTestCard(BuildContext context, TestResult test) {
     final palette = context.palette;
     final statusColor = switch (test.status) {
       TestStatus.completed => AppColors.success,
@@ -267,9 +284,7 @@ class _TestsLibraryViewState extends State<TestsLibraryView> {
       TestStatus.pending => Icons.schedule_rounded,
       TestStatus.unknown => Icons.help_outline_rounded,
     };
-    final imageExercises =
-        test.exercises.where((e) => e.hasImage).map((e) => e.image!).toList();
-    final firstImage = imageExercises.isEmpty ? null : imageExercises.first;
+    final firstImage = test.hasCover ? test.coverUrl : null;
 
     return GestureDetector(
       onTap: () async {
@@ -336,10 +351,10 @@ class _TestsLibraryViewState extends State<TestsLibraryView> {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.fitness_center,
+                      Icon(Icons.list_alt_rounded,
                           size: 14.w, color: palette.textHint),
                       SizedBox(width: 4.w),
-                      Text('${test.exercises.length} mashq',
+                      Text('${test.steps.length} qadam',
                           style: TextStyle(
                               color: palette.textSecondary, fontSize: 12.sp)),
                       if (test.score != null) ...[
@@ -360,8 +375,12 @@ class _TestsLibraryViewState extends State<TestsLibraryView> {
                     SizedBox(
                       width: double.infinity,
                       child: FilledButton.icon(
-                        onPressed: () =>
-                            context.read<TestBloc>().add(StartMyTest(test.id)),
+                        onPressed: () async {
+                          await context.push('/test-detail', extra: test);
+                          if (context.mounted) {
+                            context.read<TestBloc>().add(const LoadMyTests());
+                          }
+                        },
                         icon: const Icon(Icons.play_arrow_rounded, size: 20),
                         label: const Text('Boshlash'),
                       ),
@@ -381,8 +400,20 @@ class _TestsLibraryViewState extends State<TestsLibraryView> {
                         style: FilledButton.styleFrom(
                           backgroundColor: AppColors.warning,
                         ),
-                        icon: const Icon(Icons.flag_rounded, size: 18),
-                        label: const Text('Yakunlash'),
+                        icon: const Icon(Icons.timer_rounded, size: 18),
+                        label: const Text('Davom etish'),
+                      ),
+                    ),
+                  ],
+                  if (test.status == TestStatus.completed) ...[
+                    SizedBox(height: 12.h),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () =>
+                            context.push('/test-result', extra: test),
+                        icon: const Icon(Icons.bar_chart_rounded, size: 18),
+                        label: const Text('Natijani ko\'rish'),
                       ),
                     ),
                   ],
@@ -390,250 +421,6 @@ class _TestsLibraryViewState extends State<TestsLibraryView> {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  void _showAssignSheet(BuildContext context, TestEntity test) {
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => _AssignSheetContent(test: test),
-    );
-  }
-}
-
-/// Testni sportchilarga biriktirish oynasi (Swagger: `POST /tests/{id}/assign/`).
-class _AssignSheetContent extends StatefulWidget {
-  final TestEntity test;
-
-  const _AssignSheetContent({required this.test});
-
-  @override
-  State<_AssignSheetContent> createState() => _AssignSheetContentState();
-}
-
-class _AssignSheetContentState extends State<_AssignSheetContent> {
-  List<Athlete> _athletes = [];
-  final Set<int> _selectedIds = {};
-  bool _loading = true;
-  String? _error;
-  bool _assigning = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadAthletes();
-  }
-
-  Future<void> _loadAthletes() async {
-    final result = await getIt<AthleteRepository>().getAthletes(size: 100);
-    if (!mounted) return;
-    result.fold(
-      (e) => setState(() {
-        _error = e.message;
-        _loading = false;
-      }),
-      (list) => setState(() {
-        _athletes = list;
-        _loading = false;
-      }),
-    );
-  }
-
-  Future<void> _assign() async {
-    if (_selectedIds.isEmpty) return;
-    setState(() => _assigning = true);
-
-    final result = await getIt<TestRepository>().assignTest(
-      widget.test.id,
-      AssignTestRequest(athleteIds: _selectedIds.toList()),
-    );
-
-    if (!mounted) return;
-
-    result.fold(
-      (error) {
-        setState(() => _assigning = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(error.message),
-            backgroundColor: AppColors.error,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      },
-      (_) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-                '"${widget.test.name}" ${_selectedIds.length} sportchiga biriktirildi'),
-            backgroundColor: AppColors.success,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-        Navigator.of(context).pop(true);
-      },
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = context.palette;
-
-    return Container(
-      decoration: BoxDecoration(
-        color: palette.background,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
-      ),
-      child: Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-        ),
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.72,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Center(
-                child: Container(
-                  margin: EdgeInsets.only(top: 12.h),
-                  width: 40.w,
-                  height: 4.h,
-                  decoration: BoxDecoration(
-                    color: palette.border,
-                    borderRadius: BorderRadius.circular(999.r),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.fromLTRB(24.w, 14.h, 24.w, 4.h),
-                child: Text(
-                  'Sportchilarga biriktirish',
-                  style: TextStyle(
-                    fontSize: 17.sp,
-                    fontWeight: FontWeight.w800,
-                    color: palette.textPrimary,
-                  ),
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 24.w),
-                child: Text(
-                  '"${widget.test.name}" testini tanlangan sportchilarga yuboring',
-                  style: TextStyle(color: palette.textSecondary, fontSize: 12.5.sp),
-                ),
-              ),
-              SizedBox(height: 10.h),
-              Expanded(
-                child: _loading
-                    ? const Center(child: CircularProgressIndicator())
-                    : _error != null
-                        ? Center(
-                            child: Text(
-                              _error!,
-                              style: TextStyle(
-                                  color: AppColors.error, fontSize: 13.sp),
-                            ),
-                          )
-                        : _athletes.isEmpty
-                            ? Center(
-                                child: Text('Sportchilar yo\'q',
-                                    style: TextStyle(
-                                        color: palette.textSecondary,
-                                        fontSize: 13.sp)),
-                              )
-                            : ListView.builder(
-                                shrinkWrap: true,
-                                padding: EdgeInsets.zero,
-                                itemCount: _athletes.length,
-                                itemBuilder: (context, index) {
-                                  final athlete = _athletes[index];
-                                  final checked =
-                                      _selectedIds.contains(athlete.id);
-                                  return InkWell(
-                                    onTap: () => setState(() {
-                                      if (checked) {
-                                        _selectedIds.remove(athlete.id);
-                                      } else {
-                                        _selectedIds.add(athlete.id);
-                                      }
-                                    }),
-                                    child: Padding(
-                                      padding: EdgeInsets.symmetric(
-                                          horizontal: 20.w, vertical: 8.h),
-                                      child: Row(
-                                        children: [
-                                          AvatarImage(
-                                            url: athlete.avatar,
-                                            name: athlete.fullName,
-                                            size: 40,
-                                          ),
-                                          SizedBox(width: 12.w),
-                                          Expanded(
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  athlete.fullName,
-                                                  style: TextStyle(
-                                                    fontSize: 13.5.sp,
-                                                    fontWeight: FontWeight.w600,
-                                                    color: palette.textPrimary,
-                                                  ),
-                                                ),
-                                                Text(
-                                                  '@${athlete.username}',
-                                                  style: TextStyle(
-                                                    fontSize: 11.5.sp,
-                                                    color: palette.textSecondary,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                          Icon(
-                                            checked
-                                                ? Icons.check_circle_rounded
-                                                : Icons.radio_button_unchecked,
-                                            color: checked
-                                                ? AppColors.primaryBlue
-                                                : palette.textHint,
-                                            size: 22.w,
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-              ),
-              Padding(
-                padding: EdgeInsets.all(20.w),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: FilledButton(
-                    onPressed:
-                        _selectedIds.isEmpty || _assigning ? null : _assign,
-                    child: _assigning
-                        ? SizedBox(
-                            width: 20.w,
-                            height: 20.w,
-                            child: const CircularProgressIndicator(
-                                strokeWidth: 2, color: Colors.white),
-                          )
-                        : Text('Biriktirish (${_selectedIds.length} ta)'),
-                  ),
-                ),
-              ),
-            ],
-          ),
         ),
       ),
     );

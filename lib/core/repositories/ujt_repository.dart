@@ -4,13 +4,16 @@ import '../api/api_client.dart';
 import '../api/api_constants.dart';
 import '../api/api_exception.dart';
 import '../api/models/exercise_models.dart';
+import '../api/models/mjt_models.dart';
 import '../api/models/ujt_models.dart';
 
-/// Mashqlar repository: Texnik (/exercises/) + UJT (/ujt-tests/).
+/// Mashqlar repository: Texnik (/exercises/) + UJT (/ujt-tests/) + MJT (/mjt-tests/).
 abstract class UjtRepository {
   Future<Either<ApiException, List<Exercise>>> getTexnikExercises();
   Future<Either<ApiException, List<UjtTest>>> getUjtTests({String search = ''});
   Future<Either<ApiException, UjtTest>> getUjtTestById(int id);
+  Future<Either<ApiException, List<MjtTest>>> getMjtTests({String search = ''});
+  Future<Either<ApiException, MjtTest>> getMjtTestById(int id);
 }
 
 class UjtRepositoryImpl implements UjtRepository {
@@ -52,6 +55,35 @@ class UjtRepositoryImpl implements UjtRepository {
         return const Left(ApiException(message: 'UJT testi topilmadi'));
       }
       return Right(UjtTest.fromJson(data));
+    } on ApiException catch (e) {
+      return Left(e);
+    }
+  }
+
+  @override
+  Future<Either<ApiException, List<MjtTest>>> getMjtTests({
+    String search = '',
+  }) async {
+    try {
+      final items = await _apiClient.getList(
+        ApiConstants.mjtTests,
+        queryParameters:
+            search.isEmpty ? null : <String, dynamic>{'search': search},
+      );
+      return Right(items.map(MjtTest.fromJson).toList());
+    } on ApiException catch (e) {
+      return Left(e);
+    }
+  }
+
+  @override
+  Future<Either<ApiException, MjtTest>> getMjtTestById(int id) async {
+    try {
+      final data = await _apiClient.getObject(ApiConstants.mjtTestDetail(id));
+      if (data == null) {
+        return const Left(ApiException(message: 'MJT testi topilmadi'));
+      }
+      return Right(MjtTest.fromJson(data));
     } on ApiException catch (e) {
       return Left(e);
     }

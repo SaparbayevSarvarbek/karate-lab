@@ -84,21 +84,7 @@ class _LoginViewState extends State<LoginView> {
               automaticallyImplyLeading: false,
             ),
             body: SafeArea(
-              child: isLoading
-                  ? const Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          CircularProgressIndicator(),
-                          SizedBox(height: 16),
-                          Text(
-                            'Tizimga kirilmoqda...',
-                            style: TextStyle(color: AppColors.textSecondary),
-                          ),
-                        ],
-                      ),
-                    )
-                  : SingleChildScrollView(
+              child: SingleChildScrollView(
                       padding: const EdgeInsets.all(24.0),
                       child: Form(
                         key: _formKey,
@@ -149,7 +135,8 @@ class _LoginViewState extends State<LoginView> {
                             const SizedBox(height: 24),
                             CustomButton(
                               text: 'Kirish',
-                              onPressed: _onLogin,
+                              onPressed: isLoading ? null : _onLogin,
+                              isLoading: isLoading,
                             ),
                             const SizedBox(height: 24),
                             LoginFooterWidget(onRegister: _onRegister),

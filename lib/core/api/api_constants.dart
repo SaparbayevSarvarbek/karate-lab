@@ -1,33 +1,58 @@
 import 'dart:io' show Platform;
 
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, kReleaseMode;
 
 class ApiConstants {
   ApiConstants._();
 
-  /// Development: kompyuterdagi Django server (`0.0.0.0:8000` da yoniq).
-  /// Android → USB/emulator: `adb reverse tcp:8000 tcp:8000` qilib
-  /// `http://127.0.0.1:8000` orqali ulanadi.
-  /// Boshqa platformalar (desktop/web) → `_lanIp` (kompyuter LAN IP'si).
-  /// Fizik qurilma WiFi orqali → `_lanIp` ni LAN IP'ga o'zgartiring.
-  /// Production: `https://carate.uz`.
-  static const String _adbReverse = 'http://127.0.0.1:8000';
-  static const String _lanIp = 'http://192.168.13.6:8000';
+  /// Build vaqtida manzilni almashtirish:
+  ///
+  /// ```
+  /// flutter run --dart-define=API_BASE_URL=http://192.168.1.5:8000
+  /// flutter build apk --release --dart-define=API_BASE_URL=https://carate.uz
+  /// ```
+  ///
+  /// Berilmasa: release build → production domen; debug → quyidagi dev manzil.
+  static const String _override = String.fromEnvironment('API_BASE_URL');
+
+  /// Production backend.
+  static const String productionUrl = 'https://carate.uz';
+
+  /// Android emulator uchun host mashina manzili.
+  static const String _emulator = 'http://10.0.2.2:8000';
+
+  /// USB (`adb reverse tcp:8000 tcp:8000`) yoki iOS simulator / web uchun.
+  static const String _localhost = 'http://127.0.0.1:8000';
+
+  /// Fizik qurilma Wi-Fi orqali ulanganda ishlatiladigan LAN manzil.
+  /// O'z kompyuteringiz IP siga moslang yoki `--dart-define` bilan bering.
+  static const String devLanUrl = 'http://192.168.13.24:8000';
+
+  /// Debug build'da standart manzil (fizik qurilma + Wi-Fi).
+  static const String _devDefault = devLanUrl;
 
   static String get baseUrl {
-    if (kIsWeb) return _lanIp;
+    if (_override.isNotEmpty) return _override;
+    if (kReleaseMode) return productionUrl;
+    if (kIsWeb) return _localhost;
     try {
-      if (Platform.isAndroid) return _adbReverse;
-      return _lanIp;
+      if (Platform.isAndroid) return _devDefault;
+      return _localhost;
     } catch (_) {
-      return _lanIp;
+      return _localhost;
     }
   }
+
+  /// Emulator / USB rejimida ishlatish uchun tayyor manzillar.
+  static String get emulatorUrl => _emulator;
+  static String get localhostUrl => _localhost;
 
   static const String login = '/auth/login/';
   static const String register = '/auth/register/';
   static const String logout = '/auth/logout/';
   static const String refresh = '/auth/refresh/';
+
+  static const String categories = '/categories/';
 
   static const String athletes = '/athletes/';
   static String athleteDetail(int id) => '/athletes/$id/';
@@ -38,24 +63,25 @@ class ApiConstants {
   static const String ujtTests = '/ujt-tests/';
   static String ujtTestDetail(int id) => '/ujt-tests/$id/';
 
+  static const String mjtTests = '/mjt-tests/';
+  static String mjtTestDetail(int id) => '/mjt-tests/$id/';
+
   static const String tests = '/tests/';
-  static String assignTest(int id) => '/tests/$id/assign/';
+  static String testDetail(int id) => '/tests/$id/';
 
   static const String myTests = '/my-tests/';
   static String startTest(int id) => '/my-tests/$id/start/';
   static String finishTest(int id) => '/my-tests/$id/finish/';
 
   static const String dashboard = '/dashboard/';
-  static const String statistics = '/statistics/';
-  static const String reports = '/reports/';
-  static const String myStatistics = '/my-statistics/';
+  static const String athleteStatistics = '/athlete/statistics/';
+  static const String coachStatistics = '/coach/statistics/';
+  static const String coachAthletes = '/coach/athletes/';
+  static String coachAthleteStatistics(int id) =>
+      '/coach/athletes/$id/statistics/';
 
   static const String profile = '/profile/';
   static const String profileAvatar = '/profile/avatar/';
-
-  static const String notifications = '/notifications/';
-  static String notificationDetail(int id) => '/notifications/$id/';
-  static String markNotificationRead(int id) => '/notifications/$id/read/';
 
   static const String settings = '/settings/';
   static const String settingsPassword = '/settings/password/';
@@ -71,7 +97,7 @@ class ApiConstants {
     return url;
   }
 
-  static const int connectTimeout = 30000;
-  static const int receiveTimeout = 30000;
-  static const int sendTimeout = 30000;
+  static const int connectTimeout = 60000;
+  static const int receiveTimeout = 60000;
+  static const int sendTimeout = 60000;
 }
