@@ -209,45 +209,28 @@ class _TestDetailViewState extends State<TestDetailView> {
   Widget _buildActionButton(TestResult test) {
     switch (test.status) {
       case TestStatus.pending:
-        return SizedBox(
-          width: double.infinity,
-          child: FilledButton.icon(
-            onPressed: _busy ? null : _startTest,
-            style: FilledButton.styleFrom(
-              padding: EdgeInsets.symmetric(vertical: 15.h),
-            ),
-            icon: const Icon(Icons.play_arrow_rounded),
-            label: Text('Testni boshlash', style: TextStyle(fontSize: 14.sp)),
-          ),
+        return _PrimaryAction(
+          label: 'Testni boshlash',
+          icon: Icons.play_arrow_rounded,
+          color: AppColors.primaryBlue,
+          onTap: _busy ? null : _startTest,
         );
       case TestStatus.inProgress:
-        return SizedBox(
-          width: double.infinity,
-          child: FilledButton.icon(
-            onPressed: _busy ? null : () => _openRun(test),
-            style: FilledButton.styleFrom(
-              padding: EdgeInsets.symmetric(vertical: 15.h),
-              backgroundColor: AppColors.warning,
-            ),
-            icon: const Icon(Icons.timer_rounded),
-            label: Text('Davom etish', style: TextStyle(fontSize: 14.sp)),
-          ),
+        return _PrimaryAction(
+          label: 'Davom etish',
+          icon: Icons.timer_rounded,
+          color: AppColors.warning,
+          onTap: _busy ? null : () => _openRun(test),
         );
       case TestStatus.completed:
       case TestStatus.unknown:
         return Column(
           children: [
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton.icon(
-                onPressed: () => context.push('/test-result', extra: test),
-                style: FilledButton.styleFrom(
-                  padding: EdgeInsets.symmetric(vertical: 15.h),
-                  backgroundColor: AppColors.success,
-                ),
-                icon: const Icon(Icons.bar_chart_rounded),
-                label: Text('Natijani ko\'rish', style: TextStyle(fontSize: 14.sp)),
-              ),
+            _PrimaryAction(
+              label: 'Natijani ko\'rish',
+              icon: Icons.bar_chart_rounded,
+              color: AppColors.success,
+              onTap: () => context.push('/test-result', extra: test),
             ),
             SizedBox(height: 10.h),
             Container(
@@ -284,6 +267,44 @@ class _TestDetailViewState extends State<TestDetailView> {
   }
 }
 
+/// Sahifadagi asosiy amal tugmasi (bir xil o'lcham va burchak).
+class _PrimaryAction extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final Color color;
+  final VoidCallback? onTap;
+
+  const _PrimaryAction({
+    required this.label,
+    required this.icon,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      height: 52.h,
+      child: FilledButton.icon(
+        onPressed: onTap,
+        style: FilledButton.styleFrom(
+          backgroundColor: color,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14.r),
+          ),
+        ),
+        icon: Icon(icon, size: 20.w),
+        label: Text(
+          label,
+          style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w700),
+        ),
+      ),
+    );
+  }
+}
+
 class _TestHero extends StatelessWidget {
   final TestResult test;
 
@@ -291,73 +312,78 @@ class _TestHero extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 150.h,
-      decoration: BoxDecoration(borderRadius: BorderRadius.circular(20.r)),
-      clipBehavior: Clip.antiAlias,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          if (test.hasCover)
-            RemoteImage(
-              url: ApiConstants.resolveMediaUrl(test.coverUrl!),
-              borderRadius: BorderRadius.zero,
-              fit: BoxFit.cover,
-            )
-          else
-            Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [AppColors.primaryNavy, Color(0xFF1E40AF)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-              ),
-            ),
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Colors.black.withValues(alpha: 0.15),
-                  Colors.black.withValues(alpha: 0.7),
-                ],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-              ),
-            ),
-          ),
-          Positioned(
-            left: 18.w,
-            right: 18.w,
-            bottom: 14.h,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    if (test.category.isNotEmpty)
-                      _HeroChip(label: test.category),
-                    if (test.age.isNotEmpty) ...[
-                      SizedBox(width: 8.w),
-                      _HeroChip(label: test.age),
-                    ],
-                  ],
-                ),
-                SizedBox(height: 8.h),
-                Text(
-                  test.name,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 20.sp,
-                    fontWeight: FontWeight.w800,
+    return AspectRatio(
+      aspectRatio: 16 / 9,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(18.r),
+          border: Border.all(color: context.palette.border),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            if (test.hasCover)
+              RemoteImage(
+                url: ApiConstants.resolveMediaUrl(test.coverUrl!),
+                borderRadius: BorderRadius.zero,
+                fit: BoxFit.cover,
+              )
+            else
+              Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [AppColors.primaryNavy, Color(0xFF1E3A8A)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
                 ),
-              ],
+              ),
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.black.withValues(alpha: 0.10),
+                    Colors.black.withValues(alpha: 0.72),
+                  ],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+              ),
             ),
-          ),
-        ],
+            Positioned(
+              left: 18.w,
+              right: 18.w,
+              bottom: 14.h,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      if (test.category.isNotEmpty)
+                        _HeroChip(label: test.category),
+                      if (test.age.isNotEmpty) ...[
+                        SizedBox(width: 8.w),
+                        _HeroChip(label: test.age),
+                      ],
+                    ],
+                  ),
+                  SizedBox(height: 8.h),
+                  Text(
+                    test.name,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20.sp,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
