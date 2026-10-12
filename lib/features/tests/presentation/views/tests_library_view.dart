@@ -370,46 +370,41 @@ class _TestsLibraryViewState extends State<TestsLibraryView> {
                       ],
                     ],
                   ),
-                  if (test.status == TestStatus.pending) ...[
+                  if (test.status != TestStatus.unknown) ...[
                     SizedBox(height: 12.h),
-                    SizedBox(
-                      width: double.infinity,
-                      child: FilledButton.icon(
-                        onPressed: () async {
-                          await context.push('/test-detail', extra: test);
-                          if (context.mounted) {
-                            context.read<TestBloc>().add(const LoadMyTests());
-                          }
-                        },
-                        icon: const Icon(Icons.play_arrow_rounded, size: 20),
-                        label: const Text('Boshlash'),
-                      ),
-                    ),
-                  ],
-                  if (test.status == TestStatus.inProgress) ...[
-                    SizedBox(height: 12.h),
-                    SizedBox(
-                      width: double.infinity,
-                      child: FilledButton.icon(
-                        onPressed: () async {
-                          await context.push('/test-detail', extra: test);
-                          if (context.mounted) {
-                            context.read<TestBloc>().add(const LoadMyTests());
-                          }
-                        },
-                        style: FilledButton.styleFrom(
-                          backgroundColor: AppColors.warning,
-                        ),
-                        icon: const Icon(Icons.timer_rounded, size: 18),
-                        label: const Text('Davom etish'),
-                      ),
-                    ),
-                  ],
-                  if (test.status == TestStatus.completed) ...[
-                    SizedBox(height: 12.h),
-                    _ResultButton(
-                      score: test.score,
-                      onTap: () => context.push('/test-result', extra: test),
+                    _TestActionButton(
+                      icon: switch (test.status) {
+                        TestStatus.pending => Icons.play_arrow_rounded,
+                        TestStatus.inProgress => Icons.timer_rounded,
+                        _ => Icons.insights_rounded,
+                      },
+                      title: switch (test.status) {
+                        TestStatus.pending => 'Boshlash',
+                        TestStatus.inProgress => 'Davom etish',
+                        _ => 'Natijani ko\'rish',
+                      },
+                      subtitle: switch (test.status) {
+                        TestStatus.pending => '${test.steps.length} qadam',
+                        TestStatus.inProgress => 'Boshlangan',
+                        _ => test.score == null
+                            ? 'Batafsil tahlil'
+                            : '${test.score!.toStringAsFixed(1)} ball',
+                      },
+                      color: switch (test.status) {
+                        TestStatus.pending => AppColors.primaryBlue,
+                        TestStatus.inProgress => AppColors.warning,
+                        _ => AppColors.success,
+                      },
+                      onTap: test.status == TestStatus.completed
+                          ? () => context.push('/test-result', extra: test)
+                          : () async {
+                              await context.push('/test-detail', extra: test);
+                              if (context.mounted) {
+                                context
+                                    .read<TestBloc>()
+                                    .add(const LoadMyTests());
+                              }
+                            },
                     ),
                   ],
                 ],
@@ -422,12 +417,21 @@ class _TestsLibraryViewState extends State<TestsLibraryView> {
   }
 }
 
-/// "Natijani ko'rish" — bajarilgan test uchun natija tugmasi.
-class _ResultButton extends StatelessWidget {
-  final double? score;
+/// Test kartasidagi yagona amal tugmasi (boshlash / davom etish / natija).
+class _TestActionButton extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final Color color;
   final VoidCallback onTap;
 
-  const _ResultButton({required this.score, required this.onTap});
+  const _TestActionButton({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.color,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -440,14 +444,14 @@ class _ResultButton extends StatelessWidget {
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              AppColors.success.withValues(alpha: 0.16),
+              color.withValues(alpha: 0.16),
               AppColors.primaryBlue.withValues(alpha: 0.10),
             ],
             begin: Alignment.centerLeft,
             end: Alignment.centerRight,
           ),
           borderRadius: BorderRadius.circular(14.r),
-          border: Border.all(color: AppColors.success.withValues(alpha: 0.35)),
+          border: Border.all(color: color.withValues(alpha: 0.35)),
         ),
         child: Row(
           children: [
@@ -455,14 +459,10 @@ class _ResultButton extends StatelessWidget {
               width: 34.w,
               height: 34.w,
               decoration: BoxDecoration(
-                color: AppColors.success.withValues(alpha: 0.18),
+                color: color.withValues(alpha: 0.18),
                 shape: BoxShape.circle,
               ),
-              child: Icon(
-                Icons.insights_rounded,
-                size: 18.w,
-                color: AppColors.success,
-              ),
+              child: Icon(icon, size: 18.w, color: color),
             ),
             SizedBox(width: 12.w),
             Expanded(
@@ -470,7 +470,7 @@ class _ResultButton extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Natijani ko\'rish',
+                    title,
                     style: TextStyle(
                       fontSize: 13.5.sp,
                       fontWeight: FontWeight.w700,
@@ -479,23 +479,17 @@ class _ResultButton extends StatelessWidget {
                   ),
                   SizedBox(height: 2.h),
                   Text(
-                    score == null
-                        ? 'Batafsil tahlil'
-                        : '${score!.toStringAsFixed(1)} ball',
+                    subtitle,
                     style: TextStyle(
                       fontSize: 11.5.sp,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.success,
+                      color: color,
                     ),
                   ),
                 ],
               ),
             ),
-            Icon(
-              Icons.chevron_right_rounded,
-              size: 22.w,
-              color: AppColors.success,
-            ),
+            Icon(Icons.chevron_right_rounded, size: 22.w, color: color),
           ],
         ),
       ),
@@ -503,7 +497,8 @@ class _ResultButton extends StatelessWidget {
   }
 }
 
-class _EmptyTests extends StatelessWidget {  const _EmptyTests();
+class _EmptyTests extends StatelessWidget {
+  const _EmptyTests();
 
   @override
   Widget build(BuildContext context) {
