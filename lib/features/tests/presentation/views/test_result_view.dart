@@ -50,6 +50,8 @@ class TestResultView extends StatelessWidget {
               ),
             ),
           ] else ...[
+            SizedBox(height: 14.h),
+            _SummaryStats(steps: evaluation.steps),
             SizedBox(height: 22.h),
             Text(
               'Qadamlar bo\'yicha natija',
@@ -185,6 +187,121 @@ class _OverallCard extends StatelessWidget {
               style: TextStyle(color: Colors.white70, fontSize: 11.5.sp),
             ),
           ],
+        ],
+      ),
+    );
+  }
+}
+
+class _SummaryStats extends StatelessWidget {
+  final List<StepResult> steps;
+
+  const _SummaryStats({required this.steps});
+
+  @override
+  Widget build(BuildContext context) {
+    final sorted = [...steps]..sort((a, b) => a.percent.compareTo(b.percent));
+    final weakest = sorted.first;
+    final best = sorted.last;
+    final totalSeconds = steps.fold<double>(0, (sum, s) => sum + s.seconds);
+
+    return Row(
+      children: [
+        Expanded(
+          child: _StatCard(
+            label: 'Eng yaxshi qadam',
+            value: '${best.percent.toStringAsFixed(0)}%',
+            hint: best.title,
+            icon: Icons.emoji_events_rounded,
+            color: AppColors.success,
+          ),
+        ),
+        SizedBox(width: 10.w),
+        Expanded(
+          child: _StatCard(
+            label: 'Eng past qadam',
+            value: '${weakest.percent.toStringAsFixed(0)}%',
+            hint: weakest.title,
+            icon: Icons.trending_down_rounded,
+            color: AppColors.warning,
+          ),
+        ),
+        SizedBox(width: 10.w),
+        Expanded(
+          child: _StatCard(
+            label: 'Jami vaqt',
+            value: '${totalSeconds.toStringAsFixed(1)}s',
+            hint: '${steps.length} qadam',
+            icon: Icons.timer_outlined,
+            color: AppColors.primaryBlue,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _StatCard extends StatelessWidget {
+  final String label;
+  final String value;
+  final String hint;
+  final IconData icon;
+  final Color color;
+
+  const _StatCard({
+    required this.label,
+    required this.value,
+    required this.hint,
+    required this.icon,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+
+    return Container(
+      padding: EdgeInsets.all(12.w),
+      decoration: BoxDecoration(
+        color: palette.surface,
+        borderRadius: BorderRadius.circular(14.r),
+        border: Border.all(color: palette.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: EdgeInsets.all(6.w),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.12),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: color, size: 15.w),
+          ),
+          SizedBox(height: 8.h),
+          Text(
+            value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontWeight: FontWeight.w800,
+              fontSize: 15.sp,
+              color: palette.textPrimary,
+            ),
+          ),
+          SizedBox(height: 2.h),
+          Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(color: palette.textSecondary, fontSize: 10.sp),
+          ),
+          Text(
+            hint,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(color: palette.textHint, fontSize: 9.5.sp),
+          ),
         ],
       ),
     );

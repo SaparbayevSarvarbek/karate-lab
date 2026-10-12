@@ -402,6 +402,17 @@ class _StatusRow extends StatelessWidget {
       TestStatus.pending => AppColors.info,
       TestStatus.unknown => AppColors.textHint,
     };
+    final startedLabel = test.finishedAt != null
+        ? 'Yakunlangan'
+        : test.startedAt != null
+            ? 'Boshlangan'
+            : 'Boshlanmagan';
+    final dateValue = test.finishedAt != null
+        ? formatDate(test.finishedAt)
+        : test.startedAt != null
+            ? formatDate(test.startedAt)
+            : '—';
+
     return Row(
       children: [
         _InfoCard(
@@ -419,9 +430,11 @@ class _StatusRow extends StatelessWidget {
         ),
         SizedBox(width: 10.w),
         _InfoCard(
-          label: 'Boshlangan',
-          value: formatDate(test.startedAt),
-          icon: Icons.calendar_today_rounded,
+          label: startedLabel,
+          value: dateValue,
+          icon: test.finishedAt != null
+              ? Icons.event_available_rounded
+              : Icons.calendar_today_rounded,
           color: AppColors.primaryBlue,
         ),
       ],
@@ -529,28 +542,7 @@ class _StepRow extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Container(
-            width: 32.w,
-            height: 32.w,
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [AppColors.primaryBlue, Color(0xFF2B7AFF)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              shape: BoxShape.circle,
-            ),
-            child: Center(
-              child: Text(
-                '$index',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 13.sp,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-            ),
-          ),
+          _StepThumb(step: step, index: index),
           SizedBox(width: 12.w),
           Expanded(
             child: Column(
@@ -566,7 +558,7 @@ class _StepRow extends StatelessWidget {
                     color: palette.textPrimary,
                   ),
                 ),
-                SizedBox(height: 4.h),
+                SizedBox(height: 5.h),
                 Row(
                   children: [
                     if (step.repetitions.isNotEmpty) ...[
@@ -589,6 +581,76 @@ class _StepRow extends StatelessWidget {
                   ],
                 ),
               ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Qadam rasmi (bo'lsa) yoki raqamli doira.
+class _StepThumb extends StatelessWidget {
+  final TestStep step;
+  final int index;
+
+  const _StepThumb({required this.step, required this.index});
+
+  @override
+  Widget build(BuildContext context) {
+    if (!step.hasImage) {
+      return Container(
+        width: 52.w,
+        height: 52.w,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [AppColors.primaryBlue, Color(0xFF2B7AFF)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          shape: BoxShape.circle,
+        ),
+        child: Center(
+          child: Text(
+            '$index',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 14.sp,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ),
+      );
+    }
+
+    return SizedBox(
+      width: 52.w,
+      height: 52.w,
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: RemoteImage(
+              url: ApiConstants.resolveMediaUrl(step.imageUrl!),
+              borderRadius: BorderRadius.circular(12.r),
+            ),
+          ),
+          Positioned(
+            left: 4.w,
+            top: 4.h,
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 5.w, vertical: 1.h),
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.55),
+                borderRadius: BorderRadius.circular(999.r),
+              ),
+              child: Text(
+                '$index',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 9.5.sp,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
             ),
           ),
         ],
