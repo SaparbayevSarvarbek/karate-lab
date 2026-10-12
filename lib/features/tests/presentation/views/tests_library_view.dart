@@ -407,14 +407,9 @@ class _TestsLibraryViewState extends State<TestsLibraryView> {
                   ],
                   if (test.status == TestStatus.completed) ...[
                     SizedBox(height: 12.h),
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton.icon(
-                        onPressed: () =>
-                            context.push('/test-result', extra: test),
-                        icon: const Icon(Icons.bar_chart_rounded, size: 18),
-                        label: const Text('Natijani ko\'rish'),
-                      ),
+                    _ResultButton(
+                      score: test.score,
+                      onTap: () => context.push('/test-result', extra: test),
                     ),
                   ],
                 ],
@@ -427,8 +422,88 @@ class _TestsLibraryViewState extends State<TestsLibraryView> {
   }
 }
 
-class _EmptyTests extends StatelessWidget {
-  const _EmptyTests();
+/// "Natijani ko'rish" — bajarilgan test uchun natija tugmasi.
+class _ResultButton extends StatelessWidget {
+  final double? score;
+  final VoidCallback onTap;
+
+  const _ResultButton({required this.score, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 11.h),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              AppColors.success.withValues(alpha: 0.16),
+              AppColors.primaryBlue.withValues(alpha: 0.10),
+            ],
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
+          ),
+          borderRadius: BorderRadius.circular(14.r),
+          border: Border.all(color: AppColors.success.withValues(alpha: 0.35)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 34.w,
+              height: 34.w,
+              decoration: BoxDecoration(
+                color: AppColors.success.withValues(alpha: 0.18),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.insights_rounded,
+                size: 18.w,
+                color: AppColors.success,
+              ),
+            ),
+            SizedBox(width: 12.w),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Natijani ko\'rish',
+                    style: TextStyle(
+                      fontSize: 13.5.sp,
+                      fontWeight: FontWeight.w700,
+                      color: palette.textPrimary,
+                    ),
+                  ),
+                  SizedBox(height: 2.h),
+                  Text(
+                    score == null
+                        ? 'Batafsil tahlil'
+                        : '${score!.toStringAsFixed(1)} ball',
+                    style: TextStyle(
+                      fontSize: 11.5.sp,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.success,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.chevron_right_rounded,
+              size: 22.w,
+              color: AppColors.success,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _EmptyTests extends StatelessWidget {  const _EmptyTests();
 
   @override
   Widget build(BuildContext context) {

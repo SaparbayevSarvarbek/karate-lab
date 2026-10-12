@@ -15,8 +15,8 @@ import '../../../../core/widgets/remote_image.dart';
 
 /// Testni taymer bilan bajarish sahifasi.
 ///
-/// Tuzilma: progress sarlavha → qadamlar yo'lagi → qadam mazmuni →
-/// pastdagi yagona boshqaruv paneli (taymer + navigatsiya).
+/// Tuzilma: yuqorida taymer + qadamlar yo'lagi (yagona holat indikatori) +
+/// progress, o'rtada qadam mazmuni, pastda faqat navigatsiya paneli.
 class TestRunView extends StatefulWidget {
   final TestResult result;
 
@@ -196,6 +196,7 @@ class _TestRunViewState extends State<TestRunView> {
             ),
           );
       },
+      // Natija qaytariladi — chaqiruvchi ekran natija sahifasini ochadi.
       (finished) => Navigator.of(context).pop(finished),
     );
   }
@@ -285,20 +286,27 @@ class _TestRunViewState extends State<TestRunView> {
                   ),
                   child: Column(
                     children: [
-                      _ProgressHeader(
-                        current: _current,
-                        total: _steps.length,
-                        progress: progress,
-                      ),
-                      _StepRail(
+                      _TopBar(
                         steps: _steps,
                         current: _current,
                         times: _times,
-                        onTap: _submitting ? null : _jumpToStep,
+                        progress: progress,
+                        formatted: _formatted,
+                        running: _running,
+                        onToggleTimer: _submitting ? null : _toggleTimer,
+                        onTapStep: _submitting ? null : _jumpToStep,
                       ),
                       Expanded(
                         child: AnimatedSwitcher(
                           duration: const Duration(milliseconds: 260),
+                          layoutBuilder:
+                              (currentChild, previousChildren) => Stack(
+                            alignment: Alignment.topCenter,
+                            children: [
+                              ...previousChildren,
+                              if (currentChild != null) currentChild,
+                            ],
+                          ),
                           transitionBuilder: (child, animation) => FadeTransition(
                             opacity: animation,
                             child: SlideTransition(
@@ -311,7 +319,7 @@ class _TestRunViewState extends State<TestRunView> {
                           ),
                           child: SingleChildScrollView(
                             key: ValueKey<int>(_current),
-                            padding: EdgeInsets.fromLTRB(16.w, 4.h, 16.w, 16.h),
+                            padding: EdgeInsets.fromLTRB(16.w, 14.h, 16.w, 18.h),
                             child: _StepBody(
                               step: step,
                               index: _current,
@@ -320,13 +328,10 @@ class _TestRunViewState extends State<TestRunView> {
                           ),
                         ),
                       ),
-                      _ControlBar(
-                        formatted: _formatted,
-                        running: _running,
+                      _NavBar(
                         submitting: _submitting,
                         isFirst: _isFirst,
                         isLast: _isLast,
-                        onToggleTimer: _submitting ? null : _toggleTimer,
                         onPrevious: _submitting || _isFirst ? null : _previous,
                         onNext: _submitting ? null : _next,
                       ),
@@ -342,63 +347,71 @@ class _TestRunViewState extends State<TestRunView> {
   }
 }
 
-class _ProgressHeader extends StatelessWidget {
+/// Yuqori panel: taymer + qadamlar yo'lagi (yagona indikator) + progress.
+class _TopBar extends StatelessWidget {
+  final List<TestStep> steps;
   final int current;
-  final int total;
+  final List<double> times;
   final double progress;
+  final String formatted;
+  final bool running;
+  final VoidCallback? onToggleTimer;
+  final void Function(int)? onTapStep;
 
-  const _ProgressHeader({
+  const _TopBar({
+    required this.steps,
     required this.current,
-    required this.total,
+    required this.times,
     required this.progress,
+    required this.formatted,
+    required this.running,
+    required this.onToggleTimer,
+    required this.onTapStep,
   });
 
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
 
-    return Padding(
-      padding: EdgeInsets.fromLTRB(16.w, 10.h, 16.w, 0),
+    return Container(
+      padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 12.h),
+      decoration: BoxDecoration(
+        color: palette.surface,
+        border: Border(bottom: BorderSide(color: palette.border)),
+      ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                Tr.t('testRunCurrent', {
-                  'current': '${current + 1}',
-                  'total': '$total',
-                }),
-                style: TextStyle(
-                  fontSize: 13.sp,
-                  fontWeight: FontWeight.w700,
-                  color: palette.textPrimary,
-                ),
+              _TimerPill(
+                formatted: formatted,
+                running: running,
+                onTap: onToggleTimer,
               ),
-              Text(
-                Tr.t('testRunProgress', {'percent': '${(progress * 100).round()}'}),
-                style: TextStyle(
-                  fontSize: 11.5.sp,
-                  fontWeight: FontWeight.w500,
-                  color: palette.textHint,
+              SizedBox(width: 12.w),
+              Expanded(
+                child: _StepRail(
+                  steps: steps,
+                  current: current,
+                  times: times,
+                  onTap: onTapStep,
                 ),
               ),
             ],
           ),
-          SizedBox(height: 8.h),
+          SizedBox(height: 10.h),
           ClipRRect(
             borderRadius: BorderRadius.circular(999.r),
             child: Stack(
               children: [
-                Container(height: 6.h, color: palette.border),
+                Container(height: 5.h, color: palette.border),
                 AnimatedFractionallySizedBox(
                   duration: const Duration(milliseconds: 300),
                   curve: Curves.easeOut,
                   widthFactor: progress.clamp(0.0, 1.0),
                   alignment: Alignment.centerLeft,
                   child: Container(
-                    height: 6.h,
+                    height: 5.h,
                     decoration: BoxDecoration(
                       color: AppColors.primaryBlue,
                       borderRadius: BorderRadius.circular(999.r),
@@ -414,6 +427,7 @@ class _ProgressHeader extends StatelessWidget {
   }
 }
 
+/// Qadamlar yo'lagi — yagona holat indikatori (bajarilgan / joriy / kutilmoqda).
 class _StepRail extends StatelessWidget {
   final List<TestStep> steps;
   final int current;
@@ -432,12 +446,11 @@ class _StepRail extends StatelessWidget {
     final palette = context.palette;
 
     return SizedBox(
-      height: 46.h,
+      height: 34.h,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
         itemCount: steps.length,
-        separatorBuilder: (_, __) => SizedBox(width: 8.w),
+        separatorBuilder: (_, __) => SizedBox(width: 6.w),
         itemBuilder: (context, index) {
           final isCurrent = index == current;
           final isDone = !isCurrent && times[index] > 0;
@@ -455,7 +468,7 @@ class _StepRail extends StatelessWidget {
             border = AppColors.success.withValues(alpha: 0.5);
             content = AppColors.success;
           } else {
-            fill = palette.surface;
+            fill = palette.backgroundLight;
             border = palette.border;
             content = palette.textHint;
           }
@@ -464,8 +477,8 @@ class _StepRail extends StatelessWidget {
             onTap: onTap != null ? () => onTap!(index) : null,
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
-              width: 30.w,
-              height: 30.w,
+              width: 28.w,
+              height: 28.w,
               decoration: BoxDecoration(
                 color: fill,
                 shape: BoxShape.circle,
@@ -482,11 +495,11 @@ class _StepRail extends StatelessWidget {
               ),
               child: Center(
                 child: isDone
-                    ? Icon(Icons.check_rounded, size: 15.w, color: content)
+                    ? Icon(Icons.check_rounded, size: 14.w, color: content)
                     : Text(
                         '${index + 1}',
                         style: TextStyle(
-                          fontSize: 12.5.sp,
+                          fontSize: 12.sp,
                           fontWeight: FontWeight.w700,
                           color: content,
                         ),
@@ -540,7 +553,9 @@ class _StepBody extends StatelessWidget {
             ),
           ),
         ],
-        if (step.repetitions.isNotEmpty || step.duration > 0 || recordedSeconds > 0) ...[
+        if (step.repetitions.isNotEmpty ||
+            step.duration > 0 ||
+            recordedSeconds > 0) ...[
           SizedBox(height: 14.h),
           Wrap(
             spacing: 8.w,
@@ -572,6 +587,7 @@ class _StepBody extends StatelessWidget {
   }
 }
 
+/// Qadam rasmi — 16:10 nisbatda, mazmunning eng yuqorisida.
 class _StepHero extends StatelessWidget {
   final TestStep step;
   final int index;
@@ -582,72 +598,73 @@ class _StepHero extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = context.palette;
 
-    return Container(
-      width: double.infinity,
-      height: 200.h,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(18.r),
-        border: Border.all(color: palette.border),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          if (step.hasImage)
-            RemoteImage(
-              url: ApiConstants.resolveMediaUrl(step.imageUrl!),
-              borderRadius: BorderRadius.zero,
-              fit: BoxFit.cover,
-            )
-          else
-            Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [AppColors.primaryNavy, Color(0xFF1E3A8A)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.sports_martial_arts,
-                    size: 46.w,
-                    color: Colors.white.withValues(alpha: 0.85),
+    return AspectRatio(
+      aspectRatio: 16 / 10,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(18.r),
+          border: Border.all(color: palette.border),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            if (step.hasImage)
+              RemoteImage(
+                url: ApiConstants.resolveMediaUrl(step.imageUrl!),
+                borderRadius: BorderRadius.zero,
+                fit: BoxFit.cover,
+              )
+            else
+              Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [AppColors.primaryNavy, Color(0xFF1E3A8A)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
-                  SizedBox(height: 10.h),
-                  Text(
-                    Tr.t('testRunNoImage'),
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.75),
-                      fontSize: 12.sp,
-                      fontWeight: FontWeight.w500,
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.sports_martial_arts,
+                      size: 42.w,
+                      color: Colors.white.withValues(alpha: 0.85),
                     ),
+                    SizedBox(height: 8.h),
+                    Text(
+                      Tr.t('testRunNoImage'),
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.75),
+                        fontSize: 12.sp,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            Positioned(
+              left: 12.w,
+              top: 12.h,
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.45),
+                  borderRadius: BorderRadius.circular(999.r),
+                ),
+                child: Text(
+                  '${index + 1}',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 12.sp,
+                    fontWeight: FontWeight.w800,
                   ),
-                ],
-              ),
-            ),
-          Positioned(
-            left: 12.w,
-            top: 12.h,
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
-              decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.42),
-                borderRadius: BorderRadius.circular(999.r),
-              ),
-              child: Text(
-                '${index + 1}',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 12.sp,
-                  fontWeight: FontWeight.w800,
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -692,23 +709,18 @@ class _MetaChip extends StatelessWidget {
   }
 }
 
-class _ControlBar extends StatelessWidget {
-  final String formatted;
-  final bool running;
+/// Pastki panel — faqat navigatsiya (taymer yuqorida).
+class _NavBar extends StatelessWidget {
   final bool submitting;
   final bool isFirst;
   final bool isLast;
-  final VoidCallback? onToggleTimer;
   final VoidCallback? onPrevious;
   final VoidCallback? onNext;
 
-  const _ControlBar({
-    required this.formatted,
-    required this.running,
+  const _NavBar({
     required this.submitting,
     required this.isFirst,
     required this.isLast,
-    required this.onToggleTimer,
     required this.onPrevious,
     required this.onNext,
   });
@@ -725,22 +737,13 @@ class _ControlBar extends StatelessWidget {
       ),
       child: Row(
         children: [
-          _TimerPill(
-            formatted: formatted,
-            running: running,
-            onTap: onToggleTimer,
-          ),
-          SizedBox(width: 10.w),
           if (!isFirst) ...[
-            _SquareButton(
-              icon: Icons.chevron_left_rounded,
-              onTap: onPrevious,
-            ),
-            SizedBox(width: 8.w),
+            _SquareButton(icon: Icons.chevron_left_rounded, onTap: onPrevious),
+            SizedBox(width: 10.w),
           ],
           Expanded(
             child: SizedBox(
-              height: 46.h,
+              height: 48.h,
               child: FilledButton(
                 onPressed: onNext,
                 style: FilledButton.styleFrom(
@@ -809,13 +812,13 @@ class _TimerPill extends StatelessWidget {
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        height: 46.h,
-        padding: EdgeInsets.symmetric(horizontal: 12.w),
+        height: 40.h,
+        padding: EdgeInsets.symmetric(horizontal: 11.w),
         decoration: BoxDecoration(
           color: running
               ? AppColors.primaryBlue.withValues(alpha: 0.1)
               : palette.backgroundLight,
-          borderRadius: BorderRadius.circular(14.r),
+          borderRadius: BorderRadius.circular(12.r),
           border: Border.all(
             color: running ? AppColors.primaryBlue : palette.border,
             width: running ? 1.5 : 1,
@@ -825,14 +828,14 @@ class _TimerPill extends StatelessWidget {
           children: [
             Icon(
               running ? Icons.pause_rounded : Icons.play_arrow_rounded,
-              size: 18.w,
+              size: 17.w,
               color: accent,
             ),
-            SizedBox(width: 6.w),
+            SizedBox(width: 5.w),
             Text(
               formatted,
               style: TextStyle(
-                fontSize: 15.sp,
+                fontSize: 14.sp,
                 fontWeight: FontWeight.w700,
                 color: running ? AppColors.primaryBlue : palette.textPrimary,
                 fontFeatures: const [FontFeature.tabularFigures()],
@@ -859,8 +862,8 @@ class _SquareButton extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 46.w,
-        height: 46.h,
+        width: 48.w,
+        height: 48.h,
         decoration: BoxDecoration(
           color: palette.backgroundLight,
           borderRadius: BorderRadius.circular(14.r),
