@@ -10,8 +10,14 @@ import '../../../../core/di/injection.dart';
 import '../../../../core/l10n/app_translations.dart';
 import '../../../../core/repositories/exercise_repository.dart';
 import '../../../../core/theme/app_palette.dart';
+import '../../../../core/theme/app_radius.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/app_bottom_bar.dart';
+import '../../../../core/widgets/app_section_header.dart';
 import '../../../../core/widgets/custom_button.dart';
 import '../../../../core/widgets/custom_text_field.dart';
+import '../../../../core/widgets/karate_app_bar.dart';
 import '../../../../core/widgets/media_upload_section.dart';
 
 /// Yangi mashq qo'shish: nom, yosh, turi (Texnik/UJT/MJT), umumiy rasm,
@@ -200,81 +206,85 @@ class _AddExerciseViewState extends State<AddExerciseView> {
   Widget build(BuildContext context) {
     final palette = context.palette;
     return Scaffold(
-      appBar: AppBar(
-        title: Text(Tr.t('addExerciseTitle')),
-        centerTitle: true,
-      ),
+      appBar: KarateAppBar(title: Tr.t('addExerciseTitle')),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: EdgeInsets.all(20.w),
+          padding: EdgeInsets.fromLTRB(
+            AppSpacing.screenH.w,
+            AppSpacing.sm.h,
+            AppSpacing.screenH.w,
+            AppSpacing.xxl.h,
+          ),
           child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                MediaUploadSection(
-                  onImagePicked: (f) => setState(() => _image = f),
-                  onVideoPicked: (f) => setState(() => _video = f),
+                _SectionCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      AppSectionHeader(title: Tr.t('addCoverImage')),
+                      SizedBox(height: AppSpacing.md.h),
+                      MediaUploadSection(
+                        onImagePicked: (f) => setState(() => _image = f),
+                        onVideoPicked: (f) => setState(() => _video = f),
+                      ),
+                    ],
+                  ),
                 ),
-                SizedBox(height: 20.h),
-                CustomTextField(
-                  controller: _nameController,
-                  hintText: Tr.t('exerciseNameHint'),
-                  prefixIcon: const Icon(Icons.fitness_center),
-                  validator: (v) =>
-                      (v == null || v.isEmpty) ? Tr.t('nameRequired') : null,
-                ),
-                SizedBox(height: 14.h),
-                CustomTextField(
-                  controller: _ageController,
-                  hintText: Tr.t('ageRangeHint'),
-                  prefixIcon: const Icon(Icons.cake_outlined),
-                ),
-                SizedBox(height: 14.h),
-                AddExerciseDropdown(
-                  label: Tr.t('exerciseType'),
-                  value: _selectedCategory,
-                  items: _categories,
-                  onChanged: (v) => setState(() => _selectedCategory = v!),
-                ),
-                SizedBox(height: 14.h),
-                CustomTextField(
-                  controller: _goalController,
-                  hintText: Tr.t('goalHint'),
-                  prefixIcon: const Icon(Icons.flag_outlined),
-                ),
-                SizedBox(height: 14.h),
-                CustomTextField(
-                  controller: _qualitiesController,
-                  hintText: Tr.t('qualitiesHint'),
-                  prefixIcon: const Icon(Icons.stars_outlined),
+                SizedBox(height: AppSpacing.lg.h),
+                _SectionCard(
+                  child: Column(
+                    children: [
+                      CustomTextField(
+                        controller: _nameController,
+                        hintText: Tr.t('exerciseNameHint'),
+                        prefixIcon: const Icon(Icons.fitness_center),
+                        validator: (v) => (v == null || v.isEmpty)
+                            ? Tr.t('nameRequired')
+                            : null,
+                      ),
+                      SizedBox(height: AppSpacing.md.h),
+                      CustomTextField(
+                        controller: _ageController,
+                        hintText: Tr.t('ageRangeHint'),
+                        prefixIcon: const Icon(Icons.cake_outlined),
+                      ),
+                      SizedBox(height: AppSpacing.md.h),
+                      AddExerciseDropdown(
+                        label: Tr.t('exerciseType'),
+                        value: _selectedCategory,
+                        items: _categories,
+                        onChanged: (v) => setState(() => _selectedCategory = v!),
+                      ),
+                      SizedBox(height: AppSpacing.md.h),
+                      CustomTextField(
+                        controller: _goalController,
+                        hintText: Tr.t('goalHint'),
+                        prefixIcon: const Icon(Icons.flag_outlined),
+                      ),
+                      SizedBox(height: AppSpacing.md.h),
+                      CustomTextField(
+                        controller: _qualitiesController,
+                        hintText: Tr.t('qualitiesHint'),
+                        prefixIcon: const Icon(Icons.stars_outlined),
+                      ),
+                    ],
+                  ),
                 ),
 
                 // ── Bosqichlar (steps) ────────────────────────────────
-                SizedBox(height: 22.h),
-                Row(
-                  children: [
-                    Icon(Icons.format_list_numbered_rounded,
-                        size: 20.w, color: AppColors.primaryBlue),
-                    SizedBox(width: 8.w),
-                    Text(
-                      Tr.t('stepsTitle'),
-                      style: TextStyle(
-                        fontSize: 16.sp,
-                        fontWeight: FontWeight.w800,
-                        color: palette.textPrimary,
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 8.h),
+                SizedBox(height: AppSpacing.xxl.h),
+                AppSectionHeader(title: Tr.t('stepsTitle')),
+                SizedBox(height: AppSpacing.xs.h),
                 Text(
                   Tr.t('stepsHint'),
-                  style: TextStyle(
-                      color: AppColors.textSecondary, fontSize: 12.5.sp),
+                  style: AppTextStyles.caption
+                      .copyWith(color: palette.textSecondary),
                 ),
                 for (var i = 0; i < _steps.length; i++) ...[
-                  SizedBox(height: 12.h),
+                  SizedBox(height: AppSpacing.md.h),
                   _StepCard(
                     index: i + 1,
                     draft: _steps[i],
@@ -283,7 +293,7 @@ class _AddExerciseViewState extends State<AddExerciseView> {
                     onRemove: () => _removeStep(i),
                   ),
                 ],
-                SizedBox(height: 12.h),
+                SizedBox(height: AppSpacing.md.h),
                 GestureDetector(
                   onTap: _addStep,
                   child: Container(
@@ -291,7 +301,7 @@ class _AddExerciseViewState extends State<AddExerciseView> {
                     padding: EdgeInsets.symmetric(vertical: 12.h),
                     decoration: BoxDecoration(
                       color: AppColors.primaryBlue.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(12.r),
+                      borderRadius: BorderRadius.circular(AppRadius.card.r),
                       border: Border.all(color: AppColors.primaryBlue),
                     ),
                     child: Row(
@@ -302,9 +312,8 @@ class _AddExerciseViewState extends State<AddExerciseView> {
                         SizedBox(width: 6.w),
                         Text(
                           Tr.t('addStep'),
-                          style: TextStyle(
+                          style: AppTextStyles.button.copyWith(
                             color: AppColors.primaryBlue,
-                            fontWeight: FontWeight.w700,
                             fontSize: 13.5.sp,
                           ),
                         ),
@@ -312,18 +321,40 @@ class _AddExerciseViewState extends State<AddExerciseView> {
                     ),
                   ),
                 ),
-
-                SizedBox(height: 26.h),
-                CustomButton(
-                  text: _saving ? Tr.t('saving') : Tr.t('saveExercise'),
-                  isLoading: _saving,
-                  onPressed: _save,
-                ),
               ],
             ),
           ),
         ),
       ),
+      bottomNavigationBar: AppBottomBar(
+        child: CustomButton(
+          text: _saving ? Tr.t('saving') : Tr.t('saveExercise'),
+          isLoading: _saving,
+          onPressed: _save,
+        ),
+      ),
+    );
+  }
+}
+
+/// Bo'lim kartasi — 18 radius, surface fon va 1px chegara.
+class _SectionCard extends StatelessWidget {
+  final Widget child;
+
+  const _SectionCard({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(AppSpacing.lg.w),
+      decoration: BoxDecoration(
+        color: palette.surface,
+        borderRadius: BorderRadius.circular(AppRadius.card.r),
+        border: Border.all(color: palette.border),
+      ),
+      child: child,
     );
   }
 }
@@ -354,11 +385,11 @@ class AddExerciseDropdown extends StatelessWidget {
         filled: true,
         fillColor: palette.backgroundLight,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.r),
+          borderRadius: BorderRadius.circular(AppRadius.button.r),
           borderSide: const BorderSide(color: AppColors.border),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.r),
+          borderRadius: BorderRadius.circular(AppRadius.button.r),
           borderSide: const BorderSide(color: AppColors.border),
         ),
       ),
@@ -408,10 +439,10 @@ class _StepCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = context.palette;
     return Container(
-      padding: EdgeInsets.all(14.w),
+      padding: EdgeInsets.all(AppSpacing.md.w),
       decoration: BoxDecoration(
         color: palette.surface,
-        borderRadius: BorderRadius.circular(14.r),
+        borderRadius: BorderRadius.circular(AppRadius.card.r),
         border: Border.all(color: palette.border),
       ),
       child: Column(
@@ -429,10 +460,9 @@ class _StepCard extends StatelessWidget {
                 child: Center(
                   child: Text(
                     '$index',
-                    style: TextStyle(
+                    style: AppTextStyles.caption.copyWith(
                       color: AppColors.primaryBlue,
                       fontWeight: FontWeight.w800,
-                      fontSize: 13.sp,
                     ),
                   ),
                 ),
@@ -441,10 +471,8 @@ class _StepCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   Tr.t('stepLabel', {'index': '$index'}),
-                  style: TextStyle(
-                    fontWeight: FontWeight.w700,
+                  style: AppTextStyles.cardTitle.copyWith(
                     color: palette.textPrimary,
-                    fontSize: 14.sp,
                   ),
                 ),
               ),
@@ -455,13 +483,13 @@ class _StepCard extends StatelessWidget {
               ),
             ],
           ),
-          SizedBox(height: 10.h),
+          SizedBox(height: AppSpacing.md.h),
           CustomTextField(
             controller: draft.title,
             hintText: Tr.t('stepNameHint'),
             prefixIcon: const Icon(Icons.title),
           ),
-          SizedBox(height: 10.h),
+          SizedBox(height: AppSpacing.md.h),
           TextFormField(
             controller: draft.description,
             maxLines: 3,
@@ -471,16 +499,16 @@ class _StepCard extends StatelessWidget {
               filled: true,
               fillColor: palette.backgroundLight,
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10.r),
+                borderRadius: BorderRadius.circular(AppRadius.button.r),
                 borderSide: const BorderSide(color: AppColors.border),
               ),
               enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10.r),
+                borderRadius: BorderRadius.circular(AppRadius.button.r),
                 borderSide: const BorderSide(color: AppColors.border),
               ),
             ),
           ),
-          SizedBox(height: 10.h),
+          SizedBox(height: AppSpacing.md.h),
           Row(
             children: [
               Expanded(
@@ -501,13 +529,13 @@ class _StepCard extends StatelessWidget {
               ),
             ],
           ),
-          SizedBox(height: 10.h),
+          SizedBox(height: AppSpacing.md.h),
           CustomTextField(
             controller: draft.rest,
             hintText: Tr.t('restHint'),
             prefixIcon: const Icon(Icons.self_improvement_rounded),
           ),
-          SizedBox(height: 10.h),
+          SizedBox(height: AppSpacing.md.h),
           GestureDetector(
             onTap: busy ? null : onImageTap,
             child: Container(
@@ -515,7 +543,7 @@ class _StepCard extends StatelessWidget {
               width: double.infinity,
               decoration: BoxDecoration(
                 color: palette.backgroundLight,
-                borderRadius: BorderRadius.circular(10.r),
+                borderRadius: BorderRadius.circular(AppRadius.button.r),
                 border: Border.all(
                   color: draft.image != null
                       ? AppColors.primaryBlue

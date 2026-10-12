@@ -20,6 +20,9 @@ class CustomButton extends StatelessWidget {
   final IconData? leadingIcon;
   final IconData? trailingIcon;
 
+  /// Fon rangi. Berilmasa — brend ko'ki (`AppColors.primaryBlue`).
+  final Color? color;
+
   const CustomButton({
     super.key,
     required this.text,
@@ -30,6 +33,7 @@ class CustomButton extends StatelessWidget {
     this.height = 52,
     this.leadingIcon,
     this.trailingIcon,
+    this.color,
   });
 
   @override
@@ -55,12 +59,14 @@ class CustomButton extends StatelessWidget {
       );
     }
 
+    final background = color ?? AppColors.primaryBlue;
+
     return ElevatedButton(
       onPressed: isLoading ? null : onPressed,
       style: ElevatedButton.styleFrom(
-        backgroundColor: AppColors.primaryBlue,
+        backgroundColor: background,
         foregroundColor: Colors.white,
-        disabledBackgroundColor: AppColors.primaryBlue.withValues(alpha: 0.45),
+        disabledBackgroundColor: background.withValues(alpha: 0.45),
         disabledForegroundColor: Colors.white,
         elevation: 0,
         shadowColor: Colors.transparent,

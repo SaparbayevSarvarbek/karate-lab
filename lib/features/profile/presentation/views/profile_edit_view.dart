@@ -1,17 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../../core/api/models/profile_models.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/di/injection.dart';
+import '../../../../core/l10n/app_translations.dart';
 import '../../../../core/repositories/profile_repository.dart';
 import '../../../../core/theme/app_palette.dart';
+import '../../../../core/theme/app_radius.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/models/profile_model.dart';
 import '../../../../core/services/shared_prefs_service.dart';
 import '../../../../core/utils/uz_phone_formatter.dart';
+import '../../../../core/widgets/app_bottom_bar.dart';
+import '../../../../core/widgets/app_section_header.dart';
 import '../../../../core/widgets/custom_button.dart';
 import '../../../../core/widgets/custom_text_field.dart';
+import '../../../../core/widgets/karate_app_bar.dart';
 import '../../../../core/widgets/phone_text_field.dart';
 
 /// Profil ma'lumotlarini tahrirlash sahifasi (Swagger: `GET/PUT /profile/`).
@@ -276,16 +284,18 @@ class _ProfileEditViewState extends State<ProfileEditView> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: context.palette.background,
-      appBar: AppBar(
-        title: const Text('Profilni tahrirlash'),
-        centerTitle: true,
-      ),
+      appBar: KarateAppBar(title: Tr.t('editProfileTitle')),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : SafeArea(
               bottom: false,
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24),
+                padding: EdgeInsets.fromLTRB(
+                  AppSpacing.screenH.w,
+                  AppSpacing.sm.h,
+                  AppSpacing.screenH.w,
+                  AppSpacing.xxl.h,
+                ),
                 child: Form(
                   key: _formKey,
                   child: Column(
@@ -296,70 +306,77 @@ class _ProfileEditViewState extends State<ProfileEditView> {
                         busy: _avatarBusy,
                         onCameraTap: _pickAvatar,
                       ),
-                      const SizedBox(height: 24),
-                      const _SectionTitle(title: 'Shaxsiy ma\'lumotlar'),
-                      const SizedBox(height: 16),
-                      Row(
+                      SizedBox(height: AppSpacing.xxl.h),
+                      AppSectionHeader(title: 'Shaxsiy ma\'lumotlar'),
+                      SizedBox(height: AppSpacing.md.h),
+                      _FormCard(
                         children: [
-                          Expanded(
-                            child: CustomTextField(
-                              controller: _firstNameController,
-                              hintText: 'Ism',
-                              prefixIcon: const Icon(Icons.person_outline),
-                              validator: (v) => (v == null || v.trim().isEmpty) ? 'Ism kiriting' : null,
+                          Row(
+                            children: [
+                              Expanded(
+                                child: CustomTextField(
+                                  controller: _firstNameController,
+                                  hintText: 'Ism',
+                                  prefixIcon: const Icon(Icons.person_outline),
+                                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Ism kiriting' : null,
+                                ),
+                              ),
+                              SizedBox(width: AppSpacing.md.w),
+                              Expanded(
+                                child: CustomTextField(
+                                  controller: _lastNameController,
+                                  hintText: 'Familiya',
+                                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Familiya kiriting' : null,
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: AppSpacing.lg.h),
+                          PhoneTextField(controller: _phoneController),
+                        ],
+                      ),
+                      SizedBox(height: AppSpacing.xxl.h),
+                      AppSectionHeader(title: 'Jismoniy ko\'rsatkichlar'),
+                      SizedBox(height: AppSpacing.md.h),
+                      _FormCard(
+                        children: [
+                          GestureDetector(
+                            onTap: _pickBirthDate,
+                            child: AbsorbPointer(
+                              child: CustomTextField(
+                                controller: _dobController,
+                                hintText: 'Tug\'ilgan sana (YYYY-MM-DD)',
+                                prefixIcon: const Icon(Icons.cake_outlined),
+                                suffixIcon: const Icon(Icons.calendar_today),
+                              ),
                             ),
                           ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: CustomTextField(
-                              controller: _lastNameController,
-                              hintText: 'Familiya',
-                              validator: (v) => (v == null || v.trim().isEmpty) ? 'Familiya kiriting' : null,
-                            ),
+                          SizedBox(height: AppSpacing.lg.h),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: CustomTextField(
+                                  controller: _heightController,
+                                  hintText: 'Bo\'y',
+                                  keyboardType: TextInputType.number,
+                                  prefixIcon: const Icon(Icons.height),
+                                  suffixText: 'sm',
+                                ),
+                              ),
+                              SizedBox(width: AppSpacing.md.w),
+                              Expanded(
+                                child: CustomTextField(
+                                  controller: _weightController,
+                                  hintText: 'Vazn',
+                                  keyboardType: TextInputType.number,
+                                  prefixIcon: const Icon(Icons.monitor_weight_outlined),
+                                  suffixText: 'kg',
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
-                      const SizedBox(height: 16),
-                      PhoneTextField(controller: _phoneController),
-                      const SizedBox(height: 24),
-                      const _SectionTitle(title: 'Jismoniy ko\'rsatkichlar'),
-                      const SizedBox(height: 16),
-                      GestureDetector(
-                        onTap: _pickBirthDate,
-                        child: AbsorbPointer(
-                          child: CustomTextField(
-                            controller: _dobController,
-                            hintText: 'Tug\'ilgan sana (YYYY-MM-DD)',
-                            prefixIcon: const Icon(Icons.cake_outlined),
-                            suffixIcon: const Icon(Icons.calendar_today),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: CustomTextField(
-                              controller: _heightController,
-                              hintText: 'Bo\'y',
-                              keyboardType: TextInputType.number,
-                              prefixIcon: const Icon(Icons.height),
-                              suffixText: 'sm',
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: CustomTextField(
-                              controller: _weightController,
-                              hintText: 'Vazn',
-                              keyboardType: TextInputType.number,
-                              prefixIcon: const Icon(Icons.monitor_weight_outlined),
-                              suffixText: 'kg',
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
                     ],
                   ),
                 ),
@@ -367,16 +384,38 @@ class _ProfileEditViewState extends State<ProfileEditView> {
             ),
       bottomNavigationBar: _isLoading
           ? null
-          : SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
-                child: CustomButton(
-                  text: _saving ? 'Saqlanmoqda...' : 'Saqlash',
-                  isLoading: _saving,
-                  onPressed: _save,
-                ),
+          : AppBottomBar(
+              child: CustomButton(
+                text: _saving ? 'Saqlanmoqda...' : 'Saqlash',
+                isLoading: _saving,
+                onPressed: _save,
+                trailingIcon: Icons.check_rounded,
               ),
             ),
+    );
+  }
+}
+
+class _FormCard extends StatelessWidget {
+  final List<Widget> children;
+
+  const _FormCard({required this.children});
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(AppSpacing.lg.w),
+      decoration: BoxDecoration(
+        color: palette.surface,
+        borderRadius: BorderRadius.circular(AppRadius.card.r),
+        border: Border.all(color: palette.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: children,
+      ),
     );
   }
 }
@@ -394,54 +433,67 @@ class _AvatarSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
     final hasAvatar = avatarUrl != null && avatarUrl!.isNotEmpty;
 
     return Center(
-      child: Stack(
+      child: Column(
         children: [
-          CircleAvatar(
-            radius: 48,
-            backgroundImage: hasAvatar ? NetworkImage(avatarUrl!) : null,
-            child: hasAvatar
-                ? null
-                : Icon(Icons.person,
-                    size: 48, color: context.palette.textHint),
-          ),
-          if (busy)
-            Positioned.fill(
-              child: CircleAvatar(
-                radius: 48,
-                backgroundColor: Colors.black.withValues(alpha: 0.35),
-                child: const CircularProgressIndicator(
-                  color: Colors.white,
-                  strokeWidth: 2.5,
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              CircleAvatar(
+                radius: 42,
+                backgroundColor: palette.backgroundLight,
+                backgroundImage: hasAvatar ? NetworkImage(avatarUrl!) : null,
+                child: hasAvatar
+                    ? null
+                    : Icon(Icons.person,
+                        size: 42.w, color: palette.textHint),
+              ),
+              if (busy)
+                Positioned.fill(
+                  child: CircleAvatar(
+                    radius: 42,
+                    backgroundColor: Colors.black.withValues(alpha: 0.35),
+                    child: const CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2.5,
+                    ),
+                  ),
+                ),
+              Positioned(
+                bottom: 0,
+                right: 0,
+                child: GestureDetector(
+                  onTap: busy ? null : onCameraTap,
+                  child: Container(
+                    width: 30.w,
+                    height: 30.w,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryBlue,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: palette.background, width: 2.w),
+                    ),
+                    child: Icon(
+                      Icons.camera_alt_outlined,
+                      color: Colors.white,
+                      size: 15.w,
+                    ),
+                  ),
                 ),
               ),
-            ),
-          Positioned(
-            bottom: 0,
-            right: 0,
-            child: GestureDetector(
-              onTap: busy ? null : onCameraTap,
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: const BoxDecoration(color: AppColors.primaryBlue, shape: BoxShape.circle),
-                child: const Icon(Icons.camera_alt, color: Colors.white, size: 18),
-              ),
-            ),
+            ],
+          ),
+          SizedBox(height: 10.h),
+          Text(
+            'Rasmni o\'zgartirish uchun bosing',
+            textAlign: TextAlign.center,
+            style: AppTextStyles.caption.copyWith(color: palette.textSecondary),
           ),
         ],
       ),
     );
-  }
-}
-
-class _SectionTitle extends StatelessWidget {
-  final String title;
-  const _SectionTitle({required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(title, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 16));
   }
 }

@@ -7,6 +7,11 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/repositories/ujt_repository.dart';
 import '../../../../core/theme/app_palette.dart';
+import '../../../../core/theme/app_radius.dart';
+import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/app_section_header.dart';
+import '../../../../core/widgets/app_state_views.dart';
+import '../../../../core/widgets/karate_app_bar.dart';
 import '../../../../core/widgets/remote_image.dart';
 
 /// Bitta MJT testi: maqsad, sifatlar va 5 ta step (rasm, takrorlash, dam olish, maqsad).
@@ -51,153 +56,90 @@ class _MjtTestDetailViewState extends State<MjtTestDetailView> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: context.palette.background,
-      body: FutureBuilder<MjtTest?>(
-        future: _future,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState != ConnectionState.done) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          final test = snapshot.data;
-          if (test == null) {
-            return Scaffold(
-              appBar: AppBar(title: const Text('MJT testi')),
-              body: const Center(child: Text('Test topilmadi')),
-            );
-          }
-          return CustomScrollView(
-            slivers: [
-              _AppBar(test: test),
-              SliverToBoxAdapter(child: _Content(test: test)),
-            ],
-          );
-        },
-      ),
+    return FutureBuilder<MjtTest?>(
+      future: _future,
+      builder: (context, snapshot) {
+        final test = snapshot.data;
+        final loading = snapshot.connectionState != ConnectionState.done;
+        return Scaffold(
+          backgroundColor: context.palette.background,
+          appBar: KarateAppBar(
+            title: (test?.title.isNotEmpty ?? false) ? test!.title : 'MJT testi',
+          ),
+          body: loading
+              ? const Center(child: CircularProgressIndicator())
+              : test == null
+                  ? const AppEmptyView(
+                      icon: Icons.search_off_rounded,
+                      title: 'Test topilmadi',
+                    )
+                  : SingleChildScrollView(child: _Content(test: test)),
+        );
+      },
     );
   }
 }
 
-class _AppBar extends StatelessWidget {
+/// Hero blok — 16:9 media (rasm yoki navy→blue gradient + watermark).
+class _HeroMedia extends StatelessWidget {
   final MjtTest test;
 
-  const _AppBar({required this.test});
+  const _HeroMedia({required this.test});
 
   @override
   Widget build(BuildContext context) {
-    return SliverAppBar(
-      expandedHeight: 230.h,
-      pinned: true,
-      stretch: true,
-      backgroundColor: AppColors.primaryNavy,
-      iconTheme: const IconThemeData(color: Colors.white),
-      flexibleSpace: FlexibleSpaceBar(
-        stretchModes: const [StretchMode.zoomBackground],
-        background: Stack(
-          fit: StackFit.expand,
-          children: [
-            if (test.hasCover)
-              RemoteImage(
-                url: ApiConstants.resolveMediaUrl(test.coverUrl!),
-                borderRadius: BorderRadius.zero,
-                fit: BoxFit.cover,
-              )
-            else
-              Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [AppColors.primaryNavy, Color(0xFF7C3AED)],
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                  ),
-                ),
-                child: Center(
-                  child: Icon(
-                    Icons.fitness_center_rounded,
-                    size: 90.w,
-                    color: Colors.white.withValues(alpha: 0.2),
-                  ),
-                ),
-              ),
-            Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    Colors.black.withValues(alpha: 0.1),
-                    Colors.black.withValues(alpha: 0.68),
-                  ],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                ),
-              ),
-            ),
-            Positioned(
-              left: 18.w,
-              right: 18.w,
-              bottom: 14.h,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      _HeroChip(label: 'MJT', color: AppColors.warning),
-                      SizedBox(width: 8.w),
-                      if (test.ageGroup.isNotEmpty)
-                        _HeroChip(
-                          label: test.ageGroup,
-                          color: Colors.white.withValues(alpha: 0.18),
-                        ),
-                    ],
-                  ),
-                  SizedBox(height: 8.h),
-                  Text(
-                    test.title,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20.sp,
-                      fontWeight: FontWeight.w800,
-                      shadows: const [
-                        Shadow(
-                          color: Colors.black45,
-                          blurRadius: 8,
-                          offset: Offset(0, 2),
-                        ),
-                      ],
+    final palette = context.palette;
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(AppRadius.card.r),
+        border: Border.all(color: palette.border),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(AppRadius.card.r),
+        child: AspectRatio(
+          aspectRatio: 16 / 9,
+          child: test.hasCover
+              ? RemoteImage(
+                  url: ApiConstants.resolveMediaUrl(test.coverUrl!),
+                  borderRadius: BorderRadius.zero,
+                  fit: BoxFit.cover,
+                )
+              : Container(
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [AppColors.primaryNavy, Color(0xFF1E3A8A)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                     ),
                   ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _HeroChip extends StatelessWidget {
-  final String label;
-  final Color color;
-
-  const _HeroChip({required this.label, required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(999.r),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: Colors.white,
-          fontSize: 11.sp,
-          fontWeight: FontWeight.w800,
-          letterSpacing: 0.4,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      Center(
+                        child: Icon(
+                          Icons.sports_martial_arts_rounded,
+                          size: 96.w,
+                          color: Colors.white.withValues(alpha: 0.18),
+                        ),
+                      ),
+                      Positioned(
+                        left: 16.w,
+                        right: 16.w,
+                        bottom: 12.h,
+                        child: Text(
+                          'MJT testi',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.85),
+                            fontSize: 12.sp,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
         ),
       ),
     );
@@ -213,64 +155,54 @@ class _Content extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = context.palette;
     return Padding(
-      padding: EdgeInsets.fromLTRB(16.w, 18.h, 16.w, 32.h),
+      padding: EdgeInsets.fromLTRB(20.w, 8.h, 20.w, 24.h),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          _HeroMedia(test: test),
+          SizedBox(height: 18.h),
+          Text(
+            test.title,
+            style: AppTextStyles.screenTitle.copyWith(color: palette.textPrimary),
+          ),
+          SizedBox(height: 10.h),
+          Wrap(
+            spacing: 8.w,
+            runSpacing: 8.h,
+            children: [
+              const _Pill(text: 'MJT'),
+              if (test.ageGroup.isNotEmpty) _Pill(text: test.ageGroup),
+              if (test.goal.isNotEmpty)
+                _Pill(text: test.goal, maxWidth: 220.w),
+            ],
+          ),
           if (test.goal.isNotEmpty) ...[
-            _SectionTitle(title: 'Maqsad', icon: Icons.flag_rounded),
-            SizedBox(height: 10.h),
+            SizedBox(height: 22.h),
+            AppSectionHeader(title: 'Maqsad'),
+            SizedBox(height: 8.h),
             Text(
               test.goal,
-              style: TextStyle(
-                color: palette.textSecondary,
-                fontSize: 13.sp,
-                height: 1.55,
-              ),
+              style: AppTextStyles.body.copyWith(color: palette.textSecondary),
             ),
           ],
           if (test.qualities.isNotEmpty) ...[
-            SizedBox(height: 16.h),
-            _SectionTitle(title: 'Rivojlanadigan sifatlar', icon: Icons.stars_rounded),
+            SizedBox(height: 22.h),
+            AppSectionHeader(title: 'Rivojlanadigan sifatlar'),
             SizedBox(height: 10.h),
             Wrap(
               spacing: 8.w,
               runSpacing: 8.h,
-              children: test.qualities
-                  .map((q) => Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 12.w,
-                          vertical: 6.h,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.warning.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(999.r),
-                        ),
-                        child: Text(
-                          q,
-                          style: TextStyle(
-                            color: AppColors.warning,
-                            fontSize: 11.5.sp,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ))
-                  .toList(),
+              children: test.qualities.map((q) => _Pill(text: q)).toList(),
             ),
           ],
           SizedBox(height: 22.h),
-          _SectionTitle(
-            title: 'Mashqlar (${test.steps.length})',
-            icon: Icons.list_alt_rounded,
-          ),
+          AppSectionHeader(title: 'Mashqlar (${test.steps.length})'),
           SizedBox(height: 12.h),
           if (test.steps.isEmpty)
-            Text(
-              'Mashqlar kiritilmagan',
-              style: TextStyle(
-                color: palette.textSecondary,
-                fontSize: 13.sp,
-              ),
+            const AppEmptyView(
+              icon: Icons.list_alt_rounded,
+              title: 'Mashqlar kiritilmagan',
+              compact: true,
             )
           else
             for (int i = 0; i < test.steps.length; i++)
@@ -284,27 +216,35 @@ class _Content extends StatelessWidget {
   }
 }
 
-class _SectionTitle extends StatelessWidget {
-  final String title;
-  final IconData icon;
+/// primaryBlue tintli pill / chip.
+class _Pill extends StatelessWidget {
+  final String text;
+  final double? maxWidth;
 
-  const _SectionTitle({required this.title, required this.icon});
+  const _Pill({required this.text, this.maxWidth});
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Icon(icon, size: 19.w, color: AppColors.warning),
-        SizedBox(width: 8.w),
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: 16.sp,
-            fontWeight: FontWeight.w800,
-            color: context.palette.textPrimary,
-          ),
+    final child = Container(
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+      decoration: BoxDecoration(
+        color: AppColors.primaryBlue.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(AppRadius.pill.r),
+      ),
+      child: Text(
+        text,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: AppTextStyles.caption.copyWith(
+          color: AppColors.primaryBlue,
+          fontWeight: FontWeight.w700,
         ),
-      ],
+      ),
+    );
+    if (maxWidth == null) return child;
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxWidth: maxWidth!),
+      child: child,
     );
   }
 }
@@ -322,7 +262,7 @@ class _StepCard extends StatelessWidget {
       padding: EdgeInsets.all(14.w),
       decoration: BoxDecoration(
         color: palette.surface,
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(AppRadius.card.r),
         border: Border.all(color: palette.border),
       ),
       child: Column(
@@ -333,22 +273,17 @@ class _StepCard extends StatelessWidget {
               Container(
                 width: 32.w,
                 height: 32.w,
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [AppColors.warning, Color(0xFFD97706)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: AppColors.primaryBlue.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
-                child: Center(
-                  child: Text(
-                    '$index',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 13.sp,
-                      fontWeight: FontWeight.w800,
-                    ),
+                child: Text(
+                  '$index',
+                  style: TextStyle(
+                    color: AppColors.primaryBlue,
+                    fontSize: 13.sp,
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
               ),
@@ -358,8 +293,8 @@ class _StepCard extends StatelessWidget {
                   step.title,
                   style: TextStyle(
                     color: palette.textPrimary,
-                    fontSize: 14.sp,
-                    fontWeight: FontWeight.w700,
+                    fontSize: 13.5.sp,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
@@ -384,7 +319,7 @@ class _StepCard extends StatelessWidget {
                 Icon(
                   Icons.flag_outlined,
                   size: 14.w,
-                  color: AppColors.warning,
+                  color: AppColors.primaryBlue,
                 ),
                 SizedBox(width: 6.w),
                 Expanded(
@@ -417,7 +352,7 @@ class _StepCard extends StatelessWidget {
           if (step.repetitions.isNotEmpty || step.rest.isNotEmpty) ...[
             SizedBox(height: 10.h),
             Wrap(
-              spacing: 14.w,
+              spacing: 8.w,
               runSpacing: 6.h,
               children: [
                 if (step.repetitions.isNotEmpty)
@@ -458,13 +393,13 @@ class _StepMeta extends StatelessWidget {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
       decoration: BoxDecoration(
-        color: AppColors.warning.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(999.r),
+        color: AppColors.primaryBlue.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(AppRadius.pill.r),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 13.w, color: AppColors.warning),
+          Icon(icon, size: 13.w, color: AppColors.primaryBlue),
           SizedBox(width: 5.w),
           Text(
             '$label: ',

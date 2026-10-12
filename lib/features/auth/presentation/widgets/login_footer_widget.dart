@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/theme/app_palette.dart';
+import '../../../../core/theme/app_text_styles.dart';
 
 class LoginFooterWidget extends StatelessWidget {
   final VoidCallback onRegister;
@@ -8,20 +11,25 @@ class LoginFooterWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
           'Hisobingiz yo\'qmi?',
-          style: Theme.of(context).textTheme.bodyMedium,
+          style: AppTextStyles.caption.copyWith(color: palette.textSecondary),
         ),
-        TextButton(
-          onPressed: onRegister,
-          child: const Text(
-            'Ro\'yxatdan o\'tish',
-            style: TextStyle(
-              color: AppColors.primaryBlue,
-              fontWeight: FontWeight.bold,
+        GestureDetector(
+          onTap: onRegister,
+          behavior: HitTestBehavior.opaque,
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 8.h),
+            child: Text(
+              'Ro\'yxatdan o\'tish',
+              style: AppTextStyles.caption.copyWith(
+                color: AppColors.primaryBlue,
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
         ),

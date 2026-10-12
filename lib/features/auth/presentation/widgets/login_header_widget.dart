@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
-import '../../../../core/constants/app_colors.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../../../core/theme/app_palette.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/karate_logo.dart';
 
 class LoginHeaderWidget extends StatelessWidget {
   const LoginHeaderWidget({super.key});
@@ -7,12 +11,12 @@ class LoginHeaderWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      children: const [
-        LoginLogoIcon(),
-        SizedBox(height: 24),
-        LoginWelcomeTitle(),
-        SizedBox(height: 8),
-        LoginWelcomeSubtitle(),
+      children: [
+        const LoginLogoIcon(),
+        SizedBox(height: AppSpacing.xxl.h),
+        const LoginWelcomeTitle(),
+        SizedBox(height: AppSpacing.sm.h),
+        const LoginWelcomeSubtitle(),
       ],
     );
   }
@@ -23,15 +27,7 @@ class LoginLogoIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 80,
-      height: 80,
-      decoration: BoxDecoration(
-        color: AppColors.primaryBlue,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: const Icon(Icons.sports_martial_arts, size: 48, color: Colors.white),
-    );
+    return const KarateLabLogo(size: 64);
   }
 }
 
@@ -41,9 +37,11 @@ class LoginWelcomeTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Text(
-      'Xush kelibsiz!',
-      style: Theme.of(context).textTheme.displayMedium,
+      'KarateLab AI',
       textAlign: TextAlign.center,
+      style: AppTextStyles.screenTitle.copyWith(
+        color: context.palette.textPrimary,
+      ),
     );
   }
 }
@@ -55,8 +53,10 @@ class LoginWelcomeSubtitle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       'Profilingizga kiring',
-      style: Theme.of(context).textTheme.bodyMedium,
       textAlign: TextAlign.center,
+      style: AppTextStyles.caption.copyWith(
+        color: context.palette.textSecondary,
+      ),
     );
   }
 }

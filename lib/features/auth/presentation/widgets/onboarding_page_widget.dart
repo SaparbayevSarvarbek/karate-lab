@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/theme/app_palette.dart';
+import '../../../../core/theme/app_radius.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_text_styles.dart';
 
 class OnboardingPageWidget extends StatelessWidget {
   final Map<String, String> data;
@@ -9,14 +14,19 @@ class OnboardingPageWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(24.0),
+      padding: EdgeInsets.fromLTRB(
+        AppSpacing.screenH.w,
+        AppSpacing.sm.h,
+        AppSpacing.screenH.w,
+        AppSpacing.xxl.h,
+      ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           OnboardingIllustration(iconName: data['icon'] ?? 'sports_martial_arts'),
-          const SizedBox(height: 48),
+          SizedBox(height: AppSpacing.xxl.h),
           OnboardingPageTitle(title: data['title'] ?? ''),
-          const SizedBox(height: 16),
+          SizedBox(height: AppSpacing.md.h),
           OnboardingPageDescription(description: data['description'] ?? ''),
         ],
       ),
@@ -29,26 +39,38 @@ class OnboardingIllustration extends StatelessWidget {
 
   const OnboardingIllustration({super.key, required this.iconName});
 
+  IconData get _icon {
+    switch (iconName) {
+      case 'fitness_center':
+        return Icons.fitness_center_rounded;
+      case 'people':
+        return Icons.groups_rounded;
+      default:
+        return Icons.sports_martial_arts;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 280,
-      width: double.infinity,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            AppColors.primaryBlue.withValues(alpha: 0.1),
-            AppColors.primaryBlue.withValues(alpha: 0.05),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+    return AspectRatio(
+      aspectRatio: 4 / 3,
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [AppColors.primaryNavy, AppColors.primaryBlue],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(AppRadius.card.r),
         ),
-        borderRadius: BorderRadius.circular(32),
-      ),
-      child: const Icon(
-        Icons.sports_martial_arts,
-        size: 100,
-        color: AppColors.primaryBlue,
+        clipBehavior: Clip.antiAlias,
+        child: Center(
+          child: Icon(
+            _icon,
+            size: 120.w,
+            color: Colors.white.withValues(alpha: 0.16),
+          ),
+        ),
       ),
     );
   }
@@ -64,7 +86,9 @@ class OnboardingPageTitle extends StatelessWidget {
     return Text(
       title,
       textAlign: TextAlign.center,
-      style: Theme.of(context).textTheme.displayMedium,
+      style: AppTextStyles.screenTitle.copyWith(
+        color: context.palette.textPrimary,
+      ),
     );
   }
 }
@@ -79,7 +103,9 @@ class OnboardingPageDescription extends StatelessWidget {
     return Text(
       description,
       textAlign: TextAlign.center,
-      style: Theme.of(context).textTheme.bodyMedium,
+      style: AppTextStyles.body.copyWith(
+        color: context.palette.textSecondary,
+      ),
     );
   }
 }

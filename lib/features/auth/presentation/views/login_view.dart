@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/theme/app_palette.dart';
+import '../../../../core/theme/app_radius.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/custom_button.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../viewmodels/bloc/auth_bloc.dart';
@@ -76,24 +81,35 @@ class _LoginViewState extends State<LoginView> {
       child: BlocBuilder<AuthBloc, AuthState>(
         builder: (context, state) {
           final isLoading = state is AuthLoading;
+          final palette = context.palette;
 
           return Scaffold(
-            appBar: AppBar(
-              title: const Text('KarateLab AI'),
-              centerTitle: true,
-              automaticallyImplyLeading: false,
-            ),
             body: SafeArea(
               child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(24.0),
-                      child: Form(
-                        key: _formKey,
+                padding: EdgeInsets.fromLTRB(
+                  AppSpacing.screenH.w,
+                  AppSpacing.sm.h,
+                  AppSpacing.screenH.w,
+                  AppSpacing.xxl.h,
+                ),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      SizedBox(height: AppSpacing.xxxl.h),
+                      const LoginHeaderWidget(),
+                      SizedBox(height: AppSpacing.xxxl.h),
+                      Container(
+                        padding: EdgeInsets.all(AppSpacing.lg.w),
+                        decoration: BoxDecoration(
+                          color: palette.surface,
+                          borderRadius: BorderRadius.circular(AppRadius.card.r),
+                          border: Border.all(color: palette.border),
+                        ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            const SizedBox(height: 32),
-                            const LoginHeaderWidget(),
-                            const SizedBox(height: 48),
                             CustomTextField(
                               controller: _usernameController,
                               hintText: 'Foydalanuvchi nomi',
@@ -101,7 +117,7 @@ class _LoginViewState extends State<LoginView> {
                               validator: (v) =>
                                   v!.isEmpty ? 'Username kiriting' : null,
                             ),
-                            const SizedBox(height: 16),
+                            SizedBox(height: AppSpacing.lg.h),
                             CustomTextField(
                               controller: _passwordController,
                               hintText: 'Parol',
@@ -119,31 +135,34 @@ class _LoginViewState extends State<LoginView> {
                               validator: (v) =>
                                   v!.isEmpty ? 'Parolni kiriting' : null,
                             ),
-                            const SizedBox(height: 8),
                             Align(
                               alignment: Alignment.centerRight,
                               child: TextButton(
                                 onPressed: _onForgotPassword,
-                                child: const Text(
+                                child: Text(
                                   'Parolni unutdingizmi?',
-                                  style: TextStyle(
+                                  style: AppTextStyles.caption.copyWith(
                                     color: AppColors.primaryBlue,
+                                    fontWeight: FontWeight.w700,
                                   ),
                                 ),
                               ),
                             ),
-                            const SizedBox(height: 24),
+                            SizedBox(height: AppSpacing.sm.h),
                             CustomButton(
                               text: 'Kirish',
                               onPressed: isLoading ? null : _onLogin,
                               isLoading: isLoading,
                             ),
-                            const SizedBox(height: 24),
-                            LoginFooterWidget(onRegister: _onRegister),
                           ],
                         ),
                       ),
-                    ),
+                      SizedBox(height: AppSpacing.xxl.h),
+                      LoginFooterWidget(onRegister: _onRegister),
+                    ],
+                  ),
+                ),
+              ),
             ),
           );
         },

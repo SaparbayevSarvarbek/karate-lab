@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../core/api/models/settings_models.dart';
 import '../../../../core/constants/app_colors.dart';
@@ -6,8 +7,15 @@ import '../../../../core/di/injection.dart';
 import '../../../../core/l10n/app_translations.dart';
 import '../../../../core/repositories/settings_repository.dart';
 import '../../../../core/theme/app_palette.dart';
+import '../../../../core/theme/app_radius.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/app_section_header.dart';
+import '../../../../core/widgets/app_state_views.dart';
+import '../../../../core/widgets/app_step_badge.dart';
 import '../../../../core/widgets/custom_button.dart';
 import '../../../../core/widgets/custom_text_field.dart';
+import '../../../../core/widgets/karate_app_bar.dart';
 
 /// Xavfsizlik sozlamalari (Swagger: `PUT /settings/password/`,
 /// `GET/DELETE /security/sessions/`, `DELETE /security/sessions/{id}/`).
@@ -179,17 +187,20 @@ class _SecuritySettingsViewState extends State<SecuritySettingsView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(Tr.t('menuSecurity')),
-        centerTitle: true,
-      ),
+      backgroundColor: context.palette.background,
+      appBar: KarateAppBar(title: Tr.t('menuSecurity')),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: EdgeInsets.fromLTRB(
+          AppSpacing.screenH.w,
+          AppSpacing.sm.h,
+          AppSpacing.screenH.w,
+          AppSpacing.xxl.h,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SecurityUpdatePasswordSection(),
-            const SizedBox(height: 24),
+            SizedBox(height: AppSpacing.md.h),
             Form(
               key: _formKey,
               child: Column(
@@ -201,7 +212,7 @@ class _SecuritySettingsViewState extends State<SecuritySettingsView> {
                     onToggle: () => setState(() => _obscureCurrent = !_obscureCurrent),
                     validator: (v) => v!.isEmpty ? Tr.t('enterCurrentPassword') : null,
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: AppSpacing.lg.h),
                   SecurityPasswordField(
                     controller: _newPasswordController,
                     hint: Tr.t('newPassword'),
@@ -213,7 +224,7 @@ class _SecuritySettingsViewState extends State<SecuritySettingsView> {
                       return null;
                     },
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: AppSpacing.lg.h),
                   SecurityPasswordField(
                     controller: _confirmPasswordController,
                     hint: Tr.t('confirmPassword'),
@@ -227,13 +238,14 @@ class _SecuritySettingsViewState extends State<SecuritySettingsView> {
                 ],
               ),
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: AppSpacing.xl.h),
             CustomButton(
               text: _saving ? Tr.t('updating') : Tr.t('updatePasswordBtn'),
               isLoading: _saving,
               onPressed: _changePassword,
+              leadingIcon: Icons.lock_reset_rounded,
             ),
-            const SizedBox(height: 32),
+            SizedBox(height: AppSpacing.xxxl.h),
             _ActiveSessionsSection(
               sessions: _sessions,
               loading: _sessionsLoading,
@@ -241,7 +253,7 @@ class _SecuritySettingsViewState extends State<SecuritySettingsView> {
               onLogoutOthers: _logoutOtherDevices,
               onDeleteSession: _deleteSession,
             ),
-            const SizedBox(height: 40),
+            SizedBox(height: AppSpacing.xxxl.h),
             const SecurityDeleteAccountSection(),
           ],
         ),
@@ -258,9 +270,13 @@ class SecurityUpdatePasswordSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(Tr.t('updatePasswordBtn'), style: Theme.of(context).textTheme.titleLarge),
-        const SizedBox(height: 4),
-        Text(Tr.t('secUpdateHint'), style: Theme.of(context).textTheme.bodyMedium),
+        AppSectionHeader(title: Tr.t('updatePasswordBtn')),
+        SizedBox(height: 4.h),
+        Text(
+          Tr.t('secUpdateHint'),
+          style: AppTextStyles.caption
+              .copyWith(color: context.palette.textSecondary),
+        ),
       ],
     );
   }
@@ -303,24 +319,65 @@ class SecurityDeleteAccountSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          Tr.t('deleteAccountTitle'),
-          style: Theme.of(context).textTheme.titleLarge,
-        ),
-        const SizedBox(height: 16),
-        OutlinedButton.icon(
-          onPressed: () {
-            showDialog(context: context, builder: (_) => const SecurityDeleteDialog());
-          },
-          icon: const Icon(Icons.delete_forever, color: AppColors.error),
-          label: Text(Tr.t('deleteAccountTitle'), style: const TextStyle(color: AppColors.error)),
-          style: OutlinedButton.styleFrom(
-            side: const BorderSide(color: AppColors.error),
-            minimumSize: const Size(double.infinity, 46),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        AppSectionHeader(title: 'Xavfli zona'),
+        SizedBox(height: AppSpacing.md.h),
+        Container(
+          width: double.infinity,
+          padding: EdgeInsets.all(AppSpacing.lg.w),
+          decoration: BoxDecoration(
+            color: AppColors.error.withValues(alpha: 0.06),
+            borderRadius: BorderRadius.circular(AppRadius.card.r),
+            border: Border.all(color: AppColors.error.withValues(alpha: 0.25)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    Icons.warning_amber_rounded,
+                    color: AppColors.error,
+                    size: 20.w,
+                  ),
+                  SizedBox(width: 8.w),
+                  Expanded(
+                    child: Text(
+                      Tr.t('deleteAccountText'),
+                      style: AppTextStyles.caption
+                          .copyWith(color: palette.textSecondary),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: AppSpacing.lg.h),
+              OutlinedButton.icon(
+                onPressed: () {
+                  showDialog(context: context, builder: (_) => const SecurityDeleteDialog());
+                },
+                icon: Icon(Icons.delete_forever_rounded,
+                    color: AppColors.error, size: 18.w),
+                label: Text(
+                  Tr.t('deleteAccountTitle'),
+                  style: TextStyle(
+                    color: AppColors.error,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14.sp,
+                  ),
+                ),
+                style: OutlinedButton.styleFrom(
+                  side: BorderSide(color: AppColors.error.withValues(alpha: 0.6)),
+                  minimumSize: Size(double.infinity, 52.h),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppRadius.button.r),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ],
@@ -375,52 +432,29 @@ class _ActiveSessionsSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                Tr.t('activeSessions'),
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-            ),
-            TextButton(
-              onPressed: busy || loading || sessions.length < 2 ? null : onLogoutOthers,
-              child: Text(
-                busy ? Tr.t('signingOut') : Tr.t('logOutOthersBtn'),
-                style: const TextStyle(
-                  color: AppColors.error,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ],
+        AppSectionHeader(
+          title: Tr.t('activeSessions'),
+          actionLabel: busy ? Tr.t('signingOut') : Tr.t('logOutOthersBtn'),
+          onAction: (busy || loading || sessions.length < 2)
+              ? null
+              : onLogoutOthers,
         ),
-        const SizedBox(height: 4),
+        SizedBox(height: 4.h),
         Text(
           Tr.t('swipeHint'),
-          style: TextStyle(color: palette.textHint, fontSize: 11.5),
+          style: AppTextStyles.caption.copyWith(color: palette.textHint),
         ),
-        const SizedBox(height: 10),
+        SizedBox(height: AppSpacing.md.h),
         if (loading)
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 16),
             child: Center(child: CircularProgressIndicator()),
           )
         else if (sessions.isEmpty)
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: palette.backgroundLight,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: palette.border),
-            ),
-            child: Text(
-              Tr.t('noSessions'),
-              textAlign: TextAlign.center,
-              style: TextStyle(color: palette.textSecondary, fontSize: 13),
-            ),
+          AppEmptyView(
+            icon: Icons.devices_other_outlined,
+            title: Tr.t('noSessions'),
+            compact: true,
           )
         else
           ...sessions.map(
@@ -466,7 +500,7 @@ class _SwipeableSessionTileState extends State<_SwipeableSessionTile> {
         margin: const EdgeInsets.only(bottom: 10),
         decoration: BoxDecoration(
           color: AppColors.error.withValues(alpha: 0.12),
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(AppRadius.card.r),
         ),
         child: const Icon(Icons.delete_outline_rounded, color: AppColors.error),
       ),
@@ -484,31 +518,28 @@ class _SessionTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
+    final tint = session.isActive ? AppColors.success : palette.textHint;
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(14),
+      margin: EdgeInsets.only(bottom: 10.h),
+      padding: EdgeInsets.all(12.w),
       decoration: BoxDecoration(
         color: palette.surface,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppRadius.card.r),
         border: Border.all(color: palette.border),
       ),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(9),
+            width: 40.w,
+            height: 40.w,
+            alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: session.isActive
-                  ? AppColors.success.withValues(alpha: 0.12)
-                  : palette.textHint.withValues(alpha: 0.12),
-              shape: BoxShape.circle,
+              color: tint.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12.r),
             ),
-            child: Icon(
-              Icons.smartphone_rounded,
-              size: 18,
-              color: session.isActive ? AppColors.success : palette.textHint,
-            ),
+            child: Icon(Icons.smartphone_rounded, size: 20.w, color: tint),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: 12.w),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -519,11 +550,11 @@ class _SessionTile extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
-                    fontSize: 13,
+                    fontSize: 13.5.sp,
                     color: palette.textPrimary,
                   ),
                 ),
-                const SizedBox(height: 2),
+                SizedBox(height: 2.h),
                 Text(
                   [
                     if (session.ipAddress != null && session.ipAddress!.isNotEmpty)
@@ -531,27 +562,21 @@ class _SessionTile extends StatelessWidget {
                     if (session.createdAt != null)
                       formatDate(session.createdAt),
                   ].join(' • '),
-                  style: TextStyle(color: palette.textSecondary, fontSize: 11.5),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.caption
+                      .copyWith(color: palette.textSecondary),
                 ),
               ],
             ),
           ),
-          if (session.isActive)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-              decoration: BoxDecoration(
-                color: AppColors.success.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(999),
-              ),
-              child: Text(
-                Tr.t('activeBadge'),
-                style: const TextStyle(
-                  color: AppColors.success,
-                  fontSize: 10.5,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
+          if (session.isActive) ...[
+            SizedBox(width: 8.w),
+            AppStepBadge(
+              label: Tr.t('activeBadge'),
+              color: AppColors.success,
             ),
+          ],
         ],
       ),
     );

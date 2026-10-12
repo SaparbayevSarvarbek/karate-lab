@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/constants/app_colors.dart';
+import '../../../../core/theme/app_palette.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/app_bottom_bar.dart';
 import '../../../../core/widgets/custom_button.dart';
 import '../widgets/onboarding_page_widget.dart';
 import '../widgets/onboarding_dot_indicator.dart';
@@ -97,8 +101,9 @@ class OnboardingBottomSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(24.0),
+    final palette = context.palette;
+    final isLast = currentPage == totalPages - 1;
+    return AppBottomBar(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -106,23 +111,26 @@ class OnboardingBottomSection extends StatelessWidget {
             currentPage: currentPage,
             totalPages: totalPages,
           ),
-          const SizedBox(height: 32),
+          SizedBox(height: AppSpacing.xl.h),
           CustomButton(
-            text: currentPage == totalPages - 1 ? 'Boshlash' : 'Keyingisi',
+            text: isLast ? 'Boshlash' : 'Davom etish',
+            trailingIcon: Icons.arrow_forward_rounded,
             onPressed: onNext,
           ),
-          const SizedBox(height: 16),
           SizedBox(
-            height: 48,
-            child: currentPage != totalPages - 1
-                ? TextButton(
+            height: 40.h,
+            child: isLast
+                ? const SizedBox.shrink()
+                : TextButton(
                     onPressed: onSkip,
-                    child: const Text(
+                    child: Text(
                       'O\'tkazib yuborish',
-                      style: TextStyle(color: AppColors.textSecondary),
+                      style: AppTextStyles.caption.copyWith(
+                        color: palette.textSecondary,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                  )
-                : const SizedBox.shrink(),
+                  ),
           ),
         ],
       ),

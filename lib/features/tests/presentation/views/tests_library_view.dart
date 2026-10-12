@@ -3,22 +3,23 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/api/api_constants.dart';
 import '../../../../core/api/models/test_models.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/di/injection.dart';
-import '../../../../core/l10n/app_translations.dart';
 import '../../../../core/theme/app_palette.dart';
-import '../../../../core/widgets/remote_image.dart';
+import '../../../../core/theme/app_radius.dart';
+import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/app_state_views.dart';
+import '../../../../core/widgets/karate_app_bar.dart';
 import '../../../../core/widgets/shimmer_placeholder.dart';
 import '../../../../core/widgets/status_badge.dart';
 import '../viewmodels/test_bloc.dart';
 
 /// Testlar sahifasi.
 ///
-/// - Murabbiy: Swagger `GET /tests/` â€” o'zi yaratgan testlari.
-/// - Sportchi: Swagger `GET /my-tests/` â€” barcha faol testlar (avtomatik).
+/// - Murabbiy: Swagger `GET /tests/` — o'zi yaratgan testlari.
+/// - Sportchi: Swagger `GET /my-tests/` — barcha faol testlar (avtomatik).
 class TestsLibraryView extends StatefulWidget {
   final String? userRole;
 
@@ -31,6 +32,13 @@ class TestsLibraryView extends StatefulWidget {
 class _TestsLibraryViewState extends State<TestsLibraryView> {
   bool get _isCoach => widget.userRole == AppConstants.roleCoach;
 
+  static const List<String> _filters = [
+    'Barchasi',
+    'O\'zlashtirish',
+    'Tayyorgarlik',
+  ];
+  String _selectedFilter = _filters.first;
+
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
@@ -40,31 +48,28 @@ class _TestsLibraryViewState extends State<TestsLibraryView> {
         return bloc;
       },
       child: BlocBuilder<TestBloc, TestState>(
-          builder: (context, state) {
-            final palette = context.palette;
-            return Scaffold(
-              backgroundColor: palette.background,
-              appBar: AppBar(
-                title: Text(_isCoach ? Tr.t('testsMine') : Tr.t('testsAthlete')),
-                centerTitle: true,
-              ),
-              body: _buildBody(context, state),
-              floatingActionButton: _isCoach
-                  ? FloatingActionButton.extended(
-                      onPressed: () async {
-                        final created = await context.push('/create-test');
-                        if (created == true && context.mounted) {
-                          context.read<TestBloc>().add(const LoadCoachTests());
-                        }
-                      },
-                      backgroundColor: AppColors.primaryBlue,
-                      foregroundColor: Colors.white,
-                      icon: const Icon(Icons.add),
-                      label: Text('Test', style: TextStyle(fontSize: 13.sp)),
-                    )
-                  : null,
-            );
-          },
+        builder: (context, state) {
+          final palette = context.palette;
+          return Scaffold(
+            backgroundColor: palette.background,
+            appBar: const KarateAppBar(title: 'KarateLab AI', showLogo: true),
+            body: _buildBody(context, state),
+            floatingActionButton: _isCoach
+                ? FloatingActionButton.extended(
+                    onPressed: () async {
+                      final created = await context.push('/create-test');
+                      if (created == true && context.mounted) {
+                        context.read<TestBloc>().add(const LoadCoachTests());
+                      }
+                    },
+                    backgroundColor: AppColors.primaryBlue,
+                    foregroundColor: Colors.white,
+                    icon: const Icon(Icons.add),
+                    label: Text('Test', style: TextStyle(fontSize: 13.sp)),
+                  )
+                : null,
+          );
+        },
       ),
     );
   }
@@ -72,12 +77,18 @@ class _TestsLibraryViewState extends State<TestsLibraryView> {
   Widget _buildBody(BuildContext context, TestState state) {
     if (state is TestLoading) {
       return RefreshIndicator(
-        onRefresh: () async => context.read<TestBloc>().add(_isCoach ? const LoadCoachTests() : const LoadMyTests()),
+        onRefresh: () async => context.read<TestBloc>().add(
+              _isCoach ? const LoadCoachTests() : const LoadMyTests(),
+            ),
         child: ListView(
-          padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 96.h),
-          children: _isCoach
-              ? List.generate(5, (index) => ShimmerCoachTestCard())
-              : List.generate(5, (index) => ShimmerTestResultCard()),
+          padding: EdgeInsets.fromLTRB(20.w, 8.h, 20.w, 96.h),
+          children: [
+            _buildFilterChips(context),
+            SizedBox(height: 16.h),
+            ...(_isCoach
+                ? List.generate(5, (index) => const ShimmerCoachTestCard())
+                : List.generate(5, (index) => const ShimmerTestResultCard())),
+          ],
         ),
       );
     }
@@ -87,11 +98,13 @@ class _TestsLibraryViewState extends State<TestsLibraryView> {
       return RefreshIndicator(
         onRefresh: () async =>
             context.read<TestBloc>().add(const LoadCoachTests()),
-        child: ListView.builder(
-          padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 96.h),
-          itemCount: state.tests.length,
-          itemBuilder: (context, index) =>
-              _buildCoachTestCard(context, state.tests[index]),
+        child: ListView(
+          padding: EdgeInsets.fromLTRB(20.w, 8.h, 20.w, 96.h),
+          children: [
+            _buildFilterChips(context),
+            SizedBox(height: 16.h),
+            for (final test in state.tests) _buildCoachTestCard(context, test),
+          ],
         ),
       );
     }
@@ -101,172 +114,117 @@ class _TestsLibraryViewState extends State<TestsLibraryView> {
       return RefreshIndicator(
         onRefresh: () async =>
             context.read<TestBloc>().add(const LoadMyTests()),
-        child: ListView.builder(
-          padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 24.h),
-          itemCount: state.tests.length,
-          itemBuilder: (context, index) =>
-              _buildTestCard(context, state.tests[index]),
+        child: ListView(
+          padding: EdgeInsets.fromLTRB(20.w, 8.h, 20.w, 24.h),
+          children: [
+            _buildFilterChips(context),
+            SizedBox(height: 16.h),
+            for (final test in state.tests) _buildTestCard(context, test),
+          ],
         ),
       );
     }
 
     if (state is TestError) {
-      final palette = context.palette;
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.cloud_off_rounded, size: 56.w, color: palette.textHint),
-            SizedBox(height: 14.h),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 32.w),
-              child: Text(
-                state.message,
-                textAlign: TextAlign.center,
-                style: TextStyle(color: palette.textSecondary, fontSize: 13.sp),
-              ),
+      return AppErrorView(
+        message: state.message,
+        onRetry: () => context.read<TestBloc>().add(
+              _isCoach ? const LoadCoachTests() : const LoadMyTests(),
             ),
-            SizedBox(height: 18.h),
-            ElevatedButton(
-              onPressed: () => context.read<TestBloc>().add(
-                    _isCoach ? const LoadCoachTests() : const LoadMyTests(),
-                  ),
-              child: const Text('Qayta urinish'),
-            ),
-          ],
-        ),
       );
     }
 
     return const SizedBox.shrink();
   }
 
+  Widget _buildFilterChips(BuildContext context) {
+    return SizedBox(
+      height: 36.h,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: _filters.length,
+        separatorBuilder: (_, _) => SizedBox(width: 8.w),
+        itemBuilder: (context, index) => _FilterChip(
+          label: _filters[index],
+          selected: _filters[index] == _selectedFilter,
+          onTap: () => setState(() => _selectedFilter = _filters[index]),
+        ),
+      ),
+    );
+  }
+
   Widget _buildCoachTestCard(BuildContext context, TestEntity test) {
     final palette = context.palette;
     return Container(
-      margin: EdgeInsets.only(bottom: 14.h),
+      margin: EdgeInsets.only(bottom: 12.h),
+      padding: EdgeInsets.all(14.w),
       decoration: BoxDecoration(
         color: palette.surface,
-        borderRadius: BorderRadius.circular(18.r),
+        borderRadius: BorderRadius.circular(AppRadius.card.r),
         border: Border.all(color: palette.border),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const _IconTile(
+            icon: Icons.assignment_outlined,
+            color: AppColors.primaryBlue,
+          ),
+          SizedBox(width: 12.w),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  test.name,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.cardTitle
+                      .copyWith(color: palette.textPrimary),
+                ),
+                if (test.description.isNotEmpty) ...[
+                  SizedBox(height: 4.h),
+                  Text(
+                    test.description,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTextStyles.caption
+                        .copyWith(color: palette.textSecondary),
+                  ),
+                ],
+                SizedBox(height: 8.h),
+                Wrap(
+                  spacing: 12.w,
+                  runSpacing: 4.h,
+                  children: [
+                    _Meta(
+                      icon: Icons.list_alt_rounded,
+                      text: '${test.steps.length} qadam',
+                    ),
+                    if (test.totalDuration > 0)
+                      _Meta(
+                        icon: Icons.timer_outlined,
+                        text: '${test.totalDuration}s',
+                      ),
+                    if (test.category.isNotEmpty)
+                      _Meta(
+                        icon: Icons.category_outlined,
+                        text: test.category,
+                      ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          SizedBox(width: 8.w),
+          StatusBadge(
+            label: test.isActive ? 'Faol' : 'Nofaol',
+            color: test.isActive ? AppColors.success : AppColors.textHint,
+            icon: test.isActive
+                ? Icons.check_circle_rounded
+                : Icons.pause_circle_rounded,
           ),
         ],
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Padding(
-        padding: EdgeInsets.all(16.w),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                RemoteImage(
-                  url: ApiConstants.resolveMediaUrlOrNull(test.coverUrl),
-                  width: 56.w,
-                  height: 56.w,
-                  borderRadius: BorderRadius.circular(12.r),
-                ),
-                SizedBox(width: 12.w),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        test.name,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 15.5.sp,
-                          fontWeight: FontWeight.w700,
-                          color: palette.textPrimary,
-                        ),
-                      ),
-                      if (test.age.isNotEmpty) ...[
-                        SizedBox(height: 3.h),
-                        Text(
-                          test.age,
-                          style: TextStyle(
-                              color: palette.textSecondary, fontSize: 11.5.sp),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-                if (test.category.isNotEmpty)
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryBlue.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(999.r),
-                    ),
-                    child: Text(
-                      test.category,
-                      style: TextStyle(
-                        color: AppColors.primaryBlue,
-                        fontSize: 10.sp,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-            SizedBox(height: 12.h),
-            Row(
-              children: [
-                Icon(Icons.list_alt_rounded, size: 14.w, color: palette.textHint),
-                SizedBox(width: 4.w),
-                Text('${test.steps.length} qadam',
-                    style: TextStyle(
-                        color: palette.textSecondary, fontSize: 12.sp)),
-                SizedBox(width: 14.w),
-                Icon(Icons.timer_outlined, size: 14.w, color: palette.textHint),
-                SizedBox(width: 4.w),
-                Text('${test.totalDuration} soniya',
-                    style: TextStyle(
-                        color: palette.textSecondary, fontSize: 12.sp)),
-                const Spacer(),
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
-                  decoration: BoxDecoration(
-                    color: (test.isActive ? AppColors.success : AppColors.textHint)
-                        .withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(999.r),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        test.isActive
-                            ? Icons.check_circle_rounded
-                            : Icons.pause_circle_rounded,
-                        size: 13.w,
-                        color: test.isActive
-                            ? AppColors.success
-                            : AppColors.textHint,
-                      ),
-                      SizedBox(width: 4.w),
-                      Text(
-                        test.isActive ? 'Faol' : 'Nofaol',
-                        style: TextStyle(
-                          color: test.isActive
-                              ? AppColors.success
-                              : AppColors.textHint,
-                          fontSize: 11.sp,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -290,19 +248,9 @@ class _TestsLibraryViewState extends State<TestsLibraryView> {
 
   Widget _buildTestCard(BuildContext context, TestResult test) {
     final palette = context.palette;
-    final statusColor = switch (test.status) {
-      TestStatus.completed => AppColors.success,
-      TestStatus.inProgress => AppColors.warning,
-      TestStatus.pending => AppColors.info,
-      TestStatus.unknown => AppColors.textHint,
-    };
-    final statusIcon = switch (test.status) {
-      TestStatus.completed => Icons.check_circle_rounded,
-      TestStatus.inProgress => Icons.pending_rounded,
-      TestStatus.pending => Icons.schedule_rounded,
-      TestStatus.unknown => Icons.help_outline_rounded,
-    };
-    final firstImage = ApiConstants.resolveMediaUrlOrNull(test.coverUrl);
+    final totalDuration =
+        test.steps.fold<int>(0, (sum, s) => sum + s.duration);
+    final hasAction = test.status != TestStatus.unknown;
 
     return GestureDetector(
       onTap: () async {
@@ -312,171 +260,19 @@ class _TestsLibraryViewState extends State<TestsLibraryView> {
         }
       },
       child: Container(
-        margin: EdgeInsets.only(bottom: 14.h),
+        margin: EdgeInsets.only(bottom: 12.h),
+        padding: EdgeInsets.all(14.w),
         decoration: BoxDecoration(
           color: palette.surface,
-          borderRadius: BorderRadius.circular(18.r),
+          borderRadius: BorderRadius.circular(AppRadius.card.r),
           border: Border.all(color: palette.border),
         ),
-        clipBehavior: Clip.antiAlias,
-        child: Column(
+        child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Padding(
-                    padding: EdgeInsets.fromLTRB(16.w, 14.h, 8.w, 8.h),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        StatusBadge(
-                          label: test.status.label,
-                          color: statusColor,
-                          icon: statusIcon,
-                        ),
-                        SizedBox(height: 10.h),
-                        Text(
-                          test.name,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 15.5.sp,
-                            fontWeight: FontWeight.w700,
-                            color: palette.textPrimary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                if (firstImage != null)
-                  Padding(
-                    padding: EdgeInsets.fromLTRB(0, 12.h, 12.w, 0),
-                    child: RemoteImage(
-                      url: firstImage,
-                      width: 72.w,
-                      height: 54.h,
-                      borderRadius: BorderRadius.circular(12.r),
-                    ),
-                  ),
-              ],
-            ),
-            Padding(
-              padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 14.h),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(Icons.list_alt_rounded,
-                          size: 14.w, color: palette.textHint),
-                      SizedBox(width: 4.w),
-                      Text('${test.steps.length} qadam',
-                          style: TextStyle(
-                              color: palette.textSecondary, fontSize: 12.sp)),
-                      if (test.score != null) ...[
-                        SizedBox(width: 14.w),
-                        Icon(Icons.stars_rounded,
-                            size: 14.w, color: AppColors.warning),
-                        SizedBox(width: 4.w),
-                        Text('${test.score!.toStringAsFixed(1)} ball',
-                            style: TextStyle(
-                                color: AppColors.warning,
-                                fontSize: 12.sp,
-                                fontWeight: FontWeight.w700)),
-                      ],
-                    ],
-                  ),
-                  if (test.status != TestStatus.unknown) ...[
-                    SizedBox(height: 12.h),
-                    _TestActionButton(
-                      icon: switch (test.status) {
-                        TestStatus.pending => Icons.play_arrow_rounded,
-                        TestStatus.inProgress => Icons.timer_rounded,
-                        _ => Icons.insights_rounded,
-                      },
-                      title: switch (test.status) {
-                        TestStatus.pending => 'Boshlash',
-                        TestStatus.inProgress => 'Davom etish',
-                        _ => 'Natijani ko\'rish',
-                      },
-                      subtitle: switch (test.status) {
-                        TestStatus.pending => '${test.steps.length} qadam',
-                        TestStatus.inProgress => 'Boshlangan',
-                        _ => test.score == null
-                            ? 'Batafsil tahlil'
-                            : '${test.score!.toStringAsFixed(1)} ball',
-                      },
-                      color: switch (test.status) {
-                        TestStatus.pending => AppColors.primaryBlue,
-                        TestStatus.inProgress => AppColors.warning,
-                        _ => AppColors.success,
-                      },
-                      onTap: switch (test.status) {
-                        TestStatus.completed => () =>
-                            context.push('/test-result', extra: test),
-                        TestStatus.inProgress => () => _resumeRun(test),
-                        _ => () => _openDetail(test),
-                      },
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Test kartasidagi yagona amal tugmasi (boshlash / davom etish / natija).
-class _TestActionButton extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final Color color;
-  final VoidCallback onTap;
-
-  const _TestActionButton({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.color,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = context.palette;
-
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 11.h),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              color.withValues(alpha: 0.16),
-              AppColors.primaryBlue.withValues(alpha: 0.10),
-            ],
-            begin: Alignment.centerLeft,
-            end: Alignment.centerRight,
-          ),
-          borderRadius: BorderRadius.circular(14.r),
-          border: Border.all(color: color.withValues(alpha: 0.35)),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 34.w,
-              height: 34.w,
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.18),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(icon, size: 18.w, color: color),
+            const _IconTile(
+              icon: Icons.assignment_outlined,
+              color: AppColors.primaryBlue,
             ),
             SizedBox(width: 12.w),
             Expanded(
@@ -484,27 +280,177 @@ class _TestActionButton extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: 13.5.sp,
-                      fontWeight: FontWeight.w700,
-                      color: palette.textPrimary,
-                    ),
+                    test.name,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTextStyles.cardTitle
+                        .copyWith(color: palette.textPrimary),
                   ),
-                  SizedBox(height: 2.h),
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                      fontSize: 11.5.sp,
-                      fontWeight: FontWeight.w600,
-                      color: color,
+                  if (test.description.isNotEmpty) ...[
+                    SizedBox(height: 4.h),
+                    Text(
+                      test.description,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTextStyles.caption
+                          .copyWith(color: palette.textSecondary),
                     ),
+                  ],
+                  SizedBox(height: 8.h),
+                  Wrap(
+                    spacing: 12.w,
+                    runSpacing: 4.h,
+                    children: [
+                      _Meta(
+                        icon: Icons.list_alt_rounded,
+                        text: '${test.steps.length} qadam',
+                      ),
+                      if (totalDuration > 0)
+                        _Meta(
+                          icon: Icons.timer_outlined,
+                          text: '${totalDuration}s',
+                        ),
+                      if (test.score != null)
+                        _Meta(
+                          icon: Icons.stars_rounded,
+                          text: '${test.score!.toStringAsFixed(1)} ball',
+                        ),
+                    ],
                   ),
                 ],
               ),
             ),
-            Icon(Icons.chevron_right_rounded, size: 22.w, color: color),
+            if (hasAction) ...[
+              SizedBox(width: 8.w),
+              _ActionPill(
+                label: switch (test.status) {
+                  TestStatus.pending => 'Boshlash',
+                  TestStatus.inProgress => 'Davom etish',
+                  _ => 'Natija',
+                },
+                onTap: switch (test.status) {
+                  TestStatus.pending => () => _openDetail(test),
+                  TestStatus.inProgress => () => _resumeRun(test),
+                  _ => () => context.push('/test-result', extra: test),
+                },
+              ),
+            ],
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Filtr chipi — tanlanganda to'ldirilgan, aks holda konturli.
+class _FilterChip extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _FilterChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        alignment: Alignment.center,
+        padding: EdgeInsets.symmetric(horizontal: 16.w),
+        decoration: BoxDecoration(
+          color: selected ? AppColors.primaryBlue : palette.surface,
+          borderRadius: BorderRadius.circular(AppRadius.pill.r),
+          border: Border.all(
+            color: selected ? AppColors.primaryBlue : palette.border,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 12.5.sp,
+            fontWeight: FontWeight.w700,
+            color: selected ? Colors.white : palette.textSecondary,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Karta ichidagi 44x44 ikonka plitasi.
+class _IconTile extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+
+  const _IconTile({required this.icon, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 44.w,
+      height: 44.w,
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(AppRadius.button.r),
+      ),
+      child: Icon(icon, size: 22.w, color: color),
+    );
+  }
+}
+
+/// Kichik meta yozuv (ikonka + matn).
+class _Meta extends StatelessWidget {
+  final IconData icon;
+  final String text;
+
+  const _Meta({required this.icon, required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 13.w, color: palette.textHint),
+        SizedBox(width: 4.w),
+        Text(
+          text,
+          style: TextStyle(color: palette.textSecondary, fontSize: 11.sp),
+        ),
+      ],
+    );
+  }
+}
+
+/// Kartadagi kichik amal pilli (boshlash / davom etish / natija).
+class _ActionPill extends StatelessWidget {
+  final String label;
+  final VoidCallback onTap;
+
+  const _ActionPill({required this.label, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+        decoration: BoxDecoration(
+          color: AppColors.primaryBlue.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(AppRadius.pill.r),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: AppColors.primaryBlue,
+            fontSize: 11.5.sp,
+            fontWeight: FontWeight.w700,
+          ),
         ),
       ),
     );
@@ -516,17 +462,9 @@ class _EmptyTests extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final palette = context.palette;
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.assignment_outlined, size: 56.w, color: palette.textHint),
-          SizedBox(height: 14.h),
-          Text('Hozircha testlar yo\'q',
-              style: TextStyle(color: palette.textSecondary, fontSize: 13.sp)),
-        ],
-      ),
+    return const AppEmptyView(
+      icon: Icons.assignment_outlined,
+      title: 'Hozircha testlar yo\'q',
     );
   }
 }

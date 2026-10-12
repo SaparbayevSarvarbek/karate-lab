@@ -3,13 +3,15 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/api/api_constants.dart';
 import '../../../../core/api/models/exercise_models.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/l10n/app_translations.dart';
 import '../../../../core/theme/app_palette.dart';
-import '../../../../core/widgets/remote_image.dart';
+import '../../../../core/theme/app_radius.dart';
+import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/app_state_views.dart';
+import '../../../../core/widgets/karate_app_bar.dart';
 import '../viewmodels/exercise_bloc.dart';
 
 /// Murabbiy uchun mashqlarni boshqarish sahifasi (Swagger: `GET /exercises/`).
@@ -46,28 +48,36 @@ class _MyExercisesViewState extends State<MyExercisesView> {
       child: Builder(
         builder: (context) => Scaffold(
           backgroundColor: context.palette.background,
-          appBar: AppBar(
-            title: Text(Tr.t('myExercisesTitle')),
-            centerTitle: true,
-          ),
+          appBar: KarateAppBar(title: Tr.t('myExercisesTitle')),
           body: Column(
             children: [
               Padding(
-                padding: EdgeInsets.fromLTRB(16.w, 10.h, 16.w, 8.h),
+                padding: EdgeInsets.fromLTRB(20.w, 8.h, 20.w, 8.h),
                 child: TextField(
                   controller: _searchController,
                   onChanged: (v) => setState(() => _query = v.trim()),
-                  style: TextStyle(fontSize: 14.sp),
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    color: context.palette.textPrimary,
+                  ),
                   decoration: InputDecoration(
                     hintText: Tr.t('searchExercise'),
-                    hintStyle:
-                        TextStyle(color: AppColors.textHint, fontSize: 13.sp),
-                    prefixIcon: Icon(Icons.search, size: 20.w),
+                    hintStyle: TextStyle(
+                      color: context.palette.textHint,
+                      fontSize: 13.sp,
+                    ),
+                    prefixIcon: Icon(
+                      Icons.search,
+                      size: 20.w,
+                      color: context.palette.textHint,
+                    ),
                     filled: true,
                     isDense: true,
+                    contentPadding:
+                        EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
                     fillColor: context.palette.backgroundLight,
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14.r),
+                      borderRadius: BorderRadius.circular(AppRadius.button.r),
                       borderSide: BorderSide.none,
                     ),
                   ),
@@ -94,7 +104,6 @@ class _MyExercisesViewState extends State<MyExercisesView> {
   }
 
   Widget _buildBody(BuildContext context) {
-    final palette = context.palette;
     return BlocBuilder<ExerciseBloc, ExerciseState>(
       builder: (context, state) {
         if (state is ExerciseLoading ||
@@ -104,68 +113,31 @@ class _MyExercisesViewState extends State<MyExercisesView> {
         }
 
         if (state is ExerciseError) {
-          return Center(
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 32.w),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.cloud_off_rounded,
-                      size: 56.w, color: AppColors.error),
-                  SizedBox(height: 14.h),
-                  Text(
-                    state.message,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                        color: palette.textSecondary, fontSize: 13.sp),
-                  ),
-                  SizedBox(height: 18.h),
-                  ElevatedButton(
-                    onPressed: () => context
-                        .read<ExerciseBloc>()
-                        .add(const LoadExercises()),
-                    child: Text(Tr.t('retry')),
-                  ),
-                ],
-              ),
-            ),
+          return AppErrorView(
+            message: state.message,
+            retryLabel: Tr.t('retry'),
+            onRetry: () => context.read<ExerciseBloc>().add(const LoadExercises()),
           );
         }
 
         if (state is ExercisesLoaded) {
           final items = _filtered(state.exercises);
           if (items.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    _query.isEmpty
-                        ? Icons.fitness_center_rounded
-                        : Icons.search_off_rounded,
-                    size: 56.w,
-                    color: palette.textHint,
-                  ),
-                  SizedBox(height: 12.h),
-                  Text(
-                    _query.isEmpty
-                        ? Tr.t('myExercisesEmpty')
-                        : Tr.t('exerciseNotFound'),
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 14.sp,
-                      color: palette.textSecondary,
-                    ),
-                  ),
-                ],
-              ),
-            );
+            return _query.isEmpty
+                ? AppEmptyView(
+                    icon: Icons.fitness_center_outlined,
+                    title: Tr.t('myExercisesEmpty'),
+                  )
+                : AppEmptyView(
+                    icon: Icons.search_off_rounded,
+                    title: Tr.t('exerciseNotFound'),
+                  );
           }
           return RefreshIndicator(
             onRefresh: () async =>
                 context.read<ExerciseBloc>().add(const LoadExercises()),
             child: ListView.builder(
-              padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 24.h),
+              padding: EdgeInsets.fromLTRB(20.w, 12.h, 20.w, 24.h),
               itemCount: items.length,
               itemBuilder: (context, index) {
                 final exercise = items[index];
@@ -180,7 +152,7 @@ class _MyExercisesViewState extends State<MyExercisesView> {
                     margin: EdgeInsets.only(bottom: 12.h),
                     decoration: BoxDecoration(
                       color: AppColors.error.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(16.r),
+                      borderRadius: BorderRadius.circular(AppRadius.card.r),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -190,10 +162,10 @@ class _MyExercisesViewState extends State<MyExercisesView> {
                         SizedBox(width: 6.w),
                         Text(
                           Tr.t('delete'),
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: AppColors.error,
                             fontWeight: FontWeight.w700,
-                            fontSize: 13,
+                            fontSize: 13.sp,
                           ),
                         ),
                       ],
@@ -257,6 +229,28 @@ class _MyExercisesViewState extends State<MyExercisesView> {
   }
 }
 
+/// Karta ichidagi 44x44 yumaloq ikonka bloki.
+class _IconTile extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+
+  const _IconTile({required this.icon, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 44.w,
+      height: 44.w,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(14.r),
+      ),
+      child: Icon(icon, size: 22.w, color: color),
+    );
+  }
+}
+
 /// `MashqlarView._MashqCard` bilan bir xil ko'rinishdagi karta —
 /// qo'shimcha ravishda o'chirish tugmasi bilan.
 class _ExerciseManageCard extends StatelessWidget {
@@ -284,29 +278,29 @@ class _ExerciseManageCard extends StatelessWidget {
         : isUjt
             ? 'UJT'
             : 'Texnik';
+    final icon = isMjt
+        ? Icons.fitness_center_rounded
+        : isUjt
+            ? Icons.bolt_rounded
+            : Icons.sports_martial_arts_rounded;
 
     return Padding(
       padding: EdgeInsets.only(bottom: 12.h),
       child: Material(
         color: palette.surface,
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(AppRadius.card.r),
         child: InkWell(
-          borderRadius: BorderRadius.circular(16.r),
+          borderRadius: BorderRadius.circular(AppRadius.card.r),
           onTap: onTap,
           child: Container(
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16.r),
+              borderRadius: BorderRadius.circular(AppRadius.card.r),
               border: Border.all(color: palette.border),
             ),
             padding: EdgeInsets.all(12.w),
             child: Row(
               children: [
-                RemoteImage(
-                  url: ApiConstants.resolveMediaUrlOrNull(exercise.image),
-                  width: 68.w,
-                  height: 68.w,
-                  borderRadius: BorderRadius.circular(14.r),
-                ),
+                _IconTile(icon: icon, color: badgeColor),
                 SizedBox(width: 12.w),
                 Expanded(
                   child: Column(
@@ -316,12 +310,8 @@ class _ExerciseManageCard extends StatelessWidget {
                         exercise.title,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: palette.textPrimary,
-                          fontSize: 14.sp,
-                          fontWeight: FontWeight.w700,
-                          height: 1.3,
-                        ),
+                        style: AppTextStyles.cardTitle
+                            .copyWith(color: palette.textPrimary),
                       ),
                       if (exercise.category.isNotEmpty) ...[
                         SizedBox(height: 3.h),
@@ -329,10 +319,8 @@ class _ExerciseManageCard extends StatelessWidget {
                           exercise.category,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            color: palette.textSecondary,
-                            fontSize: 11.5.sp,
-                          ),
+                          style: AppTextStyles.caption
+                              .copyWith(color: palette.textSecondary),
                         ),
                       ],
                     ],
@@ -343,15 +331,12 @@ class _ExerciseManageCard extends StatelessWidget {
                   padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
                   decoration: BoxDecoration(
                     color: badgeColor.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(999.r),
+                    borderRadius: BorderRadius.circular(AppRadius.pill.r),
                   ),
                   child: Text(
                     badgeLabel,
-                    style: TextStyle(
-                      color: badgeColor,
-                      fontSize: 10.sp,
-                      fontWeight: FontWeight.w800,
-                    ),
+                    style: AppTextStyles.badge
+                        .copyWith(color: badgeColor, letterSpacing: 0),
                   ),
                 ),
                 Icon(

@@ -7,6 +7,9 @@ import '../../../../core/di/injection.dart';
 import '../../../../core/l10n/app_translations.dart';
 import '../../../../core/repositories/profile_repository.dart';
 import '../../../../core/theme/app_palette.dart';
+import '../../../../core/theme/app_radius.dart';
+import '../../../../core/widgets/app_section_header.dart';
+import '../../../../core/widgets/app_state_views.dart';
 import '../../../../core/widgets/remote_image.dart';
 import '../../../../core/widgets/shimmer_placeholder.dart';
 import '../viewmodels/dashboard_bloc.dart';
@@ -55,9 +58,12 @@ class _AthleteDashboardContent extends StatelessWidget {
                           .read<DashboardBloc>()
                           .add(LoadAthleteDashboard()),
                       child: ListView(
-                        padding: EdgeInsets.fromLTRB(16.w, 14.h, 16.w, 90.h),
+                        padding: EdgeInsets.fromLTRB(20.w, 8.h, 20.w, 24.h),
                         children: [
-                          ShimmerPlaceholder(width: double.infinity, height: 160.h, borderRadius: BorderRadius.circular(24.r)),
+                          ShimmerPlaceholder(
+                              width: double.infinity,
+                              height: 160.h,
+                              borderRadius: BorderRadius.circular(24.r)),
                           SizedBox(height: 18.h),
                           Row(
                             children: [
@@ -69,7 +75,10 @@ class _AthleteDashboardContent extends StatelessWidget {
                             ],
                           ),
                           SizedBox(height: 22.h),
-                          ShimmerPlaceholder(width: 120.w, height: 22.h, borderRadius: BorderRadius.circular(11.r)),
+                          ShimmerPlaceholder(
+                              width: 120.w,
+                              height: 22.h,
+                              borderRadius: BorderRadius.circular(11.r)),
                           SizedBox(height: 12.h),
                           ...List.generate(3, (index) => ShimmerResultCard()),
                         ],
@@ -78,8 +87,9 @@ class _AthleteDashboardContent extends StatelessWidget {
                   }
 
                   if (state is DashboardError) {
-                    return _ErrorState(
+                    return AppErrorView(
                       message: state.message,
+                      retryLabel: Tr.t('retry'),
                       onRetry: () => context
                           .read<DashboardBloc>()
                           .add(LoadAthleteDashboard()),
@@ -92,13 +102,13 @@ class _AthleteDashboardContent extends StatelessWidget {
                           .read<DashboardBloc>()
                           .add(LoadAthleteDashboard()),
                       child: ListView(
-                        padding: EdgeInsets.fromLTRB(16.w, 14.h, 16.w, 90.h),
+                        padding: EdgeInsets.fromLTRB(20.w, 8.h, 20.w, 24.h),
                         children: [
                           _HeroCard(onStart: () => _gotoTests(context)),
                           SizedBox(height: 18.h),
                           _StatsRow(data: state.data),
                           SizedBox(height: 22.h),
-                          _SectionTitle(title: Tr.t('myResults')),
+                          AppSectionHeader(title: Tr.t('myResults')),
                           SizedBox(height: 12.h),
                           _RecentResults(
                             data: state.data,
@@ -136,7 +146,7 @@ class _DashboardHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = context.palette;
     return Padding(
-      padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 0),
+      padding: EdgeInsets.fromLTRB(20.w, 8.h, 20.w, 0),
       child: FutureBuilder(
         future: getIt<ProfileRepository>().getProfile(),
         builder: (context, snapshot) {
@@ -205,14 +215,7 @@ class _HeroCard extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(24.r),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primaryBlue.withValues(alpha: 0.3),
-            blurRadius: 24,
-            offset: const Offset(0, 10),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(AppRadius.lg.r),
       ),
       child: Row(
         children: [
@@ -224,7 +227,7 @@ class _HeroCard extends StatelessWidget {
                   padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.14),
-                    borderRadius: BorderRadius.circular(999.r),
+                    borderRadius: BorderRadius.circular(AppRadius.pill.r),
                   ),
                   child: Text(
                     Tr.t('todaysGoal'),
@@ -245,14 +248,24 @@ class _HeroCard extends StatelessWidget {
                     height: 1.25,
                   ),
                 ),
+                SizedBox(height: 6.h),
+                Text(
+                  'Mashqlarni bajaring, natijani kuzatib boring.',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 12.sp,
+                    height: 1.35,
+                  ),
+                ),
                 SizedBox(height: 14.h),
                 GestureDetector(
                   onTap: onStart,
                   child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 18.w, vertical: 10.h),
+                    padding:
+                        EdgeInsets.symmetric(horizontal: 18.w, vertical: 10.h),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(14.r),
+                      borderRadius: BorderRadius.circular(AppRadius.button.r),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -343,7 +356,7 @@ class _StatBox extends StatelessWidget {
       padding: EdgeInsets.all(14.w),
       decoration: BoxDecoration(
         color: palette.surface,
-        borderRadius: BorderRadius.circular(18.r),
+        borderRadius: BorderRadius.circular(AppRadius.card.r),
         border: Border.all(color: palette.border),
       ),
       child: Column(
@@ -352,7 +365,7 @@ class _StatBox extends StatelessWidget {
           Container(
             padding: EdgeInsets.all(6.w),
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.12),
+              color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(10.r),
             ),
             child: Icon(icon, color: color, size: 16.w),
@@ -379,25 +392,6 @@ class _StatBox extends StatelessWidget {
   }
 }
 
-class _SectionTitle extends StatelessWidget {
-  final String title;
-
-  const _SectionTitle({required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = context.palette;
-    return Text(
-      title,
-      style: TextStyle(
-        fontSize: 17.sp,
-        fontWeight: FontWeight.w800,
-        color: palette.textPrimary,
-      ),
-    );
-  }
-}
-
 class _RecentResults extends StatelessWidget {
   final DashboardData data;
   final VoidCallback onTapResult;
@@ -406,27 +400,14 @@ class _RecentResults extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final palette = context.palette;
     final results = data.recentTests ?? [];
     if (results.isEmpty) {
-      return Container(
-        width: double.infinity,
-        padding: EdgeInsets.symmetric(vertical: 28.h),
-        decoration: BoxDecoration(
-          color: palette.card,
-          borderRadius: BorderRadius.circular(18.r),
-          border: Border.all(color: palette.border),
-        ),
-        child: Column(
-          children: [
-            Icon(Icons.assignment_outlined, size: 44.w, color: palette.textHint),
-            SizedBox(height: 10.h),
-            Text(
-              Tr.t('noResults'),
-              style: TextStyle(color: palette.textSecondary, fontSize: 13.sp),
-            ),
-          ],
-        ),
+      return AppEmptyView(
+        icon: Icons.assignment_outlined,
+        title: Tr.t('noResults'),
+        message: 'Birinchi testingizni boshlang va natijani shu yerda ko\'ring.',
+        actionLabel: Tr.t('startTests'),
+        onAction: onTapResult,
       );
     }
     return Column(
@@ -468,19 +449,21 @@ class _ResultCard extends StatelessWidget {
         padding: EdgeInsets.all(14.w),
         decoration: BoxDecoration(
           color: palette.surface,
-          borderRadius: BorderRadius.circular(16.r),
+          borderRadius: BorderRadius.circular(AppRadius.card.r),
           border: Border.all(color: palette.border),
         ),
         child: Row(
           children: [
             Container(
-              padding: EdgeInsets.all(10.w),
+              width: 44.w,
+              height: 44.w,
+              alignment: Alignment.center,
               decoration: BoxDecoration(
                 color: AppColors.primaryBlue.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12.r),
+                borderRadius: BorderRadius.circular(14.r),
               ),
               child: Icon(Icons.verified_rounded,
-                  color: AppColors.primaryBlue, size: 20.w),
+                  color: AppColors.primaryBlue, size: 22.w),
             ),
             SizedBox(width: 12.w),
             Expanded(
@@ -511,10 +494,10 @@ class _ResultCard extends StatelessWidget {
               ),
             ),
             Container(
-              padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
               decoration: BoxDecoration(
                 color: color.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(10.r),
+                borderRadius: BorderRadius.circular(AppRadius.pill.r),
               ),
               child: Text(
                 result.score.toStringAsFixed(1),
@@ -524,40 +507,6 @@ class _ResultCard extends StatelessWidget {
                   fontWeight: FontWeight.w800,
                 ),
               ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ErrorState extends StatelessWidget {
-  final String message;
-  final VoidCallback onRetry;
-
-  const _ErrorState({required this.message, required this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = context.palette;
-    return Center(
-      child: Padding(
-        padding: EdgeInsets.all(24.w),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.cloud_off_rounded, size: 56.w, color: palette.textHint),
-            SizedBox(height: 14.h),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: TextStyle(color: palette.textSecondary, fontSize: 13.sp),
-            ),
-            SizedBox(height: 18.h),
-            ElevatedButton(
-              onPressed: onRetry,
-              child: Text(Tr.t('retry')),
             ),
           ],
         ),

@@ -9,6 +9,9 @@ import '../../../../core/di/injection.dart';
 import '../../../../core/l10n/app_translations.dart';
 import '../../../../core/repositories/profile_repository.dart';
 import '../../../../core/theme/app_palette.dart';
+import '../../../../core/theme/app_radius.dart';
+import '../../../../core/widgets/app_section_header.dart';
+import '../../../../core/widgets/app_state_views.dart';
 import '../../../../core/widgets/remote_image.dart';
 import '../../../../core/widgets/shimmer_placeholder.dart';
 import '../viewmodels/dashboard_bloc.dart';
@@ -63,12 +66,12 @@ class _CoachDashboardContent extends StatelessWidget {
                     return RefreshIndicator(
                       onRefresh: () => _reload(context),
                       child: ListView(
-                        padding: EdgeInsets.fromLTRB(16.w, 14.h, 16.w, 90.h),
+                        padding: EdgeInsets.fromLTRB(20.w, 8.h, 20.w, 24.h),
                         children: [
                           ShimmerPlaceholder(
                             width: double.infinity,
                             height: 180.h,
-                            borderRadius: BorderRadius.circular(22.r),
+                            borderRadius: BorderRadius.circular(24.r),
                           ),
                           SizedBox(height: 12.h),
                           Row(
@@ -79,7 +82,10 @@ class _CoachDashboardContent extends StatelessWidget {
                             ],
                           ),
                           SizedBox(height: 22.h),
-                          ShimmerPlaceholder(width: 120.w, height: 22.h, borderRadius: BorderRadius.circular(11.r)),
+                          ShimmerPlaceholder(
+                              width: 120.w,
+                              height: 22.h,
+                              borderRadius: BorderRadius.circular(11.r)),
                           SizedBox(height: 12.h),
                           ...List.generate(4, (index) => ShimmerActionTile()),
                         ],
@@ -88,32 +94,12 @@ class _CoachDashboardContent extends StatelessWidget {
                   }
 
                   if (state is DashboardError) {
-                    return Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(24.w),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.cloud_off_rounded,
-                                size: 56.w, color: palette.textHint),
-                            SizedBox(height: 14.h),
-                            Text(
-                              state.message,
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                  color: palette.textSecondary,
-                                  fontSize: 13.sp),
-                            ),
-                            SizedBox(height: 18.h),
-                            ElevatedButton(
-                              onPressed: () => context
-                                  .read<DashboardBloc>()
-                                  .add(LoadCoachDashboard()),
-                              child: Text(Tr.t('retry')),
-                            ),
-                          ],
-                        ),
-                      ),
+                    return AppErrorView(
+                      message: state.message,
+                      retryLabel: Tr.t('retry'),
+                      onRetry: () => context
+                          .read<DashboardBloc>()
+                          .add(LoadCoachDashboard()),
                     );
                   }
 
@@ -121,11 +107,11 @@ class _CoachDashboardContent extends StatelessWidget {
                     return RefreshIndicator(
                       onRefresh: () => _reload(context),
                       child: ListView(
-                        padding: EdgeInsets.fromLTRB(16.w, 14.h, 16.w, 90.h),
+                        padding: EdgeInsets.fromLTRB(20.w, 8.h, 20.w, 24.h),
                         children: [
                           _StatsGrid(data: state.data),
                           SizedBox(height: 22.h),
-                          _SectionTitle(title: Tr.t('quickActions')),
+                          AppSectionHeader(title: Tr.t('quickActions')),
                           SizedBox(height: 12.h),
                           _ActionTile(
                             title: Tr.t('newTest'),
@@ -193,18 +179,18 @@ class _CoachHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = context.palette;
     return Padding(
-      padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 0),
+      padding: EdgeInsets.fromLTRB(20.w, 8.h, 20.w, 0),
       child: FutureBuilder(
         future: getIt<ProfileRepository>().getProfile(),
         builder: (context, snapshot) {
           final profile = snapshot.data?.fold((_) => null, (p) => p);
           return Row(
             children: [
-                AvatarImage(
-                  url: profile?.avatar,
-                  name: profile?.fullName ?? Tr.t('coach'),
-                  size: 46,
-                ),
+              AvatarImage(
+                url: profile?.avatar,
+                name: profile?.fullName ?? Tr.t('coach'),
+                size: 46,
+              ),
               SizedBox(width: 12.w),
               Expanded(
                 child: Column(
@@ -246,25 +232,6 @@ class _CoachHeader extends StatelessWidget {
   }
 }
 
-class _SectionTitle extends StatelessWidget {
-  final String title;
-
-  const _SectionTitle({required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = context.palette;
-    return Text(
-      title,
-      style: TextStyle(
-        fontSize: 17.sp,
-        fontWeight: FontWeight.w800,
-        color: palette.textPrimary,
-      ),
-    );
-  }
-}
-
 class _StatsGrid extends StatelessWidget {
   final DashboardData data;
 
@@ -276,21 +243,14 @@ class _StatsGrid extends StatelessWidget {
       children: [
         Container(
           width: double.infinity,
-          padding: EdgeInsets.all(18.w),
+          padding: EdgeInsets.all(20.w),
           decoration: BoxDecoration(
             gradient: const LinearGradient(
               colors: [AppColors.primaryNavy, Color(0xFF1E40AF)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
-            borderRadius: BorderRadius.circular(22.r),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.primaryBlue.withValues(alpha: 0.3),
-                blurRadius: 24,
-                offset: const Offset(0, 10),
-              ),
-            ],
+            borderRadius: BorderRadius.circular(AppRadius.lg.r),
           ),
           child: Row(
             children: [
@@ -320,7 +280,7 @@ class _StatsGrid extends StatelessWidget {
                           horizontal: 10.w, vertical: 5.h),
                       decoration: BoxDecoration(
                         color: AppColors.success.withValues(alpha: 0.25),
-                        borderRadius: BorderRadius.circular(999.r),
+                        borderRadius: BorderRadius.circular(AppRadius.pill.r),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -392,44 +352,38 @@ class _MiniStat extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = context.palette;
     return Container(
-      padding: EdgeInsets.all(16.w),
+      padding: EdgeInsets.all(14.w),
       decoration: BoxDecoration(
         color: palette.surface,
-        borderRadius: BorderRadius.circular(18.r),
+        borderRadius: BorderRadius.circular(AppRadius.card.r),
         border: Border.all(color: palette.border),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: EdgeInsets.all(8.w),
+            padding: EdgeInsets.all(6.w),
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(12.r),
+              color: color.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(10.r),
             ),
-            child: Icon(icon, color: color, size: 20.w),
+            child: Icon(icon, color: color, size: 16.w),
           ),
-          SizedBox(width: 12.w),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  value,
-                  style: TextStyle(
-                    color: palette.textPrimary,
-                    fontSize: 20.sp,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                Text(
-                  title,
-                  style: TextStyle(
-                    color: palette.textSecondary,
-                    fontSize: 11.5.sp,
-                  ),
-                ),
-              ],
+          SizedBox(height: 10.h),
+          Text(
+            value,
+            style: TextStyle(
+              color: palette.textPrimary,
+              fontSize: 20.sp,
+              fontWeight: FontWeight.w800,
             ),
+          ),
+          SizedBox(height: 2.h),
+          Text(
+            title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(color: palette.textSecondary, fontSize: 10.5.sp),
           ),
         ],
       ),
@@ -461,16 +415,18 @@ class _ActionTile extends StatelessWidget {
         padding: EdgeInsets.all(14.w),
         decoration: BoxDecoration(
           color: palette.surface,
-          borderRadius: BorderRadius.circular(16.r),
+          borderRadius: BorderRadius.circular(AppRadius.card.r),
           border: Border.all(color: palette.border),
         ),
         child: Row(
           children: [
             Container(
-              padding: EdgeInsets.all(10.w),
+              width: 44.w,
+              height: 44.w,
+              alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(12.r),
+                color: color.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(14.r),
               ),
               child: Icon(icon, color: color, size: 22.w),
             ),

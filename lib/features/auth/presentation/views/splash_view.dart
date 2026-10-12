@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_palette.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/services/shared_prefs_service.dart';
+import '../../../../core/widgets/karate_logo.dart';
 
 class SplashView extends StatefulWidget {
   const SplashView({super.key});
@@ -52,61 +56,54 @@ class SplashBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
+    final palette = context.palette;
+    return SafeArea(
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: const [
-          SplashLogo(),
-          SizedBox(height: 16),
-          SplashTitle(),
-          SizedBox(height: 8),
-          SplashSubtitle(),
+        children: [
+          Expanded(
+            child: TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0, end: 1),
+              duration: const Duration(milliseconds: 700),
+              curve: Curves.easeOutCubic,
+              builder: (context, t, child) => Opacity(
+                opacity: t,
+                child: Transform.scale(scale: 0.92 + 0.08 * t, child: child),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const KarateLabLogo(size: 88),
+                  SizedBox(height: AppSpacing.xxl.h),
+                  Text(
+                    'KarateLab AI',
+                    textAlign: TextAlign.center,
+                    style: AppTextStyles.screenTitle
+                        .copyWith(color: palette.textPrimary),
+                  ),
+                  SizedBox(height: AppSpacing.sm.h),
+                  Text(
+                    'AI yordamida chempionlik sari',
+                    textAlign: TextAlign.center,
+                    style: AppTextStyles.caption
+                        .copyWith(color: palette.textSecondary),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.only(bottom: AppSpacing.xxxl.h),
+            child: SizedBox(
+              width: 22.w,
+              height: 22.w,
+              child: const CircularProgressIndicator(
+                strokeWidth: 2.4,
+                color: AppColors.primaryBlue,
+              ),
+            ),
+          ),
         ],
       ),
-    );
-  }
-}
-
-class SplashLogo extends StatelessWidget {
-  const SplashLogo({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 100,
-      height: 100,
-      decoration: BoxDecoration(
-        color: AppColors.primaryBlue,
-        borderRadius: BorderRadius.circular(24),
-      ),
-      child: const Icon(Icons.sports_martial_arts, size: 60, color: Colors.white),
-    );
-  }
-}
-
-class SplashTitle extends StatelessWidget {
-  const SplashTitle({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      'KarateLab AI',
-      style: Theme.of(context).textTheme.displayMedium?.copyWith(
-        fontWeight: FontWeight.bold,
-        color: AppColors.primaryBlue,
-      ),
-    );
-  }
-}
-
-class SplashSubtitle extends StatelessWidget {
-  const SplashSubtitle({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      'AI yordamida chempionlik sari',
-      style: Theme.of(context).textTheme.bodyMedium,
     );
   }
 }

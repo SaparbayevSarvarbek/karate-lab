@@ -12,8 +12,12 @@ import '../../../../core/l10n/app_translations.dart';
 import '../../../../core/repositories/exercise_repository.dart';
 import '../../../../core/repositories/test_repository.dart';
 import '../../../../core/theme/app_palette.dart';
+import '../../../../core/theme/app_radius.dart';
+import '../../../../core/widgets/app_bottom_bar.dart';
+import '../../../../core/widgets/app_section_header.dart';
 import '../../../../core/widgets/custom_button.dart';
 import '../../../../core/widgets/custom_text_field.dart';
+import '../../../../core/widgets/karate_app_bar.dart';
 
 /// Yangi test yaratish: nom, umumiy rasm, yoshlar, kategoriya va
 /// har biri nom/tavsif/rasm/takrorlash/vaqtdan iborat qadamlar.
@@ -189,13 +193,18 @@ class _CreateTestViewState extends State<CreateTestView> {
 
   @override
   Widget build(BuildContext context) {
-    final palette = context.palette;
-
     return Scaffold(
-      appBar: AppBar(
-        title: Text(Tr.t('createTestTitle')),
-        centerTitle: true,
-      ),
+      backgroundColor: context.palette.background,
+      appBar: KarateAppBar(title: Tr.t('createTestTitle')),
+      bottomNavigationBar: _saving
+          ? null
+          : AppBottomBar(
+              child: CustomButton(
+                text: Tr.t('saveTest'),
+                trailingIcon: Icons.arrow_forward_rounded,
+                onPressed: _save,
+              ),
+            ),
       body: SafeArea(
         child: _saving
             ? const Center(
@@ -209,7 +218,7 @@ class _CreateTestViewState extends State<CreateTestView> {
                 ),
               )
             : SingleChildScrollView(
-                padding: EdgeInsets.all(20.w),
+                padding: EdgeInsets.fromLTRB(20.w, 8.h, 20.w, 24.h),
                 child: Form(
                   key: _formKey,
                   child: Column(
@@ -262,21 +271,7 @@ class _CreateTestViewState extends State<CreateTestView> {
 
                       // ── Qadamlar ─────────────────────────────────────
                       SizedBox(height: 22.h),
-                      Row(
-                        children: [
-                          Icon(Icons.format_list_numbered_rounded,
-                              size: 20.w, color: AppColors.primaryBlue),
-                          SizedBox(width: 8.w),
-                          Text(
-                            Tr.t('stepsTitle'),
-                            style: TextStyle(
-                              fontSize: 16.sp,
-                              fontWeight: FontWeight.w800,
-                              color: palette.textPrimary,
-                            ),
-                          ),
-                        ],
-                      ),
+                      AppSectionHeader(title: Tr.t('stepsTitle')),
                       SizedBox(height: 8.h),
                       Text(
                         Tr.t('stepsHint'),
@@ -300,7 +295,7 @@ class _CreateTestViewState extends State<CreateTestView> {
                           padding: EdgeInsets.symmetric(vertical: 12.h),
                           decoration: BoxDecoration(
                             color: AppColors.primaryBlue.withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(12.r),
+                            borderRadius: BorderRadius.circular(AppRadius.button.r),
                             border: Border.all(color: AppColors.primaryBlue),
                           ),
                           child: Row(
@@ -321,11 +316,7 @@ class _CreateTestViewState extends State<CreateTestView> {
                           ),
                         ),
                       ),
-                      SizedBox(height: 26.h),
-                      CustomButton(
-                        text: Tr.t('saveTest'),
-                        onPressed: _save,
-                      ),
+                      SizedBox(height: 8.h),
                     ],
                   ),
                 ),
@@ -356,7 +347,7 @@ class _CoverPicker extends StatelessWidget {
         width: double.infinity,
         decoration: BoxDecoration(
           color: palette.backgroundLight,
-          borderRadius: BorderRadius.circular(16.r),
+          borderRadius: BorderRadius.circular(AppRadius.card.r),
           border: Border.all(
             color: cover != null ? AppColors.primaryBlue : AppColors.border,
           ),
@@ -420,11 +411,11 @@ class _Dropdown extends StatelessWidget {
         filled: true,
         fillColor: palette.backgroundLight,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.r),
+          borderRadius: BorderRadius.circular(AppRadius.button.r),
           borderSide: const BorderSide(color: AppColors.border),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.r),
+          borderRadius: BorderRadius.circular(AppRadius.button.r),
           borderSide: const BorderSide(color: AppColors.border),
         ),
       ),
@@ -469,7 +460,7 @@ class _StepCard extends StatelessWidget {
       padding: EdgeInsets.all(14.w),
       decoration: BoxDecoration(
         color: palette.surface,
-        borderRadius: BorderRadius.circular(14.r),
+        borderRadius: BorderRadius.circular(AppRadius.card.r),
         border: Border.all(color: palette.border),
       ),
       child: Column(
@@ -529,11 +520,11 @@ class _StepCard extends StatelessWidget {
               filled: true,
               fillColor: palette.backgroundLight,
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10.r),
+                borderRadius: BorderRadius.circular(AppRadius.button.r),
                 borderSide: const BorderSide(color: AppColors.border),
               ),
               enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10.r),
+                borderRadius: BorderRadius.circular(AppRadius.button.r),
                 borderSide: const BorderSide(color: AppColors.border),
               ),
             ),
@@ -567,7 +558,7 @@ class _StepCard extends StatelessWidget {
               width: double.infinity,
               decoration: BoxDecoration(
                 color: palette.backgroundLight,
-                borderRadius: BorderRadius.circular(10.r),
+                borderRadius: BorderRadius.circular(AppRadius.button.r),
                 border: Border.all(
                   color: draft.image != null
                       ? AppColors.primaryBlue

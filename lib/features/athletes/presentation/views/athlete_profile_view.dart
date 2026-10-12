@@ -6,6 +6,9 @@ import '../../../../core/api/models/athlete_models.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_palette.dart';
+import '../../../../core/theme/app_radius.dart';
+import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/app_section_header.dart';
 import '../../../../core/widgets/remote_image.dart';
 import '../../../../core/widgets/shimmer_placeholder.dart';
 import '../viewmodels/athlete_bloc.dart';
@@ -56,7 +59,7 @@ class _AthleteProfileContent extends StatelessWidget {
                 _ProfileAppBar(athlete: athlete),
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.all(24),
+                  padding: EdgeInsets.fromLTRB(20.w, 8.h, 20.w, 24.h),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -71,7 +74,7 @@ class _AthleteProfileContent extends StatelessWidget {
                         )),
                       ] else ...[
                         _ProfileHeader(athlete: athlete),
-                        const SizedBox(height: 24),
+                        SizedBox(height: 24.h),
                         _InfoCard(
                           title: 'Shaxsiy ma\'lumotlar',
                           rows: [
@@ -159,15 +162,12 @@ class _ProfileHeader extends StatelessWidget {
       children: [
         Text(
           athlete.fullName.isEmpty ? 'Sportchi' : athlete.fullName,
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: palette.textPrimary,
-              ),
+          style: AppTextStyles.screenTitle.copyWith(color: palette.textPrimary),
         ),
-        const SizedBox(height: 4),
+        SizedBox(height: 4.h),
         Text(
           '@${athlete.username}',
-          style: TextStyle(color: palette.textSecondary),
+          style: AppTextStyles.caption.copyWith(color: palette.textSecondary),
         ),
       ],
     );
@@ -184,21 +184,17 @@ class _InfoCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = context.palette;
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(20.w),
       decoration: BoxDecoration(
         color: palette.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadius.card.r),
         border: Border.all(color: palette.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style:
-                Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 16),
-          ),
-          const SizedBox(height: 16),
+          AppSectionHeader(title: title),
+          SizedBox(height: 16.h),
           ...rows,
         ],
       ),
@@ -216,17 +212,19 @@ class InfoRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = context.palette;
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: EdgeInsets.only(bottom: 12.h),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: TextStyle(color: palette.textSecondary)),
+          Text(label,
+              style: AppTextStyles.body.copyWith(color: palette.textSecondary)),
+          SizedBox(width: 12.w),
           Flexible(
             child: Text(
               value,
               textAlign: TextAlign.right,
-              style: TextStyle(
-                fontWeight: FontWeight.w600,
+              style: AppTextStyles.body.copyWith(
+                fontWeight: FontWeight.w700,
                 color: palette.textPrimary,
               ),
             ),

@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/theme/app_palette.dart';
+import '../../../../core/theme/app_radius.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 
 class LoginFormWidget extends StatelessWidget {
@@ -20,18 +25,27 @@ class LoginFormWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        LoginEmailField(controller: emailController),
-        const SizedBox(height: 16),
-        LoginPasswordField(
-          controller: passwordController,
-          obscurePassword: obscurePassword,
-          onToggle: onTogglePassword,
-        ),
-        const SizedBox(height: 8),
-        LoginForgotPasswordButton(onTap: onForgotPassword),
-      ],
+    final palette = context.palette;
+    return Container(
+      padding: EdgeInsets.all(AppSpacing.lg.w),
+      decoration: BoxDecoration(
+        color: palette.surface,
+        borderRadius: BorderRadius.circular(AppRadius.card.r),
+        border: Border.all(color: palette.border),
+      ),
+      child: Column(
+        children: [
+          LoginEmailField(controller: emailController),
+          SizedBox(height: AppSpacing.lg.h),
+          LoginPasswordField(
+            controller: passwordController,
+            obscurePassword: obscurePassword,
+            onToggle: onTogglePassword,
+          ),
+          SizedBox(height: AppSpacing.xs.h),
+          LoginForgotPasswordButton(onTap: onForgotPassword),
+        ],
+      ),
     );
   }
 }
@@ -112,11 +126,11 @@ class LoginForgotPasswordButton extends StatelessWidget {
       alignment: Alignment.centerRight,
       child: TextButton(
         onPressed: onTap,
-        child: const Text(
+        child: Text(
           'Parolni unutdingizmi?',
-          style: TextStyle(
+          style: AppTextStyles.caption.copyWith(
             color: AppColors.primaryBlue,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.w700,
           ),
         ),
       ),

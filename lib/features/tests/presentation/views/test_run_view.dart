@@ -12,6 +12,10 @@ import '../../../../core/di/injection.dart';
 import '../../../../core/l10n/app_translations.dart';
 import '../../../../core/repositories/test_repository.dart';
 import '../../../../core/theme/app_palette.dart';
+import '../../../../core/theme/app_radius.dart';
+import '../../../../core/widgets/app_bottom_bar.dart';
+import '../../../../core/widgets/custom_button.dart';
+import '../../../../core/widgets/karate_app_bar.dart';
 import '../../../../core/widgets/remote_image.dart';
 
 /// Testni taymer bilan bajarish sahifasi.
@@ -228,7 +232,8 @@ class _TestRunViewState extends State<TestRunView> {
 
     if (_steps.isEmpty) {
       return Scaffold(
-        appBar: AppBar(title: Text(widget.result.name)),
+        backgroundColor: palette.background,
+        appBar: KarateAppBar(title: widget.result.name),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -259,14 +264,8 @@ class _TestRunViewState extends State<TestRunView> {
       },
       child: Scaffold(
         backgroundColor: palette.background,
-        appBar: AppBar(
-          title: Text(
-            widget.result.name,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontSize: 15.5.sp, fontWeight: FontWeight.w700),
-          ),
-          centerTitle: true,
+        appBar: KarateAppBar(
+          title: widget.result.name,
           leading: IconButton(
             icon: const Icon(Icons.close_rounded),
             onPressed: _submitting
@@ -422,20 +421,20 @@ class _TopBar extends StatelessWidget {
           ),
           SizedBox(height: 10.h),
           ClipRRect(
-            borderRadius: BorderRadius.circular(999.r),
+            borderRadius: BorderRadius.circular(AppRadius.pill.r),
             child: Stack(
               children: [
-                Container(height: 5.h, color: palette.border),
+                Container(height: 6.h, color: palette.border),
                 AnimatedFractionallySizedBox(
                   duration: const Duration(milliseconds: 300),
                   curve: Curves.easeOut,
                   widthFactor: progress.clamp(0.0, 1.0),
                   alignment: Alignment.centerLeft,
                   child: Container(
-                    height: 5.h,
+                    height: 6.h,
                     decoration: BoxDecoration(
                       color: AppColors.primaryBlue,
-                      borderRadius: BorderRadius.circular(999.r),
+                      borderRadius: BorderRadius.circular(AppRadius.pill.r),
                     ),
                   ),
                 ),
@@ -708,7 +707,7 @@ class _MetaChip extends StatelessWidget {
       padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.09),
-        borderRadius: BorderRadius.circular(10.r),
+        borderRadius: BorderRadius.circular(AppRadius.pill.r),
         border: Border.all(color: color.withValues(alpha: 0.22)),
       ),
       child: Row(
@@ -748,14 +747,7 @@ class _NavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final palette = context.palette;
-
-    return Container(
-      padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 14.h),
-      decoration: BoxDecoration(
-        color: palette.surface,
-        border: Border(top: BorderSide(color: palette.border)),
-      ),
+    return AppBottomBar(
       child: Row(
         children: [
           if (!isFirst) ...[
@@ -763,48 +755,15 @@ class _NavBar extends StatelessWidget {
             SizedBox(width: 10.w),
           ],
           Expanded(
-            child: SizedBox(
-              height: 48.h,
-              child: FilledButton(
-                onPressed: onNext,
-                style: FilledButton.styleFrom(
-                  backgroundColor:
-                      isLast ? AppColors.success : AppColors.primaryBlue,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14.r),
-                  ),
-                ),
-                child: submitting
-                    ? SizedBox(
-                        width: 18.w,
-                        height: 18.w,
-                        child: const CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            isLast
-                                ? Tr.t('testRunFinish')
-                                : Tr.t('testRunNext'),
-                            style: TextStyle(
-                              fontSize: 14.sp,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          SizedBox(width: 6.w),
-                          Icon(
-                            isLast
-                                ? Icons.flag_rounded
-                                : Icons.chevron_right_rounded,
-                            size: 20.w,
-                          ),
-                        ],
-                      ),
-              ),
+            child: CustomButton(
+              text: isLast ? Tr.t('testRunFinish') : Tr.t('testRunNext'),
+              onPressed: onNext,
+              isLoading: submitting,
+              height: 48,
+              // Yakunlash tugmasi yashil — test tugaganini bildiradi.
+              color: isLast ? AppColors.success : null,
+              trailingIcon:
+                  isLast ? Icons.flag_rounded : Icons.arrow_forward_rounded,
             ),
           ),
         ],
@@ -839,7 +798,7 @@ class _TimerPill extends StatelessWidget {
           color: running
               ? AppColors.primaryBlue.withValues(alpha: 0.1)
               : palette.backgroundLight,
-          borderRadius: BorderRadius.circular(12.r),
+          borderRadius: BorderRadius.circular(AppRadius.button.r),
           border: Border.all(
             color: running ? AppColors.primaryBlue : palette.border,
             width: running ? 1.5 : 1,

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/theme/app_palette.dart';
+import '../../../../core/theme/app_radius.dart';
 
 class OnboardingDotIndicator extends StatelessWidget {
   final int currentPage;
@@ -30,14 +33,16 @@ class OnboardingDot extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
-      margin: const EdgeInsets.only(right: 8),
-      height: 8,
-      width: isActive ? 24 : 8,
+      curve: Curves.easeOut,
+      margin: EdgeInsets.only(right: 8.w),
+      height: 8.w,
+      width: isActive ? 20.w : 8.w,
       decoration: BoxDecoration(
-        color: isActive ? AppColors.primaryBlue : AppColors.border,
-        borderRadius: BorderRadius.circular(4),
+        color: isActive ? AppColors.primaryBlue : palette.border,
+        borderRadius: BorderRadius.circular(AppRadius.pill.r),
       ),
     );
   }

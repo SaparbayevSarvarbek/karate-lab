@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/l10n/app_translations.dart';
 import '../../../../core/repositories/settings_repository.dart';
+import '../../../../core/theme/app_palette.dart';
+import '../../../../core/theme/app_radius.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/karate_app_bar.dart';
 
 /// Bildirishnoma sozlamalari (Swagger: `GET /settings/`,
 /// `PUT /settings/notifications/`).
@@ -81,71 +87,116 @@ class _NotificationSettingsViewState extends State<NotificationSettingsView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(Tr.t('notifications')),
-        centerTitle: true,
-      ),
+      backgroundColor: context.palette.background,
+      appBar: KarateAppBar(title: Tr.t('notifications')),
       body: AbsorbPointer(
         absorbing: _loading || _saving,
         child: Opacity(
           opacity: _saving ? 0.7 : 1,
           child: ListView(
-            padding: const EdgeInsets.all(24),
+            padding: EdgeInsets.fromLTRB(
+              AppSpacing.screenH.w,
+              AppSpacing.sm.h,
+              AppSpacing.screenH.w,
+              AppSpacing.xxl.h,
+            ),
             children: [
               NotificationSectionHeader(title: Tr.t('notifications')),
-              const SizedBox(height: 16),
-              NotificationTile(
-                icon: Icons.assignment_outlined,
-                iconColor: AppColors.primaryBlue,
-                title: Tr.t('notifNewTests'),
-                subtitle: Tr.t('notifNewTestsSub'),
-                value: _prefs['newTests'] ?? true,
-                onChanged: (v) => _toggle('newTests', v),
+              SizedBox(height: AppSpacing.md.h),
+              NotificationGroupCard(
+                children: [
+                  NotificationTile(
+                    icon: Icons.assignment_outlined,
+                    iconColor: AppColors.primaryBlue,
+                    title: Tr.t('notifNewTests'),
+                    subtitle: Tr.t('notifNewTestsSub'),
+                    value: _prefs['newTests'] ?? true,
+                    onChanged: (v) => _toggle('newTests', v),
+                  ),
+                  NotificationTile(
+                    icon: Icons.alarm,
+                    iconColor: AppColors.warning,
+                    title: Tr.t('notifTraining'),
+                    subtitle: Tr.t('notifTrainingSub'),
+                    value: _prefs['trainingReminders'] ?? true,
+                    onChanged: (v) => _toggle('trainingReminders', v),
+                  ),
+                  NotificationTile(
+                    icon: Icons.bar_chart,
+                    iconColor: AppColors.success,
+                    title: Tr.t('notifResults'),
+                    subtitle: Tr.t('notifResultsSub'),
+                    value: _prefs['testResults'] ?? true,
+                    onChanged: (v) => _toggle('testResults', v),
+                  ),
+                ],
               ),
-              NotificationTile(
-                icon: Icons.alarm,
-                iconColor: AppColors.warning,
-                title: Tr.t('notifTraining'),
-                subtitle: Tr.t('notifTrainingSub'),
-                value: _prefs['trainingReminders'] ?? true,
-                onChanged: (v) => _toggle('trainingReminders', v),
-              ),
-              NotificationTile(
-                icon: Icons.bar_chart,
-                iconColor: AppColors.success,
-                title: Tr.t('notifResults'),
-                subtitle: Tr.t('notifResultsSub'),
-                value: _prefs['testResults'] ?? true,
-                onChanged: (v) => _toggle('testResults', v),
-              ),
-              const Divider(height: 32),
+              SizedBox(height: AppSpacing.xxl.h),
               NotificationSectionHeader(title: Tr.t('social')),
-              const SizedBox(height: 16),
-              NotificationTile(
-                icon: Icons.people_outline,
-                iconColor: const Color(0xFF9333EA),
-                title: Tr.t('notifCommunity'),
-                subtitle: Tr.t('notifCommunitySub'),
-                value: _prefs['communityUpdates'] ?? false,
-                onChanged: (v) => _toggle('communityUpdates', v),
-              ),
-              NotificationTile(
-                icon: Icons.campaign_outlined,
-                iconColor: AppColors.textHint,
-                title: Tr.t('notifMarketing'),
-                subtitle: Tr.t('notifMarketingSub'),
-                value: _prefs['marketing'] ?? false,
-                onChanged: (v) => _toggle('marketing', v),
+              SizedBox(height: AppSpacing.md.h),
+              NotificationGroupCard(
+                children: [
+                  NotificationTile(
+                    icon: Icons.people_outline,
+                    iconColor: const Color(0xFF9333EA),
+                    title: Tr.t('notifCommunity'),
+                    subtitle: Tr.t('notifCommunitySub'),
+                    value: _prefs['communityUpdates'] ?? false,
+                    onChanged: (v) => _toggle('communityUpdates', v),
+                  ),
+                  NotificationTile(
+                    icon: Icons.campaign_outlined,
+                    iconColor: AppColors.textHint,
+                    title: Tr.t('notifMarketing'),
+                    subtitle: Tr.t('notifMarketingSub'),
+                    value: _prefs['marketing'] ?? false,
+                    onChanged: (v) => _toggle('marketing', v),
+                  ),
+                ],
               ),
               if (_loading)
-                const Padding(
-                  padding: EdgeInsets.only(top: 24),
-                  child: Center(child: CircularProgressIndicator()),
+                Padding(
+                  padding: EdgeInsets.only(top: AppSpacing.xxl.h),
+                  child: const Center(child: CircularProgressIndicator()),
                 ),
             ],
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Bitta guruh — yumaloqlangan, chegarali `surface` karta. Qatorlar 1px
+/// `divider` bilan ajratiladi.
+class NotificationGroupCard extends StatelessWidget {
+  final List<Widget> children;
+
+  const NotificationGroupCard({super.key, required this.children});
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    final rows = <Widget>[];
+    for (var i = 0; i < children.length; i++) {
+      if (i > 0) {
+        rows.add(Divider(
+          height: 1,
+          thickness: 1,
+          indent: 14.w,
+          endIndent: 14.w,
+          color: palette.divider,
+        ));
+      }
+      rows.add(children[i]);
+    }
+    return Container(
+      decoration: BoxDecoration(
+        color: palette.surface,
+        borderRadius: BorderRadius.circular(AppRadius.card.r),
+        border: Border.all(color: palette.border),
+      ),
+      child: Column(children: rows),
     );
   }
 }
@@ -158,9 +209,9 @@ class NotificationSectionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       title,
-      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-        fontWeight: FontWeight.bold,
-        color: AppColors.textSecondary,
+      style: AppTextStyles.caption.copyWith(
+        fontWeight: FontWeight.w700,
+        color: context.palette.textSecondary,
         letterSpacing: 1.1,
       ),
     );
@@ -188,18 +239,19 @@ class NotificationTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
+      padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
       child: Row(
         children: [
           NotificationTileIcon(icon: icon, color: iconColor),
-          const SizedBox(width: 16),
+          SizedBox(width: 12.w),
           Expanded(
             child: NotificationTileText(title: title, subtitle: subtitle),
           ),
+          SizedBox(width: 8.w),
           Switch.adaptive(
             value: value,
             onChanged: onChanged,
-            activeTrackColor: AppColors.primaryBlue,
+            activeThumbColor: AppColors.primaryBlue,
           ),
         ],
       ),
@@ -216,12 +268,14 @@ class NotificationTileIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(10),
+      width: 40.w,
+      height: 40.w,
+      alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(10),
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12.r),
       ),
-      child: Icon(icon, color: color, size: 20),
+      child: Icon(icon, color: color, size: 20.w),
     );
   }
 }
@@ -234,12 +288,25 @@ class NotificationTileText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
-        const SizedBox(height: 2),
-        Text(subtitle, style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+        Text(
+          title,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 13.5.sp,
+            color: palette.textPrimary,
+          ),
+        ),
+        SizedBox(height: 2.h),
+        Text(
+          subtitle,
+          style: AppTextStyles.caption.copyWith(color: palette.textSecondary),
+        ),
       ],
     );
   }

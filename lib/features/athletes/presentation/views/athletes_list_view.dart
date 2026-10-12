@@ -8,6 +8,9 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/l10n/app_translations.dart';
 import '../../../../core/theme/app_palette.dart';
+import '../../../../core/theme/app_radius.dart';
+import '../../../../core/widgets/app_state_views.dart';
+import '../../../../core/widgets/karate_app_bar.dart';
 import '../../../../core/widgets/remote_image.dart';
 import '../viewmodels/athlete_bloc.dart';
 
@@ -22,6 +25,7 @@ class AthletesListView extends StatefulWidget {
 class _AthletesListViewState extends State<AthletesListView> {
   final _searchController = TextEditingController();
   String _query = '';
+  String _filter = 'all';
 
   @override
   void dispose() {
@@ -50,30 +54,58 @@ class _AthletesListViewState extends State<AthletesListView> {
 
     return Scaffold(
       backgroundColor: palette.background,
-      appBar: AppBar(
-        title: Text(Tr.t('navAthletes')),
-        centerTitle: true,
-      ),
+      appBar: const KarateAppBar(title: 'KarateLab AI', showLogo: true),
       body: Column(
         children: [
           Padding(
-            padding: EdgeInsets.fromLTRB(16.w, 10.h, 16.w, 8.h),
+            padding: EdgeInsets.fromLTRB(20.w, 8.h, 20.w, 12.h),
             child: TextField(
               controller: _searchController,
               onChanged: (v) => setState(() => _query = v.trim()),
-              style: TextStyle(fontSize: 14.sp),
+              style: TextStyle(fontSize: 14.sp, color: palette.textPrimary),
               decoration: InputDecoration(
                 hintText: Tr.t('searchAthlete'),
-                hintStyle: TextStyle(color: AppColors.textHint, fontSize: 13.sp),
-                prefixIcon: Icon(Icons.search, size: 20.w),
+                hintStyle: TextStyle(color: palette.textHint, fontSize: 13.sp),
+                prefixIcon: Icon(Icons.search_rounded,
+                    size: 20.w, color: palette.textHint),
                 filled: true,
                 isDense: true,
-                fillColor: palette.backgroundLight,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14.r),
-                  borderSide: BorderSide.none,
+                fillColor: palette.surface,
+                contentPadding:
+                    EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppRadius.button.r),
+                  borderSide: BorderSide(color: palette.border),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppRadius.button.r),
+                  borderSide: const BorderSide(color: AppColors.primaryBlue),
                 ),
               ),
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 12.h),
+            child: Row(
+              children: [
+                _FilterChip(
+                  label: 'Barchasi',
+                  selected: _filter == 'all',
+                  onTap: () => setState(() => _filter = 'all'),
+                ),
+                SizedBox(width: 8.w),
+                _FilterChip(
+                  label: 'Tugalladi',
+                  selected: _filter == 'done',
+                  onTap: () => setState(() => _filter = 'done'),
+                ),
+                SizedBox(width: 8.w),
+                _FilterChip(
+                  label: 'Faol',
+                  selected: _filter == 'active',
+                  onTap: () => setState(() => _filter = 'active'),
+                ),
+              ],
             ),
           ),
           Expanded(child: _buildBody(context, state)),
@@ -83,8 +115,6 @@ class _AthletesListViewState extends State<AthletesListView> {
   }
 
   Widget _buildBody(BuildContext context, AthleteState state) {
-    final palette = context.palette;
-
     if (state is AthleteLoading || state is AthleteInitial) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -94,56 +124,26 @@ class _AthletesListViewState extends State<AthletesListView> {
     }
 
     if (state is AthleteError) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.cloud_off_rounded, size: 56.w, color: palette.textHint),
-            SizedBox(height: 14.h),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 32.w),
-              child: Text(
-                state.message,
-                textAlign: TextAlign.center,
-                style: TextStyle(color: palette.textSecondary, fontSize: 13.sp),
-              ),
-            ),
-            SizedBox(height: 18.h),
-            ElevatedButton(
-              onPressed: () =>
-                  context.read<AthleteBloc>().add(const LoadAthletes()),
-              child: Text(Tr.t('retry')),
-            ),
-          ],
-        ),
+      return AppErrorView(
+        message: state.message,
+        retryLabel: Tr.t('retry'),
+        onRetry: () => context.read<AthleteBloc>().add(const LoadAthletes()),
       );
     }
 
     if (state is AthletesLoaded) {
       final athletes = _filtered(state.athletes);
       if (athletes.isEmpty) {
-        return Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.people_outline_rounded,
-                  size: 56.w, color: palette.textHint),
-              SizedBox(height: 14.h),
-              Text(
-                _query.isEmpty
-                    ? Tr.t('athletesEmpty')
-                    : Tr.t('noOneFound'),
-                style: TextStyle(color: palette.textSecondary, fontSize: 13.sp),
-              ),
-            ],
-          ),
+        return AppEmptyView(
+          icon: Icons.people_outline,
+          title: _query.isEmpty ? Tr.t('athletesEmpty') : Tr.t('noOneFound'),
         );
       }
       return RefreshIndicator(
         onRefresh: () async =>
             context.read<AthleteBloc>().add(const LoadAthletes()),
         child: ListView.builder(
-          padding: EdgeInsets.fromLTRB(16.w, 6.h, 16.w, 24.h),
+          padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 24.h),
           itemCount: athletes.length,
           itemBuilder: (context, index) =>
               _buildAthleteTile(context, athletes[index]),
@@ -161,7 +161,7 @@ class _AthletesListViewState extends State<AthletesListView> {
       margin: EdgeInsets.only(bottom: 10.h),
       decoration: BoxDecoration(
         color: palette.surface,
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(AppRadius.card.r),
         border: Border.all(color: palette.border),
       ),
       clipBehavior: Clip.antiAlias,
@@ -176,7 +176,7 @@ class _AthletesListViewState extends State<AthletesListView> {
                 AvatarImage(
                   url: athlete.avatar,
                   name: athlete.fullName,
-                  size: 46,
+                  size: 44,
                 ),
                 SizedBox(width: 12.w),
                 Expanded(
@@ -202,7 +202,7 @@ class _AthletesListViewState extends State<AthletesListView> {
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           color: palette.textSecondary,
-                          fontSize: 12.sp,
+                          fontSize: 11.5.sp,
                         ),
                       ),
                     ],
@@ -210,6 +210,7 @@ class _AthletesListViewState extends State<AthletesListView> {
                 ),
                 IconButton(
                   tooltip: Tr.t('delete'),
+                  visualDensity: VisualDensity.compact,
                   icon: Icon(
                     Icons.delete_outline_rounded,
                     color: AppColors.error,
@@ -217,8 +218,25 @@ class _AthletesListViewState extends State<AthletesListView> {
                   ),
                   onPressed: () => _showDeleteDialog(context, athlete),
                 ),
-                Icon(Icons.chevron_right_rounded,
-                    color: palette.textHint, size: 20.w),
+                GestureDetector(
+                  onTap: () => context.push('/athlete-profile', extra: athlete),
+                  child: Container(
+                    padding:
+                        EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryBlue.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(AppRadius.pill.r),
+                    ),
+                    child: Text(
+                      'Ko\'rish',
+                      style: TextStyle(
+                        color: AppColors.primaryBlue,
+                        fontSize: 11.5.sp,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -258,6 +276,44 @@ class _AthletesListViewState extends State<AthletesListView> {
           ],
         );
       },
+    );
+  }
+}
+
+class _FilterChip extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _FilterChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 7.h),
+        decoration: BoxDecoration(
+          color: selected ? AppColors.primaryBlue : palette.surface,
+          borderRadius: BorderRadius.circular(AppRadius.pill.r),
+          border: Border.all(
+            color: selected ? AppColors.primaryBlue : palette.border,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: selected ? Colors.white : palette.textSecondary,
+            fontSize: 12.sp,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ),
     );
   }
 }
