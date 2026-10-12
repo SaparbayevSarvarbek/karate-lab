@@ -25,8 +25,11 @@ class ApiConstants {
   static const String _localhost = 'http://127.0.0.1:8000';
 
   /// Fizik qurilma Wi-Fi orqali ulanganda ishlatiladigan LAN manzil.
-  /// O'z kompyuteringiz IP siga moslang yoki `--dart-define` bilan bering.
-  static const String devLanUrl = 'http://192.168.13.24:8000';
+  ///
+  /// ⚠️ Router IP ni o'zgartirsa, bu qiymat eskiradi. Ishonchli yo'l —
+  /// `--dart-define=API_BASE_URL=...` bilan berish (pastdagi misolga qarang).
+  /// Joriy IP: `ipconfig | findstr IPv4`.
+  static const String devLanUrl = 'http://192.168.13.20:8000';
 
   /// Debug build'da standart manzil (fizik qurilma + Wi-Fi).
   static const String _devDefault = devLanUrl;

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'core/api/api_client.dart';
+import 'core/api/api_constants.dart';
 import 'core/l10n/app_translations.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
@@ -23,6 +24,7 @@ Future<void> main() async {
       AppRouter.router.go('/login');
     }
   };
+  debugPrint('[KarateLab] API baseUrl = ${ApiConstants.baseUrl}');
   runApp(const KarateLabApp());
 }
 

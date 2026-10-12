@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart' show kDebugMode;
 
 /// API so'rovlarida yuzaga keladigan barcha xatoliklarning yagona turi.
 class ApiException implements Exception {
@@ -28,6 +29,12 @@ class ApiException implements Exception {
       case DioExceptionType.receiveTimeout:
         return 'Serverga ulanish vaqti tugadi. Internetni tekshirib qayta urinib ko\'ring.';
       case DioExceptionType.connectionError:
+        // Debug'da qaysi manzilga ulanmaganini ko'rsatamiz — Wi-Fi IP o'zgarganda
+        // muammoni darhol aniqlash uchun.
+        if (kDebugMode) {
+          return 'Serverga ulanib bo\'lmadi (${e.requestOptions.uri.origin}). '
+              'WiFi/server manzilini tekshiring.';
+        }
         return 'Serverga ulanib bo\'lmadi. WiFi tarmog\'ini tekshiring yoki server ishlayotganini sinab ko\'ring.';
       case DioExceptionType.badResponse:
         return _mapHttpError(e);
