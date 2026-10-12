@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/api/api_constants.dart';
 import '../../../../core/api/models/test_models.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
@@ -165,7 +166,7 @@ class _TestsLibraryViewState extends State<TestsLibraryView> {
             Row(
               children: [
                 RemoteImage(
-                  url: test.coverUrl,
+                  url: ApiConstants.resolveMediaUrlOrNull(test.coverUrl),
                   width: 56.w,
                   height: 56.w,
                   borderRadius: BorderRadius.circular(12.r),
@@ -301,7 +302,7 @@ class _TestsLibraryViewState extends State<TestsLibraryView> {
       TestStatus.pending => Icons.schedule_rounded,
       TestStatus.unknown => Icons.help_outline_rounded,
     };
-    final firstImage = test.hasCover ? test.coverUrl : null;
+    final firstImage = ApiConstants.resolveMediaUrlOrNull(test.coverUrl);
 
     return GestureDetector(
       onTap: () async {

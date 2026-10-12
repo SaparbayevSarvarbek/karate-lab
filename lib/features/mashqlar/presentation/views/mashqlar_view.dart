@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/api/api_constants.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_palette.dart';
@@ -263,7 +264,7 @@ class _MashqCard extends StatelessWidget {
             child: Row(
               children: [
                 RemoteImage(
-                  url: item.imageUrl,
+                  url: ApiConstants.resolveMediaUrlOrNull(item.imageUrl),
                   width: 68.w,
                   height: 68.w,
                   borderRadius: BorderRadius.circular(14.r),

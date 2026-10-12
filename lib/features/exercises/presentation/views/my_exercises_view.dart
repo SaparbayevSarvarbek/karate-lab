@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/api/api_constants.dart';
 import '../../../../core/api/models/exercise_models.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/di/injection.dart';
@@ -301,7 +302,7 @@ class _ExerciseManageCard extends StatelessWidget {
             child: Row(
               children: [
                 RemoteImage(
-                  url: exercise.image,
+                  url: ApiConstants.resolveMediaUrlOrNull(exercise.image),
                   width: 68.w,
                   height: 68.w,
                   borderRadius: BorderRadius.circular(14.r),

@@ -100,6 +100,13 @@ class ApiConstants {
     return url;
   }
 
+  /// `null` yoki bo'sh bo'lsa `null` qaytaradi — `RemoteImage` shunda
+  /// o'z joy egasini (placeholder) ko'rsatadi.
+  static String? resolveMediaUrlOrNull(String? url) {
+    if (url == null || url.trim().isEmpty) return null;
+    return resolveMediaUrl(url);
+  }
+
   static const int connectTimeout = 60000;
   static const int receiveTimeout = 60000;
   static const int sendTimeout = 60000;
