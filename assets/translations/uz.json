@@ -213,5 +213,8 @@
   "testRunAnswered": "Bajarilgan",
   "testRunCurrentStep": "Joriy",
   "testRunUnanswered": "Kutilmoqda",
-  "testRunNoImage": "Rasm qo'shilmagan"
+  "testRunNoImage": "Rasm qo'shilmagan",
+  "testRunNoTimesTitle": "Vaqt qayd etilmagan",
+  "testRunNoTimesMessage": "Hech bir qadamda taymer ishlamagan — natija 0 ball bo'ladi. Baribir yakunlaysizmi?",
+  "testRunPartialTimes": "{count} qadamda vaqt qayd etilmagan — natija past chiqishi mumkin."
 }

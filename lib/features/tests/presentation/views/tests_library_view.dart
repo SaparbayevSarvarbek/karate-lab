@@ -270,6 +270,23 @@ class _TestsLibraryViewState extends State<TestsLibraryView> {
     );
   }
 
+  Future<void> _openDetail(TestResult test) async {
+    await context.push('/test-detail', extra: test);
+    if (!mounted) return;
+    context.read<TestBloc>().add(const LoadMyTests());
+  }
+
+  /// Boshlangan testni to'g'ridan-to'g'ri davom ettiradi (tafsilotni ochmasdan).
+  Future<void> _resumeRun(TestResult test) async {
+    final finished = await context.push<TestResult>('/test-run', extra: test);
+    if (!mounted) return;
+    if (finished != null) {
+      await context.push('/test-result', extra: finished);
+      if (!mounted) return;
+    }
+    context.read<TestBloc>().add(const LoadMyTests());
+  }
+
   Widget _buildTestCard(BuildContext context, TestResult test) {
     final palette = context.palette;
     final statusColor = switch (test.status) {
@@ -395,16 +412,12 @@ class _TestsLibraryViewState extends State<TestsLibraryView> {
                         TestStatus.inProgress => AppColors.warning,
                         _ => AppColors.success,
                       },
-                      onTap: test.status == TestStatus.completed
-                          ? () => context.push('/test-result', extra: test)
-                          : () async {
-                              await context.push('/test-detail', extra: test);
-                              if (context.mounted) {
-                                context
-                                    .read<TestBloc>()
-                                    .add(const LoadMyTests());
-                              }
-                            },
+                      onTap: switch (test.status) {
+                        TestStatus.completed => () =>
+                            context.push('/test-result', extra: test),
+                        TestStatus.inProgress => () => _resumeRun(test),
+                        _ => () => _openDetail(test),
+                      },
                     ),
                   ],
                 ],

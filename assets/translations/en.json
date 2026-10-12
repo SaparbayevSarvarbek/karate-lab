@@ -213,5 +213,8 @@
   "testRunAnswered": "Completed",
   "testRunCurrentStep": "Current",
   "testRunUnanswered": "Pending",
-  "testRunNoImage": "No image"
+  "testRunNoImage": "No image",
+  "testRunNoTimesTitle": "No time recorded",
+  "testRunNoTimesMessage": "The timer was never started on any step, so the result will be 0. Finish anyway?",
+  "testRunPartialTimes": "{count} step(s) have no recorded time — the result may come out low."
 }

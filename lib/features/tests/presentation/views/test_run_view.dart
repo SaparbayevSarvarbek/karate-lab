@@ -146,11 +146,26 @@ class _TestRunViewState extends State<TestRunView> {
   }
 
   Future<void> _showFinishConfirmation() async {
+    // Vaqt qayd etilmagan qadamlar bo'lsa ogohlantiramiz — aks holda natija
+    // 0 ball chiqib, foydalanuvchi sababini tushunmay qoladi.
+    final missing = _times.where((t) => t <= 0).length;
+    final allMissing = missing == _times.length;
+
+    final title = allMissing
+        ? Tr.t('testRunNoTimesTitle')
+        : Tr.t('testRunFinishTitle');
+    final message = allMissing
+        ? Tr.t('testRunNoTimesMessage')
+        : missing > 0
+            ? '${Tr.t('testRunFinishMessage')}\n\n'
+                '${Tr.t('testRunPartialTimes', {'count': '$missing'})}'
+            : Tr.t('testRunFinishMessage');
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(Tr.t('testRunFinishTitle')),
-        content: Text(Tr.t('testRunFinishMessage')),
+        title: Text(title),
+        content: Text(message),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -158,7 +173,9 @@ class _TestRunViewState extends State<TestRunView> {
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            style: FilledButton.styleFrom(backgroundColor: AppColors.success),
+            style: FilledButton.styleFrom(
+              backgroundColor: allMissing ? AppColors.warning : AppColors.success,
+            ),
             child: Text(Tr.t('testRunFinish')),
           ),
         ],
