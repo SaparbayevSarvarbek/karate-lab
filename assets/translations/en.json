@@ -164,7 +164,7 @@
   "noTestsYet": "No tests yet",
   "testRunningTitle": "Running test",
   "stepsNotFound": "Steps not found",
-  "stepLabel": "Step {current}/{total}",
+  "stepLabel": "Step {index}",
   "backButton": "Back",
   "testResultTitle": "Test result",
   "resultNotFound": "Result not found",
@@ -178,7 +178,6 @@
   "qualitiesHint": "Qualities to develop (comma separated)",
   "stepsTitle": "Steps",
   "stepsHint": "Each step includes name, description, image, repetitions and time",
-  "stepLabel": "Step {index}",
   "stepNameHint": "Step name",
   "stepDescriptionHint": "Description...",
   "repetitionsHint": "Repetitions",
@@ -216,5 +215,15 @@
   "testRunNoImage": "No image",
   "testRunNoTimesTitle": "No time recorded",
   "testRunNoTimesMessage": "The timer was never started on any step, so the result will be 0. Finish anyway?",
-  "testRunPartialTimes": "{count} step(s) have no recorded time — the result may come out low."
+  "testRunPartialTimes": "{count} step(s) have no recorded time — the result may come out low.",
+  "setupBadge": "Setup",
+  "roleBadge": "Role",
+  "groupBadge": "Group",
+  "langUzSubtitle": "Latin script",
+  "langEnSubtitle": "English",
+  "athleteSubtitle": "Track exercises and results",
+  "coachSubtitle": "Manage athletes and analytics",
+  "groupSelectHint": "Choose the group where the athlete trains",
+  "comingSoonBadge": "Coming soon",
+  "stepProgress": "{current}/{total} step"
 }

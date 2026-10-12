@@ -1,9 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/l10n/app_translations.dart';
+import '../../../../core/theme/app_palette.dart';
+import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/app_bottom_bar.dart';
+import '../../../../core/widgets/app_selection_card.dart';
+import '../../../../core/widgets/app_step_badge.dart';
 import '../../../../core/widgets/custom_button.dart';
-import '../widgets/role_card_widget.dart';
-import '../widgets/role_selection_header.dart';
+import '../../../../core/widgets/karate_app_bar.dart';
 
 class RoleSelectionView extends StatefulWidget {
   const RoleSelectionView({super.key});
@@ -35,69 +42,64 @@ class _RoleSelectionViewState extends State<RoleSelectionView> {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('KarateLab AI'),
-        centerTitle: true,
-      ),
+      backgroundColor: palette.background,
+      appBar: const KarateAppBar(title: 'KarateLab AI', showLogo: true),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 24),
-              const RoleSelectionHeader(),
-              const SizedBox(height: 48),
-              RoleCardsRow(
-                selectedRole: _selectedRole,
-                onRoleSelected: _onRoleSelected,
+        top: false,
+        child: Column(
+          children: [
+            Expanded(
+              child: ListView(
+                padding: EdgeInsets.fromLTRB(20.w, 8.h, 20.w, 24.h),
+                children: [
+                  AppStepBadge(
+                    label: '${Tr.t('setupBadge')} · 1 / 2',
+                    icon: Icons.tune_rounded,
+                  ),
+                  SizedBox(height: 14.h),
+                  Text(
+                    'Rolingizni tanlang',
+                    style: AppTextStyles.screenTitle
+                        .copyWith(color: palette.textPrimary),
+                  ),
+                  SizedBox(height: 8.h),
+                  Text(
+                    'Ilovadan qanday maqsadda foydalanmoqchisiz?',
+                    style: AppTextStyles.body
+                        .copyWith(color: palette.textSecondary),
+                  ),
+                  SizedBox(height: 22.h),
+                  AppSelectionCard(
+                    icon: Icons.sports_martial_arts,
+                    title: 'Sportchi',
+                    subtitle: Tr.t('athleteSubtitle'),
+                    selected: _selectedRole == AppConstants.roleAthlete,
+                    onTap: () => _onRoleSelected(AppConstants.roleAthlete),
+                  ),
+                  SizedBox(height: 12.h),
+                  AppSelectionCard(
+                    icon: Icons.assignment_ind_outlined,
+                    title: 'Murabbiy',
+                    subtitle: Tr.t('coachSubtitle'),
+                    selected: _selectedRole == AppConstants.roleCoach,
+                    onTap: () => _onRoleSelected(AppConstants.roleCoach),
+                  ),
+                ],
               ),
-              const Spacer(),
-              CustomButton(
+            ),
+            AppBottomBar(
+              child: CustomButton(
                 text: 'Davom etish',
+                trailingIcon: Icons.arrow_forward_rounded,
                 onPressed: _selectedRole != null ? _onContinue : null,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
-    );
-  }
-}
-
-class RoleCardsRow extends StatelessWidget {
-  final String? selectedRole;
-  final void Function(String) onRoleSelected;
-
-  const RoleCardsRow({
-    super.key,
-    required this.selectedRole,
-    required this.onRoleSelected,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        RoleCardWidget(
-          title: 'Sportchi',
-          subtitle: 'Mashqlar va natijalarni kuzatish',
-          icon: Icons.sports_martial_arts,
-          role: AppConstants.roleAthlete,
-          selectedRole: selectedRole,
-          onTap: onRoleSelected,
-        ),
-        const SizedBox(height: 16),
-        RoleCardWidget(
-          title: 'Murabbiy',
-          subtitle: 'Sportchilarni boshqarish va tahlil',
-          icon: Icons.assignment_ind,
-          role: AppConstants.roleCoach,
-          selectedRole: selectedRole,
-          onTap: onRoleSelected,
-        ),
-      ],
     );
   }
 }

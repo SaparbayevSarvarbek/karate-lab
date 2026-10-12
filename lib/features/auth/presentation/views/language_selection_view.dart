@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_colors.dart';
@@ -7,7 +8,11 @@ import '../../../../core/l10n/app_translations.dart';
 import '../../../../core/repositories/settings_repository.dart';
 import '../../../../core/services/shared_prefs_service.dart';
 import '../../../../core/theme/app_palette.dart';
+import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/app_bottom_bar.dart';
+import '../../../../core/widgets/app_step_badge.dart';
 import '../../../../core/widgets/custom_button.dart';
+import '../../../../core/widgets/karate_app_bar.dart';
 import '../widgets/language_option_widget.dart';
 
 class LanguageSelectionView extends StatefulWidget {
@@ -69,73 +74,67 @@ class _LanguageSelectionViewState extends State<LanguageSelectionView> {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
+
     return Scaffold(
-      backgroundColor: context.palette.background,
-      appBar: AppBar(
-        title: const Text('KarateLab AI'),
-        centerTitle: true,
-      ),
+      backgroundColor: palette.background,
+      appBar: const KarateAppBar(title: 'KarateLab AI', showLogo: true),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 24),
-              const LanguageSelectionHeader(),
-              const SizedBox(height: 32),
-              LanguageOptionWidget(
-                title: 'O\'zbekcha',
-                flag: '🇺🇿',
-                code: 'uz',
-                selectedLanguage: _selectedLanguage,
-                onTap: _onLanguageSelected,
+        top: false,
+        child: Column(
+          children: [
+            Expanded(
+              child: ListView(
+                padding: EdgeInsets.fromLTRB(20.w, 8.h, 20.w, 24.h),
+                children: [
+                  AppStepBadge(
+                    label: '${Tr.t('setupBadge')} · 1 / 3',
+                    icon: Icons.tune_rounded,
+                  ),
+                  SizedBox(height: 14.h),
+                  Text(
+                    Tr.t('chooseLanguage'),
+                    style: AppTextStyles.screenTitle
+                        .copyWith(color: palette.textPrimary),
+                  ),
+                  SizedBox(height: 8.h),
+                  Text(
+                    Tr.t('chooseLanguageHint'),
+                    style: AppTextStyles.body
+                        .copyWith(color: palette.textSecondary),
+                  ),
+                  SizedBox(height: 22.h),
+                  LanguageOptionWidget(
+                    title: 'O\'zbekcha',
+                    subtitle: Tr.t('langUzSubtitle'),
+                    flag: '🇺🇿',
+                    code: 'uz',
+                    selectedLanguage: _selectedLanguage,
+                    onTap: _onLanguageSelected,
+                  ),
+                  SizedBox(height: 12.h),
+                  LanguageOptionWidget(
+                    title: 'English',
+                    subtitle: Tr.t('langEnSubtitle'),
+                    flag: '🇺🇸',
+                    code: 'en',
+                    selectedLanguage: _selectedLanguage,
+                    onTap: _onLanguageSelected,
+                  ),
+                ],
               ),
-              const SizedBox(height: 16),
-              LanguageOptionWidget(
-                title: 'English',
-                flag: '🇺🇸',
-                code: 'en',
-                selectedLanguage: _selectedLanguage,
-                onTap: _onLanguageSelected,
-              ),
-              const Spacer(),
-              CustomButton(
+            ),
+            AppBottomBar(
+              child: CustomButton(
                 text: Tr.t('continueText'),
+                trailingIcon: Icons.arrow_forward_rounded,
                 isLoading: _saving,
                 onPressed: _onContinue,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
-    );
-  }
-}
-
-class LanguageSelectionHeader extends StatelessWidget {
-  const LanguageSelectionHeader({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = context.palette;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          Tr.t('chooseLanguage'),
-          style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                color: palette.textPrimary,
-              ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          Tr.t('chooseLanguageHint'),
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: palette.textSecondary,
-              ),
-        ),
-      ],
     );
   }
 }

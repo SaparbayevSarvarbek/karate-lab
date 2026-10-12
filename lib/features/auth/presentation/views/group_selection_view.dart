@@ -1,7 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+
 import '../../../../core/constants/app_colors.dart';
-import '../widgets/training_group_card.dart';
+import '../../../../core/l10n/app_translations.dart';
+import '../../../../core/theme/app_palette.dart';
+import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/app_bottom_bar.dart';
+import '../../../../core/widgets/app_selection_card.dart';
+import '../../../../core/widgets/app_step_badge.dart';
+import '../../../../core/widgets/custom_button.dart';
+import '../../../../core/widgets/karate_app_bar.dart';
 
 /// Karate mashg'ulot guruhini tanlash sahifasi (sportchi ro'yxatdan o'tishida).
 ///
@@ -35,44 +44,86 @@ class _GroupSelectionViewState extends State<GroupSelectionView> {
   }
 
   void _onSelect(String group, bool selectable) {
-    if (!selectable) return;
-    // Tanlangan guruh darhol qaytariladi — keyingi bosqichga o'tadi.
+    if (!selectable) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            content: Text('Tez orada 🚀'),
+            backgroundColor: AppColors.primaryBlue,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      return;
+    }
+    setState(() => _selectedGroup = group);
+  }
+
+  void _onContinue() {
+    final group = _selectedGroup;
+    if (group == null) return;
     context.pop(group);
   }
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Mashg\'ulot guruhini tanlang'),
-        centerTitle: true,
+      backgroundColor: palette.background,
+      appBar: const KarateAppBar(
+        title: 'Mashg\'ulot guruhini tanlang',
+        showLogo: true,
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Guruhni tanlang', style: Theme.of(context).textTheme.titleLarge),
-              const SizedBox(height: 4),
-              const Text(
-                'Sportchi qaysi guruhda mashg\'ulot o\'tkazishini belgilang',
-                style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+        top: false,
+        child: Column(
+          children: [
+            Expanded(
+              child: ListView(
+                padding: EdgeInsets.fromLTRB(20.w, 8.h, 20.w, 24.h),
+                children: [
+                  AppStepBadge(
+                    label: Tr.t('groupBadge'),
+                    icon: Icons.groups_rounded,
+                  ),
+                  SizedBox(height: 14.h),
+                  Text(
+                    'Guruhni tanlang',
+                    style: AppTextStyles.screenTitle
+                        .copyWith(color: palette.textPrimary),
+                  ),
+                  SizedBox(height: 8.h),
+                  Text(
+                    Tr.t('groupSelectHint'),
+                    style: AppTextStyles.body
+                        .copyWith(color: palette.textSecondary),
+                  ),
+                  SizedBox(height: 22.h),
+                  for (final (title, subtitle, selectable) in _groups) ...[
+                    AppSelectionCard(
+                      icon: Icons.workspace_premium_outlined,
+                      title: title,
+                      subtitle: subtitle,
+                      selected: _selectedGroup == title,
+                      enabled: selectable,
+                      trailingLabel:
+                          selectable ? null : Tr.t('comingSoonBadge'),
+                      onTap: () => _onSelect(title, selectable),
+                    ),
+                    if (title != _groups.last.$1) SizedBox(height: 12.h),
+                  ],
+                ],
               ),
-              const SizedBox(height: 24),
-              for (final (title, subtitle, selectable) in _groups) ...[
-                TrainingGroupCard(
-                  title: title,
-                  subtitle: subtitle,
-                  groupKey: title,
-                  selectable: selectable,
-                  isSelected: _selectedGroup == title,
-                  onSelect: () => _onSelect(title, selectable),
-                ),
-                if (title != _groups.last.$1) const SizedBox(height: 12),
-              ],
-            ],
-          ),
+            ),
+            AppBottomBar(
+              child: CustomButton(
+                text: 'Davom etish',
+                trailingIcon: Icons.arrow_forward_rounded,
+                onPressed: _selectedGroup != null ? _onContinue : null,
+              ),
+            ),
+          ],
         ),
       ),
     );

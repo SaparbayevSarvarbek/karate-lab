@@ -1,7 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/l10n/app_translations.dart';
+import '../../../../core/theme/app_palette.dart';
+import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/app_step_badge.dart';
 
+/// Ro'yxatdan o'tish bosqichlari ko'rsatkichi — qadam belgisi, rol nomi va
+/// progress bar.
 class RegistrationStepIndicator extends StatelessWidget {
   final int currentStep;
   final int totalSteps;
@@ -16,81 +24,46 @@ class RegistrationStepIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
+    final isCoach = role == AppConstants.roleCoach;
+
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        RegistrationRoleBadge(role: role),
-        const SizedBox(height: 12),
-        RegistrationProgressBar(currentStep: currentStep, totalSteps: totalSteps),
-        const SizedBox(height: 8),
-        RegistrationStepText(currentStep: currentStep, totalSteps: totalSteps),
-      ],
-    );
-  }
-}
-
-class RegistrationRoleBadge extends StatelessWidget {
-  final String role;
-
-  const RegistrationRoleBadge({super.key, required this.role});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: AppColors.primaryBlue.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            role == AppConstants.roleCoach ? Icons.assignment_ind : Icons.sports_martial_arts,
+        Row(
+          children: [
+            AppStepBadge(
+              label: Tr.t('stepProgress', {
+                'current': '${currentStep + 1}',
+                'total': '$totalSteps',
+              }),
+              icon: Icons.tune_rounded,
+            ),
+            const Spacer(),
+            Icon(
+              isCoach ? Icons.assignment_ind_outlined : Icons.sports_martial_arts,
+              size: 14.w,
+              color: palette.textSecondary,
+            ),
+            SizedBox(width: 5.w),
+            Text(
+              isCoach ? 'Murabbiy' : 'Sportchi',
+              style: AppTextStyles.caption
+                  .copyWith(color: palette.textSecondary),
+            ),
+          ],
+        ),
+        SizedBox(height: 10.h),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(999.r),
+          child: LinearProgressIndicator(
+            value: (currentStep + 1) / totalSteps,
+            backgroundColor: palette.border,
             color: AppColors.primaryBlue,
-            size: 16,
+            minHeight: 6.h,
           ),
-          const SizedBox(width: 6),
-          Text(
-            role == AppConstants.roleCoach ? 'Murabbiy' : 'Sportchi',
-            style: const TextStyle(color: AppColors.primaryBlue, fontWeight: FontWeight.w600, fontSize: 13),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class RegistrationProgressBar extends StatelessWidget {
-  final int currentStep;
-  final int totalSteps;
-
-  const RegistrationProgressBar({super.key, required this.currentStep, required this.totalSteps});
-
-  @override
-  Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(4),
-      child: LinearProgressIndicator(
-        value: (currentStep + 1) / totalSteps,
-        backgroundColor: AppColors.border,
-        color: AppColors.primaryBlue,
-        minHeight: 6,
-      ),
-    );
-  }
-}
-
-class RegistrationStepText extends StatelessWidget {
-  final int currentStep;
-  final int totalSteps;
-
-  const RegistrationStepText({super.key, required this.currentStep, required this.totalSteps});
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      '${currentStep + 1}/$totalSteps qadam',
-      style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 12),
+        ),
+      ],
     );
   }
 }

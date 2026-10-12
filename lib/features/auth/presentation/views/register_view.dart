@@ -1,13 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+
 import '../../../../core/api/models/auth_models.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/di/injection.dart';
+import '../../../../core/l10n/app_translations.dart';
 import '../../../../core/repositories/auth_repository.dart';
+import '../../../../core/theme/app_palette.dart';
+import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/uz_phone_formatter.dart';
+import '../../../../core/widgets/app_bottom_bar.dart';
 import '../../../../core/widgets/custom_button.dart';
 import '../../../../core/widgets/custom_text_field.dart';
+import '../../../../core/widgets/karate_app_bar.dart';
 import '../../../../core/widgets/phone_text_field.dart';
 import '../widgets/registration_step_indicator.dart';
 
@@ -72,7 +79,8 @@ class _RegisterViewState extends State<RegisterView> {
     if (picked != null && picked != _selectedDate) {
       setState(() {
         _selectedDate = picked;
-        _dobController.text = '${picked.day.toString().padLeft(2, '0')}/${picked.month.toString().padLeft(2, '0')}/${picked.year}';
+        _dobController.text =
+            '${picked.day.toString().padLeft(2, '0')}/${picked.month.toString().padLeft(2, '0')}/${picked.year}';
       });
     }
   }
@@ -88,6 +96,18 @@ class _RegisterViewState extends State<RegisterView> {
     _usernameController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+
+  void _onBack() {
+    if (_currentStep > 0) {
+      setState(() => _currentStep--);
+      _pageController.previousPage(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    } else {
+      context.pop();
+    }
   }
 
   Future<void> _onNext() async {
@@ -139,8 +159,7 @@ class _RegisterViewState extends State<RegisterView> {
         (response) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content:
-                  Text('Xush kelibsiz, ${response.user.displayName}!'),
+              content: Text('Xush kelibsiz, ${response.user.displayName}!'),
               backgroundColor: AppColors.success,
               behavior: SnackBarBehavior.floating,
             ),
@@ -153,133 +172,127 @@ class _RegisterViewState extends State<RegisterView> {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
+
     return Scaffold(
       resizeToAvoidBottomInset: true,
-      appBar: AppBar(
-        title: const Text('Ro\'yxatdan o\'tish'),
-        centerTitle: true,
+      backgroundColor: palette.background,
+      appBar: KarateAppBar(
+        title: Tr.t('registerTitle'),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            if (_currentStep > 0) {
-              setState(() => _currentStep--);
-              _pageController.previousPage(
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeInOut,
-              );
-            } else {
-              context.pop();
-            }
-          },
+          icon: const Icon(Icons.arrow_back_rounded),
+          onPressed: _onBack,
         ),
       ),
       body: SafeArea(
+        top: false,
         child: _isLoading
-            ? const Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CircularProgressIndicator(),
-                    SizedBox(height: 16),
-                    Text('Ro\'yxatdan o\'tkazilmoqda...', style: TextStyle(color: AppColors.textSecondary)),
-                  ],
-                ),
-              )
+            ? _buildLoading(palette)
             : Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16),
-              child: RegistrationStepIndicator(
-                currentStep: _currentStep,
-                totalSteps: 3,
-                role: widget.role,
-              ),
-            ),
-            Expanded(
-              child: PageView(
-                controller: _pageController,
-                physics: const NeverScrollableScrollPhysics(),
                 children: [
-                  _buildStep1(),
-                  _buildStep2(),
-                  _buildStep3(),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  if (_serverError != null) ...[
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      margin: const EdgeInsets.only(bottom: 12),
-                      decoration: BoxDecoration(
-                        color: AppColors.error.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: AppColors.error.withValues(alpha: 0.4),
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.error_outline,
-                              color: AppColors.error, size: 20),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Text(
-                              _serverError!,
-                              style: const TextStyle(
-                                color: AppColors.error,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(20.w, 8.h, 20.w, 0),
+                    child: RegistrationStepIndicator(
+                      currentStep: _currentStep,
+                      totalSteps: 3,
+                      role: widget.role,
                     ),
-                  ],
-                  CustomButton(
-                    text: _currentStep == 2 ? 'Yakunlash' : 'Davom etish',
-                    onPressed: _onNext,
+                  ),
+                  Expanded(
+                    child: PageView(
+                      controller: _pageController,
+                      physics: const NeverScrollableScrollPhysics(),
+                      children: [
+                        _buildStep1(),
+                        _buildStep2(),
+                        _buildStep3(),
+                      ],
+                    ),
+                  ),
+                  AppBottomBar(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        if (_serverError != null) ...[
+                          _ServerErrorBanner(message: _serverError!),
+                          SizedBox(height: 12.h),
+                        ],
+                        CustomButton(
+                          text: _currentStep == 2 ? 'Yakunlash' : 'Davom etish',
+                          trailingIcon: Icons.arrow_forward_rounded,
+                          onPressed: _onNext,
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
-            ),
-          ],
-        ),
       ),
     );
   }
 
+  Widget _buildLoading(AppPalette palette) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const CircularProgressIndicator(),
+          SizedBox(height: 16.h),
+          Text(
+            Tr.t('processingRegister'),
+            style: AppTextStyles.body.copyWith(color: palette.textSecondary),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _stepHeader(String title, String hint, AppPalette palette) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: AppTextStyles.screenTitle.copyWith(color: palette.textPrimary),
+        ),
+        SizedBox(height: 8.h),
+        Text(
+          hint,
+          style: AppTextStyles.body.copyWith(color: palette.textSecondary),
+        ),
+        SizedBox(height: 22.h),
+      ],
+    );
+  }
+
   Widget _buildStep1() {
+    final palette = context.palette;
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24.0),
+      padding: EdgeInsets.fromLTRB(20.w, 22.h, 20.w, 24.h),
       child: Form(
         key: _formKeys[0],
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Shaxsiy ma\'lumotlar', style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 4),
-            Text('1/3 qadam', style: Theme.of(context).textTheme.bodyMedium),
-            const SizedBox(height: 24),
+            _stepHeader(
+              Tr.t('personalInfo'),
+              'Ism, familiya va telefon raqamingizni kiriting.',
+              palette,
+            ),
             CustomTextField(
               controller: _firstNameController,
               hintText: 'Ism',
-              prefixIcon: const Icon(Icons.person),
+              prefixIcon: const Icon(Icons.person_outline),
               validator: (v) => v!.isEmpty ? 'Ismni kiriting' : null,
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 14.h),
             CustomTextField(
               controller: _lastNameController,
               hintText: 'Familiya',
               prefixIcon: const Icon(Icons.person_outline),
               validator: (v) => v!.isEmpty ? 'Familiyani kiriting' : null,
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 14.h),
             PhoneTextField(controller: _phoneController),
           ],
         ),
@@ -288,29 +301,32 @@ class _RegisterViewState extends State<RegisterView> {
   }
 
   Widget _buildStep2() {
+    final palette = context.palette;
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24.0),
+      padding: EdgeInsets.fromLTRB(20.w, 22.h, 20.w, 24.h),
       child: Form(
         key: _formKeys[1],
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Jismoniy ma\'lumotlar', style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 4),
-            Text('2/3 qadam', style: Theme.of(context).textTheme.bodyMedium),
-            const SizedBox(height: 24),
+            _stepHeader(
+              Tr.t('physicalInfo'),
+              'Aniq natijalar uchun parametrlarni to\'ldiring.',
+              palette,
+            ),
             GestureDetector(
               onTap: () => _selectDate(context),
               child: AbsorbPointer(
                 child: CustomTextField(
                   controller: _dobController,
                   hintText: 'Tug\'ilgan sana',
-                  prefixIcon: const Icon(Icons.calendar_today),
-                  validator: (v) => v!.isEmpty ? 'Tug\'ilgan sanani tanlang' : null,
+                  prefixIcon: const Icon(Icons.calendar_today_outlined),
+                  validator: (v) =>
+                      v!.isEmpty ? 'Tug\'ilgan sanani tanlang' : null,
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 14.h),
             Row(
               children: [
                 Expanded(
@@ -320,7 +336,9 @@ class _RegisterViewState extends State<RegisterView> {
                     prefixIcon: const Icon(Icons.height),
                     suffixIcon: const Padding(
                       padding: EdgeInsets.only(right: 12, top: 12),
-                      child: Text('sm', style: TextStyle(color: AppColors.textSecondary, fontSize: 16)),
+                      child: Text('sm',
+                          style: TextStyle(
+                              color: AppColors.textSecondary, fontSize: 16)),
                     ),
                     keyboardType: TextInputType.number,
                     validator: (v) {
@@ -332,14 +350,15 @@ class _RegisterViewState extends State<RegisterView> {
                     onChanged: (v) {
                       if (v.length > 3) {
                         _heightController.text = v.substring(0, 3);
-                        _heightController.selection = TextSelection.fromPosition(
+                        _heightController.selection =
+                            TextSelection.fromPosition(
                           TextPosition(offset: _heightController.text.length),
                         );
                       }
                     },
                   ),
                 ),
-                const SizedBox(width: 16),
+                SizedBox(width: 14.w),
                 Expanded(
                   child: CustomTextField(
                     controller: _weightController,
@@ -347,7 +366,9 @@ class _RegisterViewState extends State<RegisterView> {
                     prefixIcon: const Icon(Icons.monitor_weight_outlined),
                     suffixIcon: const Padding(
                       padding: EdgeInsets.only(right: 12, top: 12),
-                      child: Text('kg', style: TextStyle(color: AppColors.textSecondary, fontSize: 16)),
+                      child: Text('kg',
+                          style: TextStyle(
+                              color: AppColors.textSecondary, fontSize: 16)),
                     ),
                     keyboardType: TextInputType.number,
                     validator: (v) {
@@ -359,7 +380,8 @@ class _RegisterViewState extends State<RegisterView> {
                     onChanged: (v) {
                       if (v.length > 3) {
                         _weightController.text = v.substring(0, 3);
-                        _weightController.selection = TextSelection.fromPosition(
+                        _weightController.selection =
+                            TextSelection.fromPosition(
                           TextPosition(offset: _weightController.text.length),
                         );
                       }
@@ -369,7 +391,7 @@ class _RegisterViewState extends State<RegisterView> {
               ],
             ),
             if (widget.role == AppConstants.roleCoach) ...[
-              const SizedBox(height: 16),
+              SizedBox(height: 14.h),
               const RegistrationCoachNote(),
             ],
           ],
@@ -379,17 +401,19 @@ class _RegisterViewState extends State<RegisterView> {
   }
 
   Widget _buildStep3() {
+    final palette = context.palette;
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24.0),
+      padding: EdgeInsets.fromLTRB(20.w, 22.h, 20.w, 24.h),
       child: Form(
         key: _formKeys[2],
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Hisob sozlamalari', style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 4),
-            Text('3/3 qadam', style: Theme.of(context).textTheme.bodyMedium),
-            const SizedBox(height: 24),
+            _stepHeader(
+              Tr.t('accountSettings'),
+              'Tizimga kirish uchun login va parol o\'ylab toping.',
+              palette,
+            ),
             CustomTextField(
               controller: _usernameController,
               hintText: 'Foydalanuvchi nomi',
@@ -400,15 +424,21 @@ class _RegisterViewState extends State<RegisterView> {
                 return null;
               },
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 14.h),
             CustomTextField(
               controller: _passwordController,
               hintText: 'Parol',
               obscureText: _obscurePassword,
               prefixIcon: const Icon(Icons.lock_outline),
               suffixIcon: IconButton(
-                icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility, color: AppColors.textHint),
-                onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                icon: Icon(
+                  _obscurePassword
+                      ? Icons.visibility_off_outlined
+                      : Icons.visibility_outlined,
+                  color: AppColors.textHint,
+                ),
+                onPressed: () =>
+                    setState(() => _obscurePassword = !_obscurePassword),
               ),
               validator: (v) {
                 if (v == null || v.isEmpty) return 'Parolni kiriting';
@@ -423,20 +453,54 @@ class _RegisterViewState extends State<RegisterView> {
   }
 }
 
+class _ServerErrorBanner extends StatelessWidget {
+  final String message;
+
+  const _ServerErrorBanner({required this.message});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.all(12.w),
+      decoration: BoxDecoration(
+        color: AppColors.error.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(color: AppColors.error.withValues(alpha: 0.4)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.error_outline, color: AppColors.error, size: 20),
+          SizedBox(width: 10.w),
+          Expanded(
+            child: Text(
+              message,
+              style: const TextStyle(
+                color: AppColors.error,
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class RegistrationCoachNote extends StatelessWidget {
   const RegistrationCoachNote({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(14.w),
       decoration: BoxDecoration(
         color: AppColors.primaryBlue.withValues(alpha: 0.07),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14.r),
         border: Border.all(color: AppColors.primaryBlue.withValues(alpha: 0.3)),
       ),
-      child: Row(
-        children: const [
+      child: const Row(
+        children: [
           Icon(Icons.info_outline, color: AppColors.primaryBlue, size: 20),
           SizedBox(width: 12),
           Expanded(
