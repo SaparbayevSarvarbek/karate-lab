@@ -54,7 +54,7 @@ class _AthletesListViewState extends State<AthletesListView> {
 
     return Scaffold(
       backgroundColor: palette.background,
-      appBar: const KarateAppBar(title: 'KarateLab AI', showLogo: true),
+      appBar: KarateAppBar(title: Tr.t('navAthletes'), showLogo: true),
       body: Column(
         children: [
           Padding(

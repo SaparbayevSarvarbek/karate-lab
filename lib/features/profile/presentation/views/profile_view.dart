@@ -55,7 +55,7 @@ class _ProfileViewState extends State<ProfileView> {
 
             return Scaffold(
               backgroundColor: context.palette.background,
-              appBar: KarateAppBar(title: Tr.t('profile')),
+              appBar: KarateAppBar(title: Tr.t('navProfile'), showLogo: true),
               body: RefreshIndicator(
                 onRefresh: () => _refresh(context),
                 child: SingleChildScrollView(

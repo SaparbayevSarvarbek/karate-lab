@@ -8,6 +8,7 @@ import '../../../../core/theme/app_palette.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/karate_app_bar.dart';
 import '../../../../core/widgets/app_section_header.dart';
 import '../../../../core/widgets/remote_image.dart';
 import '../../../../core/widgets/shimmer_placeholder.dart';
@@ -45,12 +46,7 @@ class _ExerciseDetailViewState extends State<ExerciseDetailView> {
 
     return Scaffold(
       backgroundColor: palette.background,
-      appBar: AppBar(
-        backgroundColor: palette.background,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        iconTheme: IconThemeData(color: palette.textPrimary),
-      ),
+      appBar: KarateAppBar(title: ex.title),
       body: SingleChildScrollView(
         padding: EdgeInsets.fromLTRB(
           AppSpacing.screenH.w,

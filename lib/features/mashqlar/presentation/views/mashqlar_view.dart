@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/di/injection.dart';
+import '../../../../core/l10n/app_translations.dart';
 import '../../../../core/theme/app_palette.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -85,7 +86,7 @@ class _MashqlarViewState extends State<MashqlarView> {
         child: Builder(
           builder: (context) => Scaffold(
             backgroundColor: context.palette.background,
-            appBar: const KarateAppBar(title: 'KarateLab AI', showLogo: true),
+            appBar: KarateAppBar(title: Tr.t('navExercises'), showLogo: true),
             body: Column(
               children: [
                 Padding(

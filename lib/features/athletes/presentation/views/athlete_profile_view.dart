@@ -3,13 +3,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../core/api/models/athlete_models.dart';
-import '../../../../core/constants/app_colors.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_palette.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_text_styles.dart';
-import '../../../../core/widgets/app_section_header.dart';
+import '../../../../core/widgets/karate_app_bar.dart';
 import '../../../../core/widgets/remote_image.dart';
+import '../../../../core/widgets/app_section_header.dart';
 import '../../../../core/widgets/shimmer_placeholder.dart';
 import '../viewmodels/athlete_bloc.dart';
 
@@ -51,12 +51,11 @@ class _AthleteProfileContent extends StatelessWidget {
 
         return Scaffold(
           backgroundColor: context.palette.background,
+          appBar: KarateAppBar(
+            title: athlete.fullName.isEmpty ? 'Sportchi' : athlete.fullName,
+          ),
           body: CustomScrollView(
             slivers: [
-              if (isLoading)
-                SliverToBoxAdapter(child: ShimmerProfileAvatar())
-              else
-                _ProfileAppBar(athlete: athlete),
               SliverToBoxAdapter(
                 child: Padding(
                   padding: EdgeInsets.fromLTRB(20.w, 8.h, 20.w, 24.h),
@@ -111,44 +110,6 @@ class _AthleteProfileContent extends StatelessWidget {
   }
 }
 
-class _ProfileAppBar extends StatelessWidget {
-  final Athlete athlete;
-
-  const _ProfileAppBar({required this.athlete});
-
-  @override
-  Widget build(BuildContext context) {
-    return SliverAppBar(
-      expandedHeight: 220,
-      pinned: true,
-      backgroundColor: AppColors.primaryBlue,
-      iconTheme: const IconThemeData(color: Colors.white),
-      flexibleSpace: FlexibleSpaceBar(
-        background: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [AppColors.primaryNavy, Color(0xFF1E40AF)],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-            ),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              SizedBox(height: 36.h),
-              AvatarImage(
-                url: athlete.avatar,
-                name: athlete.fullName,
-                size: 96,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class _ProfileHeader extends StatelessWidget {
   final Athlete athlete;
 
@@ -157,17 +118,33 @@ class _ProfileHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Row(
       children: [
-        Text(
-          athlete.fullName.isEmpty ? 'Sportchi' : athlete.fullName,
-          style: AppTextStyles.screenTitle.copyWith(color: palette.textPrimary),
+        AvatarImage(
+          url: athlete.avatar,
+          name: athlete.fullName,
+          size: 64,
         ),
-        SizedBox(height: 4.h),
-        Text(
-          '@${athlete.username}',
-          style: AppTextStyles.caption.copyWith(color: palette.textSecondary),
+        SizedBox(width: 14.w),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                athlete.fullName.isEmpty ? 'Sportchi' : athlete.fullName,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AppTextStyles.screenTitle.copyWith(color: palette.textPrimary),
+              ),
+              SizedBox(height: 4.h),
+              Text(
+                '@${athlete.username}',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AppTextStyles.caption.copyWith(color: palette.textSecondary),
+              ),
+            ],
+          ),
         ),
       ],
     );

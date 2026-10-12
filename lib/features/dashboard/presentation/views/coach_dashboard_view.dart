@@ -7,13 +7,13 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/l10n/app_translations.dart';
-import '../../../../core/repositories/profile_repository.dart';
 import '../../../../core/theme/app_palette.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/widgets/app_section_header.dart';
 import '../../../../core/widgets/app_state_views.dart';
-import '../../../../core/widgets/remote_image.dart';
+import '../../../../core/widgets/karate_app_bar.dart';
 import '../../../../core/widgets/shimmer_placeholder.dart';
+import '../../../../core/widgets/user_greeting_row.dart';
 import '../viewmodels/dashboard_bloc.dart';
 
 class CoachDashboardView extends StatelessWidget {
@@ -54,11 +54,25 @@ class _CoachDashboardContent extends StatelessWidget {
     final palette = context.palette;
     return Scaffold(
       backgroundColor: palette.background,
+      appBar: KarateAppBar(
+        title: Tr.t('navDashboard'),
+        showLogo: true,
+        actions: [
+          IconButton(
+            onPressed: () => onSelectTab?.call(3),
+            icon: Icon(
+              Icons.notifications_none_rounded,
+              color: palette.textPrimary,
+              size: 24.w,
+            ),
+          ),
+        ],
+      ),
       body: SafeArea(
+        top: false,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _CoachHeader(onSelectTab: onSelectTab),
             Expanded(
               child: BlocBuilder<DashboardBloc, DashboardState>(
                 builder: (context, state) {
@@ -68,6 +82,8 @@ class _CoachDashboardContent extends StatelessWidget {
                       child: ListView(
                         padding: EdgeInsets.fromLTRB(20.w, 8.h, 20.w, 24.h),
                         children: [
+                          const UserGreetingRow(fallbackName: 'Murabbiy'),
+                          SizedBox(height: 18.h),
                           ShimmerPlaceholder(
                             width: double.infinity,
                             height: 180.h,
@@ -109,6 +125,8 @@ class _CoachDashboardContent extends StatelessWidget {
                       child: ListView(
                         padding: EdgeInsets.fromLTRB(20.w, 8.h, 20.w, 24.h),
                         children: [
+                          const UserGreetingRow(fallbackName: 'Murabbiy'),
+                          SizedBox(height: 18.h),
                           _StatsGrid(data: state.data),
                           SizedBox(height: 22.h),
                           AppSectionHeader(title: Tr.t('quickActions')),
@@ -158,75 +176,6 @@ class _CoachDashboardContent extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _CoachHeader extends StatelessWidget {
-  final void Function(int)? onSelectTab;
-
-  const _CoachHeader({this.onSelectTab});
-
-  String _timeGreeting() {
-    final hour = DateTime.now().hour;
-    if (hour < 12) return Tr.t('goodMorning');
-    if (hour < 18) return Tr.t('goodDay');
-    return Tr.t('goodEvening');
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = context.palette;
-    return Padding(
-      padding: EdgeInsets.fromLTRB(20.w, 8.h, 20.w, 0),
-      child: FutureBuilder(
-        future: getIt<ProfileRepository>().getProfile(),
-        builder: (context, snapshot) {
-          final profile = snapshot.data?.fold((_) => null, (p) => p);
-          return Row(
-            children: [
-              AvatarImage(
-                url: profile?.avatar,
-                name: profile?.fullName ?? Tr.t('coach'),
-                size: 46,
-              ),
-              SizedBox(width: 12.w),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '${_timeGreeting()},',
-                      style: TextStyle(
-                        fontSize: 12.sp,
-                        color: palette.textSecondary,
-                      ),
-                    ),
-                    SizedBox(height: 2.h),
-                    Text(
-                      profile?.fullName ?? Tr.t('coach'),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 17.sp,
-                        fontWeight: FontWeight.w800,
-                        color: palette.textPrimary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              IconButton(
-                onPressed: () {
-                  if (onSelectTab != null) onSelectTab!(3);
-                },
-                icon: Icon(Icons.notifications_none_rounded,
-                    color: palette.textPrimary, size: 24.w),
-              ),
-            ],
-          );
-        },
       ),
     );
   }

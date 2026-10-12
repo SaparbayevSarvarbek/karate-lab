@@ -7,6 +7,7 @@ import '../../../../core/api/models/test_models.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/di/injection.dart';
+import '../../../../core/l10n/app_translations.dart';
 import '../../../../core/theme/app_palette.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -52,7 +53,7 @@ class _TestsLibraryViewState extends State<TestsLibraryView> {
           final palette = context.palette;
           return Scaffold(
             backgroundColor: palette.background,
-            appBar: const KarateAppBar(title: 'KarateLab AI', showLogo: true),
+            appBar: KarateAppBar(title: Tr.t('navTests'), showLogo: true),
             body: _buildBody(context, state),
             floatingActionButton: _isCoach
                 ? FloatingActionButton.extended(

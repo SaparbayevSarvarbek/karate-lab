@@ -5,13 +5,13 @@ import '../../../../core/api/models/dashboard_models.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/l10n/app_translations.dart';
-import '../../../../core/repositories/profile_repository.dart';
 import '../../../../core/theme/app_palette.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/widgets/app_section_header.dart';
 import '../../../../core/widgets/app_state_views.dart';
-import '../../../../core/widgets/remote_image.dart';
+import '../../../../core/widgets/karate_app_bar.dart';
 import '../../../../core/widgets/shimmer_placeholder.dart';
+import '../../../../core/widgets/user_greeting_row.dart';
 import '../viewmodels/dashboard_bloc.dart';
 
 class AthleteDashboardView extends StatelessWidget {
@@ -44,11 +44,25 @@ class _AthleteDashboardContent extends StatelessWidget {
     final palette = context.palette;
     return Scaffold(
       backgroundColor: palette.background,
+      appBar: KarateAppBar(
+        title: Tr.t('navHome'),
+        showLogo: true,
+        actions: [
+          IconButton(
+            onPressed: () => onSelectTab?.call(3),
+            icon: Icon(
+              Icons.notifications_none_rounded,
+              color: palette.textPrimary,
+              size: 24.w,
+            ),
+          ),
+        ],
+      ),
       body: SafeArea(
+        top: false,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _DashboardHeader(onSelectTab: onSelectTab),
             Expanded(
               child: BlocBuilder<DashboardBloc, DashboardState>(
                 builder: (context, state) {
@@ -60,6 +74,8 @@ class _AthleteDashboardContent extends StatelessWidget {
                       child: ListView(
                         padding: EdgeInsets.fromLTRB(20.w, 8.h, 20.w, 24.h),
                         children: [
+                          const UserGreetingRow(fallbackName: 'Sportchi'),
+                          SizedBox(height: 18.h),
                           ShimmerPlaceholder(
                               width: double.infinity,
                               height: 160.h,
@@ -104,6 +120,8 @@ class _AthleteDashboardContent extends StatelessWidget {
                       child: ListView(
                         padding: EdgeInsets.fromLTRB(20.w, 8.h, 20.w, 24.h),
                         children: [
+                          const UserGreetingRow(fallbackName: 'Sportchi'),
+                          SizedBox(height: 18.h),
                           _HeroCard(onStart: () => _gotoTests(context)),
                           SizedBox(height: 18.h),
                           _StatsRow(data: state.data),
@@ -125,75 +143,6 @@ class _AthleteDashboardContent extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _DashboardHeader extends StatelessWidget {
-  final void Function(int)? onSelectTab;
-
-  const _DashboardHeader({this.onSelectTab});
-
-  String _timeGreeting() {
-    final hour = DateTime.now().hour;
-    if (hour < 12) return Tr.t('goodMorning');
-    if (hour < 18) return Tr.t('goodDay');
-    return Tr.t('goodEvening');
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = context.palette;
-    return Padding(
-      padding: EdgeInsets.fromLTRB(20.w, 8.h, 20.w, 0),
-      child: FutureBuilder(
-        future: getIt<ProfileRepository>().getProfile(),
-        builder: (context, snapshot) {
-          final profile = snapshot.data?.fold((_) => null, (p) => p);
-          return Row(
-            children: [
-              AvatarImage(
-                url: profile?.avatar,
-                name: profile?.fullName ?? Tr.t('athlete'),
-                size: 46,
-              ),
-              SizedBox(width: 12.w),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '${_timeGreeting()},',
-                      style: TextStyle(
-                        fontSize: 12.sp,
-                        color: palette.textSecondary,
-                      ),
-                    ),
-                    SizedBox(height: 2.h),
-                    Text(
-                      profile?.fullName ?? Tr.t('athlete'),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 17.sp,
-                        fontWeight: FontWeight.w800,
-                        color: palette.textPrimary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              IconButton(
-                onPressed: () {
-                  if (onSelectTab != null) onSelectTab!(3);
-                },
-                icon: Icon(Icons.notifications_none_rounded,
-                    color: palette.textPrimary, size: 24.w),
-              ),
-            ],
-          );
-        },
       ),
     );
   }

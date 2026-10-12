@@ -4,11 +4,15 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../theme/app_palette.dart';
 import 'karate_logo.dart';
 
-/// Ilova bo'ylab yagona AppBar.
+/// Ilova bo'ylab **yagona** yuqori panel.
 ///
-/// `showLogo` yoqilganda sarlavha oldida brend belgisi ko'rsatiladi
-/// (setup/onboarding ekranlari uchun). Sub-sahifalarda faqat matnli
-/// sarlavha ko'rsatiladi.
+/// Barcha sahifalar shundan foydalanadi — shunda balandlik, shrift, orqaga
+/// tugmasi va fon rangi hamma joyda bir xil bo'ladi.
+///
+/// - `showLogo: true` — asosiy (tab) sahifalar: brend belgisi + bo'lim nomi,
+///   orqaga tugmasi ko'rsatilmaydi.
+/// - `showLogo: false` — ichki sahifalar: orqaga tugmasi (avtomatik) + sarlavha.
+/// - `actions` — o'ng tomondagi amallar (masalan bildirishnoma qo'ng'irog'i).
 class KarateAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final bool showLogo;
@@ -26,19 +30,30 @@ class KarateAppBar extends StatelessWidget implements PreferredSizeWidget {
   });
 
   @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight + 1);
 
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
+    final canPop = ModalRoute.of(context)?.canPop ?? false;
+    final effectiveLeading = leading ??
+        (canPop
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back_rounded),
+                color: palette.textPrimary,
+                onPressed: () => Navigator.of(context).maybePop(),
+              )
+            : null);
+
     return AppBar(
       backgroundColor: palette.background,
+      surfaceTintColor: Colors.transparent,
       elevation: 0,
       scrolledUnderElevation: 0,
       centerTitle: centerTitle,
-      leading: leading,
-      automaticallyImplyLeading: leading == null,
-      titleSpacing: 0,
+      leading: effectiveLeading,
+      automaticallyImplyLeading: false,
+      titleSpacing: showLogo ? 0 : null,
       title: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -52,7 +67,7 @@ class KarateAppBar extends StatelessWidget implements PreferredSizeWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                fontSize: 16.sp,
+                fontSize: 16.5.sp,
                 fontWeight: FontWeight.w700,
                 color: palette.textPrimary,
               ),
@@ -61,6 +76,10 @@ class KarateAppBar extends StatelessWidget implements PreferredSizeWidget {
         ],
       ),
       actions: actions,
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(1),
+        child: Container(height: 1, color: palette.divider),
+      ),
     );
   }
 }
