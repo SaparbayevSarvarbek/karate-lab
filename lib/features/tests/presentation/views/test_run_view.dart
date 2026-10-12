@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:ui';
 
+import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -32,7 +33,10 @@ class _TestRunViewState extends State<TestRunView> {
   int _current = 0;
 
   Timer? _timer;
-  int _milliseconds = 0;
+
+  /// Taymer qiymati `ValueNotifier` da — shunda har 100 ms da butun sahifa
+  /// emas, faqat taymer yozuvi qayta chiziladi (rasm/ro'yxat tegilmaydi).
+  final ValueNotifier<int> _milliseconds = ValueNotifier<int>(0);
   bool _running = false;
   bool _submitting = false;
 
@@ -48,13 +52,14 @@ class _TestRunViewState extends State<TestRunView> {
   @override
   void dispose() {
     _timer?.cancel();
+    _milliseconds.dispose();
     super.dispose();
   }
 
   void _restoreCurrent() {
     _timer?.cancel();
     _running = false;
-    _milliseconds = (_times[_current] * 1000).round();
+    _milliseconds.value = (_times[_current] * 1000).round();
   }
 
   void _toggleTimer() {
@@ -69,8 +74,7 @@ class _TestRunViewState extends State<TestRunView> {
     _timer?.cancel();
     setState(() => _running = true);
     _timer = Timer.periodic(const Duration(milliseconds: 100), (_) {
-      if (!mounted) return;
-      setState(() => _milliseconds += 100);
+      _milliseconds.value += 100;
     });
   }
 
@@ -80,8 +84,8 @@ class _TestRunViewState extends State<TestRunView> {
     setState(() => _running = false);
   }
 
-  String get _formatted {
-    final totalSeconds = _milliseconds / 1000.0;
+  static String _formatMs(int ms) {
+    final totalSeconds = ms / 1000.0;
     final minutes = totalSeconds ~/ 60;
     final seconds = (totalSeconds % 60).toStringAsFixed(1).padLeft(4, '0');
     return '${minutes.toString().padLeft(2, '0')}:$seconds';
@@ -89,7 +93,7 @@ class _TestRunViewState extends State<TestRunView> {
 
   void _next() {
     _pauseTimer();
-    _times[_current] = _milliseconds / 1000.0;
+    _times[_current] = _milliseconds.value / 1000.0;
     if (_isLast) {
       _showFinishConfirmation();
       return;
@@ -103,7 +107,7 @@ class _TestRunViewState extends State<TestRunView> {
   void _previous() {
     if (_isFirst) return;
     _pauseTimer();
-    _times[_current] = _milliseconds / 1000.0;
+    _times[_current] = _milliseconds.value / 1000.0;
     setState(() {
       _current -= 1;
       _restoreCurrent();
@@ -113,7 +117,7 @@ class _TestRunViewState extends State<TestRunView> {
   void _jumpToStep(int index) {
     if (index == _current) return;
     _pauseTimer();
-    _times[_current] = _milliseconds / 1000.0;
+    _times[_current] = _milliseconds.value / 1000.0;
     setState(() {
       _current = index;
       _restoreCurrent();
@@ -291,7 +295,7 @@ class _TestRunViewState extends State<TestRunView> {
                         current: _current,
                         times: _times,
                         progress: progress,
-                        formatted: _formatted,
+                        milliseconds: _milliseconds,
                         running: _running,
                         onToggleTimer: _submitting ? null : _toggleTimer,
                         onTapStep: _submitting ? null : _jumpToStep,
@@ -353,7 +357,7 @@ class _TopBar extends StatelessWidget {
   final int current;
   final List<double> times;
   final double progress;
-  final String formatted;
+  final ValueListenable<int> milliseconds;
   final bool running;
   final VoidCallback? onToggleTimer;
   final void Function(int)? onTapStep;
@@ -363,7 +367,7 @@ class _TopBar extends StatelessWidget {
     required this.current,
     required this.times,
     required this.progress,
-    required this.formatted,
+    required this.milliseconds,
     required this.running,
     required this.onToggleTimer,
     required this.onTapStep,
@@ -384,7 +388,7 @@ class _TopBar extends StatelessWidget {
           Row(
             children: [
               _TimerPill(
-                formatted: formatted,
+                milliseconds: milliseconds,
                 running: running,
                 onTap: onToggleTimer,
               ),
@@ -793,12 +797,12 @@ class _NavBar extends StatelessWidget {
 }
 
 class _TimerPill extends StatelessWidget {
-  final String formatted;
+  final ValueListenable<int> milliseconds;
   final bool running;
   final VoidCallback? onTap;
 
   const _TimerPill({
-    required this.formatted,
+    required this.milliseconds,
     required this.running,
     required this.onTap,
   });
@@ -832,13 +836,16 @@ class _TimerPill extends StatelessWidget {
               color: accent,
             ),
             SizedBox(width: 5.w),
-            Text(
-              formatted,
-              style: TextStyle(
-                fontSize: 14.sp,
-                fontWeight: FontWeight.w700,
-                color: running ? AppColors.primaryBlue : palette.textPrimary,
-                fontFeatures: const [FontFeature.tabularFigures()],
+            ValueListenableBuilder<int>(
+              valueListenable: milliseconds,
+              builder: (context, value, _) => Text(
+                _TestRunViewState._formatMs(value),
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w700,
+                  color: running ? AppColors.primaryBlue : palette.textPrimary,
+                  fontFeatures: const [FontFeature.tabularFigures()],
+                ),
               ),
             ),
           ],
