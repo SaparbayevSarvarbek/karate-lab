@@ -1,8 +1,16 @@
 import 'package:flutter/material.dart';
-import '../theme/app_palette.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import '../theme/app_palette.dart';
+import '../theme/app_text_styles.dart';
+
+/// Ilova bo'ylab yagona matn maydoni.
+///
+/// `label` berilsa maydon ustida kichik sarlavha chiqadi — bu formani
+/// o'qishni ancha osonlashtiradi.
 class CustomTextField extends StatelessWidget {
   final String hintText;
+  final String? label;
   final TextEditingController? controller;
   final bool obscureText;
   final Widget? prefixIcon;
@@ -14,8 +22,9 @@ class CustomTextField extends StatelessWidget {
   final void Function(String)? onChanged;
 
   const CustomTextField({
-    Key? key,
+    super.key,
     required this.hintText,
+    this.label,
     this.controller,
     this.obscureText = false,
     this.prefixIcon,
@@ -25,12 +34,12 @@ class CustomTextField extends StatelessWidget {
     this.keyboardType = TextInputType.text,
     this.validator,
     this.onChanged,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
     final hintColor = context.palette.textHint;
-    return TextFormField(
+    final field = TextFormField(
       controller: controller,
       obscureText: obscureText,
       keyboardType: keyboardType,
@@ -38,11 +47,30 @@ class CustomTextField extends StatelessWidget {
       onChanged: onChanged,
       decoration: InputDecoration(
         hintText: hintText,
-        prefixIcon: prefixIcon != null ? IconTheme(data: IconThemeData(color: hintColor), child: prefixIcon!) : null,
+        prefixIcon: prefixIcon != null
+            ? IconTheme(data: IconThemeData(color: hintColor), child: prefixIcon!)
+            : null,
         prefixText: prefixText,
         suffixText: suffixText,
-        suffixIcon: suffixIcon != null ? IconTheme(data: IconThemeData(color: hintColor), child: suffixIcon!) : null,
+        suffixIcon: suffixIcon != null
+            ? IconTheme(data: IconThemeData(color: hintColor), child: suffixIcon!)
+            : null,
       ),
+    );
+
+    if (label == null) return field;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label!,
+          style: AppTextStyles.label
+              .copyWith(color: context.palette.textSecondary),
+        ),
+        SizedBox(height: 8.h),
+        field,
+      ],
     );
   }
 }

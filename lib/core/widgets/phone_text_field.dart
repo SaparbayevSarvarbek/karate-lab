@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+
 import '../constants/app_colors.dart';
 import '../theme/app_palette.dart';
+import '../theme/app_radius.dart';
+import '../theme/app_text_styles.dart';
 import '../utils/uz_phone_formatter.dart';
 
 /// Toza, izchil Material telefon raqam maydoni.
@@ -13,11 +17,13 @@ import '../utils/uz_phone_formatter.dart';
 class PhoneTextField extends StatelessWidget {
   final TextEditingController controller;
   final String hintText;
+  final String? label;
 
   const PhoneTextField({
     super.key,
     required this.controller,
     this.hintText = 'XX XXX XX XX',
+    this.label,
   });
 
   void _onChanged(String value) {
@@ -35,26 +41,26 @@ class PhoneTextField extends StatelessWidget {
     final palette = context.palette;
     OutlineInputBorder border(Color color, [double width = 1]) {
       return OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.button.r),
         borderSide: BorderSide(color: color, width: width),
       );
     }
 
-    return TextFormField(
+    final field = TextFormField(
       controller: controller,
       keyboardType: TextInputType.phone,
-      style: TextStyle(fontSize: 16, color: palette.textPrimary),
+      style: TextStyle(fontSize: 16.sp, color: palette.textPrimary),
       onChanged: _onChanged,
       validator: (v) => UzPhoneFormatter.validateField(v ?? ''),
       decoration: InputDecoration(
         hintText: hintText,
-        hintStyle: TextStyle(color: palette.textHint),
+        hintStyle: TextStyle(color: palette.textHint, fontSize: 15.sp),
         prefixIcon: Padding(
-          padding: const EdgeInsets.only(left: 16, right: 8),
+          padding: EdgeInsets.only(left: 16.w, right: 8.w),
           child: Text(
             '+998',
             style: TextStyle(
-              fontSize: 16,
+              fontSize: 16.sp,
               fontWeight: FontWeight.w600,
               color: palette.textPrimary,
             ),
@@ -63,14 +69,28 @@ class PhoneTextField extends StatelessWidget {
         prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
         filled: true,
         fillColor: palette.backgroundLight,
-        contentPadding: const EdgeInsets.symmetric(vertical: 16),
+        contentPadding: EdgeInsets.symmetric(vertical: 18.h),
         border: border(palette.border),
         enabledBorder: border(palette.border),
         focusedBorder: border(AppColors.primaryBlue, 2),
         errorBorder: border(AppColors.error),
         focusedErrorBorder: border(AppColors.error, 2),
-        errorStyle: const TextStyle(color: AppColors.error, fontSize: 12),
+        errorStyle: const TextStyle(color: AppColors.error, fontSize: 12.5),
       ),
+    );
+
+    if (label == null) return field;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label!,
+          style: AppTextStyles.label.copyWith(color: palette.textSecondary),
+        ),
+        SizedBox(height: 8.h),
+        field,
+      ],
     );
   }
 }

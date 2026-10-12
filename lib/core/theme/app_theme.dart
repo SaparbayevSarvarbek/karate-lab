@@ -43,7 +43,7 @@ class AppTheme {
         displayMedium: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: palette.textPrimary),
         titleLarge: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: palette.textPrimary),
         titleMedium: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: palette.textPrimary),
-        bodyLarge: TextStyle(fontSize: 16, color: palette.textPrimary),
+        bodyLarge: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: palette.textPrimary),
         bodyMedium: TextStyle(fontSize: 14, color: palette.textSecondary),
         labelLarge: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: palette.onBrand),
       ),
@@ -71,8 +71,9 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: palette.backgroundLight,
-        hintStyle: TextStyle(color: palette.textHint, fontSize: 14),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        hintStyle: TextStyle(color: palette.textHint, fontSize: 15),
+        errorStyle: const TextStyle(fontSize: 12.5),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.button),
           borderSide: BorderSide(color: palette.border),

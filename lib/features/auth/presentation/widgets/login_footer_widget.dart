@@ -17,7 +17,7 @@ class LoginFooterWidget extends StatelessWidget {
       children: [
         Text(
           'Hisobingiz yo\'qmi?',
-          style: AppTextStyles.caption.copyWith(color: palette.textSecondary),
+          style: AppTextStyles.body.copyWith(color: palette.textSecondary),
         ),
         GestureDetector(
           onTap: onRegister,
@@ -26,9 +26,9 @@ class LoginFooterWidget extends StatelessWidget {
             padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 8.h),
             child: Text(
               'Ro\'yxatdan o\'tish',
-              style: AppTextStyles.caption.copyWith(
+              style: AppTextStyles.body.copyWith(
                 color: AppColors.primaryBlue,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w800,
               ),
             ),
           ),

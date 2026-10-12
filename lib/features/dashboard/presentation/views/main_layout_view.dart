@@ -37,18 +37,29 @@ class _MainLayoutViewState extends State<MainLayoutView> {
     }
     _lastBackPress = now;
     if (!mounted) return false;
+    // Snackbar ranglari mavzuga bog'liq: light'da oq, dark'da to'q yuza.
+    final palette = context.palette;
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
-          content: const Text(
+          content: Text(
             'Chiqish uchun yana bir marta bosing',
             textAlign: TextAlign.center,
+            style: TextStyle(
+              color: palette.textPrimary,
+              fontSize: 13.5.sp,
+              fontWeight: FontWeight.w600,
+            ),
           ),
           duration: const Duration(seconds: 2),
           behavior: SnackBarBehavior.floating,
-          backgroundColor: AppColors.primaryNavy,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          backgroundColor: palette.surface,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadius.button.r),
+            side: BorderSide(color: palette.border),
+          ),
           margin: EdgeInsets.symmetric(horizontal: 40.w, vertical: 20.h),
         ),
       );

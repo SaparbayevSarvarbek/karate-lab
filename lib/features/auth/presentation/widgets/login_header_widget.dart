@@ -27,7 +27,7 @@ class LoginLogoIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const KarateLabLogo(size: 64);
+    return const KarateLabLogo(size: 72);
   }
 }
 
@@ -39,7 +39,7 @@ class LoginWelcomeTitle extends StatelessWidget {
     return Text(
       'KarateLab AI',
       textAlign: TextAlign.center,
-      style: AppTextStyles.screenTitle.copyWith(
+      style: AppTextStyles.brandTitle.copyWith(
         color: context.palette.textPrimary,
       ),
     );
@@ -52,9 +52,9 @@ class LoginWelcomeSubtitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Text(
-      'Profilingizga kiring',
+      'Hisobingizga kirib mashg\'ulotni davom ettiring',
       textAlign: TextAlign.center,
-      style: AppTextStyles.caption.copyWith(
+      style: AppTextStyles.body.copyWith(
         color: context.palette.textSecondary,
       ),
     );

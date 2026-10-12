@@ -12,7 +12,6 @@ import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/theme/theme_controller.dart';
-import '../../../../core/widgets/app_step_badge.dart';
 import '../../../../core/widgets/karate_app_bar.dart';
 import '../../../../core/widgets/remote_image.dart';
 import '../../../../core/widgets/shimmer_placeholder.dart';
@@ -73,12 +72,7 @@ class _ProfileViewState extends State<ProfileView> {
                         const ShimmerProfileAvatar()
                       else
                         ProfileAvatarSection(isCoach: isCoach, profile: profile),
-                      SizedBox(height: AppSpacing.xl.h),
-                      if (loading)
-                        const ProfileStatsShimmer()
-                      else
-                        ProfileStatsRow(profile: profile),
-                      SizedBox(height: AppSpacing.xl.h),
+                      SizedBox(height: AppSpacing.xxl.h),
                       if (loading)
                         const ShimmerListTile(hasLeading: true, lines: 1)
                       else
@@ -117,24 +111,11 @@ class ProfileAvatarSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final username = profile?.username ?? '';
     return Column(
       children: [
         ProfileAvatar(isCoach: isCoach, profile: profile),
         SizedBox(height: 14.h),
         ProfileName(isCoach: isCoach, name: profile?.fullName ?? ''),
-        SizedBox(height: 8.h),
-        AppStepBadge(
-          label: isCoach ? Tr.t('badgeCoach') : Tr.t('badgeAthlete'),
-        ),
-        if (username.isNotEmpty) ...[
-          SizedBox(height: 6.h),
-          Text(
-            username,
-            style: AppTextStyles.caption
-                .copyWith(color: context.palette.textSecondary),
-          ),
-        ],
       ],
     );
   }
@@ -208,126 +189,6 @@ class ProfileName extends StatelessWidget {
       ),
     );
   }
-}
-
-class ProfileStatsRow extends StatelessWidget {
-  final Profile? profile;
-
-  const ProfileStatsRow({super.key, this.profile});
-
-  int? _age() {
-    final raw = profile?.birthDate;
-    if (raw == null || raw.isEmpty) return null;
-    final date = DateTime.tryParse(raw);
-    if (date == null) return null;
-    final now = DateTime.now();
-    var age = now.year - date.year;
-    if (now.month < date.month ||
-        (now.month == date.month && now.day < date.day)) {
-      age--;
-    }
-    return age >= 0 ? age : null;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final height = profile?.heightCm;
-    final weight = profile?.weightKg;
-    final age = _age();
-    return Row(
-      children: [
-        Expanded(
-          child: ProfileStatCard(
-            value: height == null ? '—' : '$height',
-            label: 'Bo\'y',
-          ),
-        ),
-        SizedBox(width: AppSpacing.md.w),
-        Expanded(
-          child: ProfileStatCard(
-            value: weight == null ? '—' : '$weight',
-            label: 'Vazn',
-          ),
-        ),
-        SizedBox(width: AppSpacing.md.w),
-        Expanded(
-          child: ProfileStatCard(
-            value: age == null ? '—' : '$age',
-            label: 'Yosh',
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class ProfileStatCard extends StatelessWidget {
-  final String value;
-  final String label;
-
-  const ProfileStatCard({super.key, required this.value, required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = context.palette;
-    return Container(
-      padding: EdgeInsets.symmetric(vertical: 14.h, horizontal: 8.w),
-      decoration: BoxDecoration(
-        color: palette.surface,
-        borderRadius: BorderRadius.circular(AppRadius.card.r),
-        border: Border.all(color: palette.border),
-      ),
-      child: Column(
-        children: [
-          Text(
-            value,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontSize: 18.sp,
-              fontWeight: FontWeight.w800,
-              height: 1.1,
-              color: palette.textPrimary,
-            ),
-          ),
-          SizedBox(height: 4.h),
-          Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontSize: 10.5.sp,
-              fontWeight: FontWeight.w500,
-              color: palette.textSecondary,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class ProfileStatsShimmer extends StatelessWidget {
-  const ProfileStatsShimmer({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(child: _tile()),
-        SizedBox(width: AppSpacing.md.w),
-        Expanded(child: _tile()),
-        SizedBox(width: AppSpacing.md.w),
-        Expanded(child: _tile()),
-      ],
-    );
-  }
-
-  Widget _tile() => ShimmerPlaceholder(
-        width: double.infinity,
-        height: 74.h,
-        borderRadius: BorderRadius.circular(AppRadius.card.r),
-      );
 }
 
 class ProfileMenuList extends StatelessWidget {
