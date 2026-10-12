@@ -212,5 +212,6 @@
   "testRunRepeat": "Takrorlash",
   "testRunAnswered": "Bajarilgan",
   "testRunCurrentStep": "Joriy",
-  "testRunUnanswered": "Kutilmoqda"
+  "testRunUnanswered": "Kutilmoqda",
+  "testRunNoImage": "Rasm qo'shilmagan"
 }

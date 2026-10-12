@@ -13,15 +13,10 @@ import '../../../../core/repositories/test_repository.dart';
 import '../../../../core/theme/app_palette.dart';
 import '../../../../core/widgets/remote_image.dart';
 
-/// Testni taymer bilan bajarish sahifasi (professional redesign).
+/// Testni taymer bilan bajarish sahifasi.
 ///
-/// Task 2: Professional test run UI with:
-/// - Top header (test name, progress, step counter, timer)
-/// - Step navigator chips
-/// - Exit & finish confirmation dialogs
-/// - AnimatedSwitcher transitions
-/// - Responsive max-width layout
-/// - Loading/error states
+/// Tuzilma: progress sarlavha → qadamlar yo'lagi → qadam mazmuni →
+/// pastdagi yagona boshqaruv paneli (taymer + navigatsiya).
 class TestRunView extends StatefulWidget {
   final TestResult result;
 
@@ -31,7 +26,7 @@ class TestRunView extends StatefulWidget {
   State<TestRunView> createState() => _TestRunViewState();
 }
 
-class _TestRunViewState extends State<TestRunView> with SingleTickerProviderStateMixin {
+class _TestRunViewState extends State<TestRunView> {
   late final List<TestStep> _steps = widget.result.steps;
   late final List<double> _times = List<double>.filled(_steps.length, 0);
   int _current = 0;
@@ -125,11 +120,6 @@ class _TestRunViewState extends State<TestRunView> with SingleTickerProviderStat
     });
   }
 
-  Future<bool> _onWillPop() async {
-    if (_submitting) return false;
-    return await _showExitConfirmation() ?? false;
-  }
-
   Future<bool?> _showExitConfirmation() async {
     return showDialog<bool>(
       context: context,
@@ -181,10 +171,10 @@ class _TestRunViewState extends State<TestRunView> with SingleTickerProviderStat
     _timer?.cancel();
     _running = false;
 
-    final stepTimes = <FinishStepInput>[];
-    for (var i = 0; i < _steps.length; i++) {
-      stepTimes.add(FinishStepInput(stepId: _steps[i].id, seconds: _times[i]));
-    }
+    final stepTimes = <FinishStepInput>[
+      for (var i = 0; i < _steps.length; i++)
+        FinishStepInput(stepId: _steps[i].id, seconds: _times[i]),
+    ];
 
     final result = await getIt<TestRepository>().finishTest(
       widget.result.id,
@@ -206,7 +196,7 @@ class _TestRunViewState extends State<TestRunView> with SingleTickerProviderStat
             ),
           );
       },
-      (result) => Navigator.of(context).pop(result),
+      (finished) => Navigator.of(context).pop(finished),
     );
   }
 
@@ -224,7 +214,7 @@ class _TestRunViewState extends State<TestRunView> with SingleTickerProviderStat
               Icon(Icons.error_outline, size: 56.w, color: palette.textHint),
               SizedBox(height: 12.h),
               Text(
-                'Qadamlar topilmadi',
+                Tr.t('stepsNotFound'),
                 style: TextStyle(color: palette.textSecondary, fontSize: 14.sp),
               ),
             ],
@@ -239,11 +229,10 @@ class _TestRunViewState extends State<TestRunView> with SingleTickerProviderStat
     return PopScope(
       canPop: !_submitting,
       onPopInvoked: (didPop) async {
-        if (!didPop && !_submitting) {
-          final shouldPop = await _showExitConfirmation();
-          if (shouldPop == true && mounted) {
-            Navigator.of(context).pop();
-          }
+        if (didPop || _submitting) return;
+        final shouldExit = await _showExitConfirmation();
+        if (shouldExit == true && mounted) {
+          Navigator.of(context).pop();
         }
       },
       child: Scaffold(
@@ -251,7 +240,9 @@ class _TestRunViewState extends State<TestRunView> with SingleTickerProviderStat
         appBar: AppBar(
           title: Text(
             widget.result.name,
-            style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w700),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontSize: 15.5.sp, fontWeight: FontWeight.w700),
           ),
           centerTitle: true,
           leading: IconButton(
@@ -265,6 +256,22 @@ class _TestRunViewState extends State<TestRunView> with SingleTickerProviderStat
                     }
                   },
           ),
+          actions: [
+            Padding(
+              padding: EdgeInsets.only(right: 14.w),
+              child: Center(
+                child: Text(
+                  '${(progress * 100).round()}%',
+                  style: TextStyle(
+                    fontSize: 13.sp,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.primaryBlue,
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
         body: SafeArea(
           child: LayoutBuilder(
@@ -278,53 +285,48 @@ class _TestRunViewState extends State<TestRunView> with SingleTickerProviderStat
                   ),
                   child: Column(
                     children: [
-                      _HeaderCard(
+                      _ProgressHeader(
                         current: _current,
                         total: _steps.length,
                         progress: progress,
-                        formatted: _formatted,
                       ),
-if (_steps.length <= 12) ...[
-                        SizedBox(height: 12.h),
-                        _StepNavigator(
-                          steps: _steps,
-                          current: _current,
-                          times: _times,
-                          onTap: _submitting ? null : _jumpToStep,
-                        ),
-                      ],
+                      _StepRail(
+                        steps: _steps,
+                        current: _current,
+                        times: _times,
+                        onTap: _submitting ? null : _jumpToStep,
+                      ),
                       Expanded(
                         child: AnimatedSwitcher(
-                          duration: const Duration(milliseconds: 300),
-                          transitionBuilder: (child, animation) {
-                            return FadeTransition(
-                              opacity: animation,
-                              child: SlideTransition(
-                                position: Tween<Offset>(
-                                  begin: const Offset(0.05, 0),
-                                  end: Offset.zero,
-                                ).animate(animation),
-                                child: child,
-                              ),
-                            );
-                          },
+                          duration: const Duration(milliseconds: 260),
+                          transitionBuilder: (child, animation) => FadeTransition(
+                            opacity: animation,
+                            child: SlideTransition(
+                              position: Tween<Offset>(
+                                begin: const Offset(0.04, 0),
+                                end: Offset.zero,
+                              ).animate(animation),
+                              child: child,
+                            ),
+                          ),
                           child: SingleChildScrollView(
                             key: ValueKey<int>(_current),
-                            padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 16.h),
-                            child: _StepContent(step: step, current: _current),
+                            padding: EdgeInsets.fromLTRB(16.w, 4.h, 16.w, 16.h),
+                            child: _StepBody(
+                              step: step,
+                              index: _current,
+                              recordedSeconds: _times[_current],
+                            ),
                           ),
                         ),
                       ),
-                      _TimerCard(
+                      _ControlBar(
                         formatted: _formatted,
                         running: _running,
                         submitting: _submitting,
-                        onToggle: _submitting ? null : _toggleTimer,
-                      ),
-                      _BottomBar(
                         isFirst: _isFirst,
                         isLast: _isLast,
-                        busy: _submitting,
+                        onToggleTimer: _submitting ? null : _toggleTimer,
                         onPrevious: _submitting || _isFirst ? null : _previous,
                         onNext: _submitting ? null : _next,
                       ),
@@ -340,31 +342,25 @@ if (_steps.length <= 12) ...[
   }
 }
 
-class _HeaderCard extends StatelessWidget {
+class _ProgressHeader extends StatelessWidget {
   final int current;
   final int total;
   final double progress;
-  final String formatted;
 
-  const _HeaderCard({
+  const _ProgressHeader({
     required this.current,
     required this.total,
     required this.progress,
-    required this.formatted,
   });
 
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
-    final percent = (progress * 100).toStringAsFixed(0);
 
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
-      decoration: BoxDecoration(
-        color: palette.surface,
-        border: Border(bottom: BorderSide(color: palette.border, width: 1)),
-      ),
+    return Padding(
+      padding: EdgeInsets.fromLTRB(16.w, 10.h, 16.w, 0),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -375,64 +371,41 @@ class _HeaderCard extends StatelessWidget {
                   'total': '$total',
                 }),
                 style: TextStyle(
-                  fontSize: 14.sp,
+                  fontSize: 13.sp,
                   fontWeight: FontWeight.w700,
                   color: palette.textPrimary,
                 ),
               ),
-              Row(
-                children: [
-                  Icon(Icons.timer_outlined, size: 14.w, color: AppColors.primaryBlue),
-                  SizedBox(width: 4.w),
-                  Text(
-                    formatted,
-                    style: TextStyle(
-                      fontSize: 13.sp,
-                      fontWeight: FontWeight.w600,
+              Text(
+                Tr.t('testRunProgress', {'percent': '${(progress * 100).round()}'}),
+                style: TextStyle(
+                  fontSize: 11.5.sp,
+                  fontWeight: FontWeight.w500,
+                  color: palette.textHint,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 8.h),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(999.r),
+            child: Stack(
+              children: [
+                Container(height: 6.h, color: palette.border),
+                AnimatedFractionallySizedBox(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeOut,
+                  widthFactor: progress.clamp(0.0, 1.0),
+                  alignment: Alignment.centerLeft,
+                  child: Container(
+                    height: 6.h,
+                    decoration: BoxDecoration(
                       color: AppColors.primaryBlue,
-                      fontFeatures: const [FontFeature.tabularFigures()],
+                      borderRadius: BorderRadius.circular(999.r),
                     ),
                   ),
-                ],
-              ),
-            ],
-          ),
-          SizedBox(height: 10.h),
-          Stack(
-            children: [
-              Container(
-                height: 8.h,
-                decoration: BoxDecoration(
-                  color: palette.border,
-                  borderRadius: BorderRadius.circular(999.r),
                 ),
-              ),
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                height: 8.h,
-                width: MediaQuery.of(context).size.width * progress,
-                constraints: BoxConstraints(
-                  maxWidth: (MediaQuery.of(context).size.width - 32.w) * progress,
-                ),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [AppColors.primaryBlue, AppColors.primaryDark],
-                  ),
-                  borderRadius: BorderRadius.circular(999.r),
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 6.h),
-          Align(
-            alignment: Alignment.centerRight,
-            child: Text(
-              Tr.t('testRunProgress', {'percent': percent}),
-              style: TextStyle(
-                fontSize: 11.sp,
-                color: palette.textHint,
-                fontWeight: FontWeight.w500,
-              ),
+              ],
             ),
           ),
         ],
@@ -441,13 +414,13 @@ class _HeaderCard extends StatelessWidget {
   }
 }
 
-class _StepNavigator extends StatelessWidget {
+class _StepRail extends StatelessWidget {
   final List<TestStep> steps;
   final int current;
   final List<double> times;
   final void Function(int)? onTap;
 
-  const _StepNavigator({
+  const _StepRail({
     required this.steps,
     required this.current,
     required this.times,
@@ -458,73 +431,66 @@ class _StepNavigator extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = context.palette;
 
-    return Container(
-      height: 52.h,
-      padding: EdgeInsets.symmetric(horizontal: 12.w),
+    return SizedBox(
+      height: 46.h,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
         itemCount: steps.length,
         separatorBuilder: (_, __) => SizedBox(width: 8.w),
         itemBuilder: (context, index) {
           final isCurrent = index == current;
-          final isCompleted = times[index] > 0 && index != current;
+          final isDone = !isCurrent && times[index] > 0;
+
+          final Color fill;
+          final Color border;
+          final Color content;
+
+          if (isCurrent) {
+            fill = AppColors.primaryBlue;
+            border = AppColors.primaryBlue;
+            content = Colors.white;
+          } else if (isDone) {
+            fill = AppColors.success.withValues(alpha: 0.14);
+            border = AppColors.success.withValues(alpha: 0.5);
+            content = AppColors.success;
+          } else {
+            fill = palette.surface;
+            border = palette.border;
+            content = palette.textHint;
+          }
 
           return GestureDetector(
             onTap: onTap != null ? () => onTap!(index) : null,
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
-              width: 40.w,
+              width: 30.w,
+              height: 30.w,
               decoration: BoxDecoration(
-                color: isCurrent
-                    ? AppColors.primaryBlue
-                    : isCompleted
-                        ? AppColors.success.withValues(alpha: 0.15)
-                        : palette.surface,
-                border: Border.all(
-                  color: isCurrent
-                      ? AppColors.primaryBlue
-                      : isCompleted
-                          ? AppColors.success
-                          : palette.border,
-                  width: isCurrent ? 2 : 1,
-                ),
-                borderRadius: BorderRadius.circular(12.r),
+                color: fill,
+                shape: BoxShape.circle,
+                border: Border.all(color: border, width: isCurrent ? 0 : 1.2),
+                boxShadow: isCurrent
+                    ? [
+                        BoxShadow(
+                          color: AppColors.primaryBlue.withValues(alpha: 0.35),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ]
+                    : null,
               ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  if (isCompleted)
-                    Icon(Icons.check_circle_rounded,
-                        size: 16.w, color: AppColors.success)
-                  else
-                    Text(
-                      '${index + 1}',
-                      style: TextStyle(
-                        fontSize: 14.sp,
-                        fontWeight: FontWeight.w700,
-                        color: isCurrent ? Colors.white : palette.textPrimary,
+              child: Center(
+                child: isDone
+                    ? Icon(Icons.check_rounded, size: 15.w, color: content)
+                    : Text(
+                        '${index + 1}',
+                        style: TextStyle(
+                          fontSize: 12.5.sp,
+                          fontWeight: FontWeight.w700,
+                          color: content,
+                        ),
                       ),
-                    ),
-                  SizedBox(height: 2.h),
-                  Text(
-                    isCurrent
-                        ? Tr.t('testRunCurrentStep')
-                        : isCompleted
-                            ? Tr.t('testRunAnswered')
-                            : Tr.t('testRunUnanswered'),
-                    style: TextStyle(
-                      fontSize: 8.sp,
-                      color: isCurrent
-                          ? Colors.white.withValues(alpha: 0.9)
-                          : isCompleted
-                              ? AppColors.success
-                              : palette.textHint,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
               ),
             ),
           );
@@ -534,11 +500,16 @@ class _StepNavigator extends StatelessWidget {
   }
 }
 
-class _StepContent extends StatelessWidget {
+class _StepBody extends StatelessWidget {
   final TestStep step;
-  final int current;
+  final int index;
+  final double recordedSeconds;
 
-  const _StepContent({required this.step, required this.current});
+  const _StepBody({
+    required this.step,
+    required this.index,
+    required this.recordedSeconds,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -547,193 +518,132 @@ class _StepContent extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (step.hasImage)
-          ClipRRect(
-            borderRadius: BorderRadius.circular(16.r),
-            child: RemoteImage(
-              url: ApiConstants.resolveMediaUrl(step.imageUrl!),
-              width: double.infinity,
-              height: 220.h,
-              borderRadius: BorderRadius.zero,
-            ),
-          ),
-        if (step.hasImage) SizedBox(height: 16.h),
-        Container(
-          padding: EdgeInsets.all(16.w),
-          decoration: BoxDecoration(
-            color: palette.surface,
-            borderRadius: BorderRadius.circular(16.r),
-            border: Border.all(color: palette.border),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryBlue.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(8.r),
-                    ),
-                    child: Text(
-                      Tr.t('testRunSteps') + ' ${current + 1}',
-                      style: TextStyle(
-                        fontSize: 11.sp,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.primaryBlue,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 12.h),
-              Text(
-                step.title.isEmpty ? 'Qadam ${current + 1}' : step.title,
-                style: TextStyle(
-                  fontSize: 18.sp,
-                  fontWeight: FontWeight.w800,
-                  color: palette.textPrimary,
-                ),
-              ),
-if (step.description.isNotEmpty) ...[
-                SizedBox(height: 10.h),
-                Text(
-                  step.description,
-                  style: TextStyle(
-                    color: palette.textSecondary,
-                    fontSize: 13.5.sp,
-                    height: 1.55,
-                  ),
-                ),
-              ],
-if (step.repetitions.isNotEmpty) ...[
-                SizedBox(height: 14.h),
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryBlue.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(10.r),
-                    border: Border.all(
-                      color: AppColors.primaryBlue.withValues(alpha: 0.2),
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.repeat_rounded,
-                          size: 16.w, color: AppColors.primaryBlue),
-                      SizedBox(width: 8.w),
-                      Text(
-                        step.repetitions,
-                        style: TextStyle(
-                          color: AppColors.primaryBlue,
-                          fontSize: 13.sp,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ],
+        _StepHero(step: step, index: index),
+        SizedBox(height: 16.h),
+        Text(
+          step.title.isEmpty ? '${Tr.t('testRunSteps')} ${index + 1}' : step.title,
+          style: TextStyle(
+            fontSize: 19.sp,
+            fontWeight: FontWeight.w800,
+            color: palette.textPrimary,
+            height: 1.25,
           ),
         ),
+        if (step.description.isNotEmpty) ...[
+          SizedBox(height: 8.h),
+          Text(
+            step.description,
+            style: TextStyle(
+              color: palette.textSecondary,
+              fontSize: 13.5.sp,
+              height: 1.55,
+            ),
+          ),
+        ],
+        if (step.repetitions.isNotEmpty || step.duration > 0 || recordedSeconds > 0) ...[
+          SizedBox(height: 14.h),
+          Wrap(
+            spacing: 8.w,
+            runSpacing: 8.h,
+            children: [
+              if (step.repetitions.isNotEmpty)
+                _MetaChip(
+                  icon: Icons.repeat_rounded,
+                  label: step.repetitions,
+                  color: AppColors.primaryBlue,
+                ),
+              if (step.duration > 0)
+                _MetaChip(
+                  icon: Icons.timer_outlined,
+                  label: '${step.duration}s',
+                  color: AppColors.info,
+                ),
+              if (recordedSeconds > 0)
+                _MetaChip(
+                  icon: Icons.check_circle_rounded,
+                  label: '${recordedSeconds.toStringAsFixed(1)}s',
+                  color: AppColors.success,
+                ),
+            ],
+          ),
+        ],
       ],
     );
   }
 }
 
-class _TimerCard extends StatelessWidget {
-  final String formatted;
-  final bool running;
-  final bool submitting;
-  final VoidCallback? onToggle;
+class _StepHero extends StatelessWidget {
+  final TestStep step;
+  final int index;
 
-  const _TimerCard({
-    required this.formatted,
-    required this.running,
-    required this.submitting,
-    required this.onToggle,
-  });
+  const _StepHero({required this.step, required this.index});
 
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
 
     return Container(
-      margin: EdgeInsets.fromLTRB(16.w, 0, 16.w, 12.h),
-      padding: EdgeInsets.all(18.w),
+      width: double.infinity,
+      height: 200.h,
       decoration: BoxDecoration(
-        color: palette.surface,
-        borderRadius: BorderRadius.circular(20.r),
-        border: Border.all(
-          color: running ? AppColors.primaryBlue : palette.border,
-          width: running ? 2 : 1,
-        ),
-        boxShadow: running
-            ? [
-                BoxShadow(
-                  color: AppColors.primaryBlue.withValues(alpha: 0.15),
-                  blurRadius: 12,
-                  spreadRadius: 0,
-                ),
-              ]
-            : null,
+        borderRadius: BorderRadius.circular(18.r),
+        border: Border.all(color: palette.border),
       ),
-      child: Column(
+      clipBehavior: Clip.antiAlias,
+      child: Stack(
+        fit: StackFit.expand,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.timer_outlined,
-                size: 20.w,
-                color: running ? AppColors.primaryBlue : palette.textHint,
-              ),
-              SizedBox(width: 6.w),
-              Text(
-                Tr.t('testRunElapsed'),
-                style: TextStyle(
-                  fontSize: 12.sp,
-                  color: running ? AppColors.primaryBlue : palette.textHint,
-                  fontWeight: FontWeight.w600,
+          if (step.hasImage)
+            RemoteImage(
+              url: ApiConstants.resolveMediaUrl(step.imageUrl!),
+              borderRadius: BorderRadius.zero,
+              fit: BoxFit.cover,
+            )
+          else
+            Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [AppColors.primaryNavy, Color(0xFF1E3A8A)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
               ),
-            ],
-          ),
-          SizedBox(height: 8.h),
-          Text(
-            formatted,
-            style: TextStyle(
-              fontSize: 42.sp,
-              fontWeight: FontWeight.w800,
-              color: running ? AppColors.primaryBlue : palette.textPrimary,
-              fontFeatures: const [FontFeature.tabularFigures()],
-              height: 1.0,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.sports_martial_arts,
+                    size: 46.w,
+                    color: Colors.white.withValues(alpha: 0.85),
+                  ),
+                  SizedBox(height: 10.h),
+                  Text(
+                    Tr.t('testRunNoImage'),
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.75),
+                      fontSize: 12.sp,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          SizedBox(height: 14.h),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton.icon(
-              onPressed: onToggle,
-              style: FilledButton.styleFrom(
-                padding: EdgeInsets.symmetric(vertical: 15.h),
-                backgroundColor: running ? AppColors.warning : AppColors.primaryBlue,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14.r),
+          Positioned(
+            left: 12.w,
+            top: 12.h,
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.42),
+                borderRadius: BorderRadius.circular(999.r),
+              ),
+              child: Text(
+                '${index + 1}',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 12.sp,
+                  fontWeight: FontWeight.w800,
                 ),
-              ),
-              icon: Icon(
-                running ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                size: 22.w,
-              ),
-              label: Text(
-                running
-                    ? Tr.t('testRunTimerPause')
-                    : Tr.t('testRunTimerStart'),
-                style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w600),
               ),
             ),
           ),
@@ -743,17 +653,62 @@ class _TimerCard extends StatelessWidget {
   }
 }
 
-class _BottomBar extends StatelessWidget {
+class _MetaChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+
+  const _MetaChip({
+    required this.icon,
+    required this.label,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.09),
+        borderRadius: BorderRadius.circular(10.r),
+        border: Border.all(color: color.withValues(alpha: 0.22)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 15.w, color: color),
+          SizedBox(width: 6.w),
+          Text(
+            label,
+            style: TextStyle(
+              color: color,
+              fontSize: 12.5.sp,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ControlBar extends StatelessWidget {
+  final String formatted;
+  final bool running;
+  final bool submitting;
   final bool isFirst;
   final bool isLast;
-  final bool busy;
+  final VoidCallback? onToggleTimer;
   final VoidCallback? onPrevious;
   final VoidCallback? onNext;
 
-  const _BottomBar({
+  const _ControlBar({
+    required this.formatted,
+    required this.running,
+    required this.submitting,
     required this.isFirst,
     required this.isLast,
-    required this.busy,
+    required this.onToggleTimer,
     required this.onPrevious,
     required this.onNext,
   });
@@ -763,63 +718,159 @@ class _BottomBar extends StatelessWidget {
     final palette = context.palette;
 
     return Container(
-      padding: EdgeInsets.fromLTRB(16.w, 14.h, 16.w, 16.h),
+      padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 14.h),
       decoration: BoxDecoration(
         color: palette.surface,
         border: Border(top: BorderSide(color: palette.border)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 8,
-            offset: const Offset(0, -2),
-          ),
-        ],
       ),
       child: Row(
         children: [
-          if (!isFirst)
-            Expanded(
-              child: OutlinedButton.icon(
-                onPressed: onPrevious,
-                style: OutlinedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(vertical: 15.h),
+          _TimerPill(
+            formatted: formatted,
+            running: running,
+            onTap: onToggleTimer,
+          ),
+          SizedBox(width: 10.w),
+          if (!isFirst) ...[
+            _SquareButton(
+              icon: Icons.chevron_left_rounded,
+              onTap: onPrevious,
+            ),
+            SizedBox(width: 8.w),
+          ],
+          Expanded(
+            child: SizedBox(
+              height: 46.h,
+              child: FilledButton(
+                onPressed: onNext,
+                style: FilledButton.styleFrom(
+                  backgroundColor:
+                      isLast ? AppColors.success : AppColors.primaryBlue,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14.r),
                   ),
                 ),
-                icon: const Icon(Icons.arrow_back_rounded),
-                label: Text(Tr.t('testRunPrevious')),
-              ),
-            ),
-          if (!isFirst) SizedBox(width: 12.w),
-          Expanded(
-            flex: isFirst ? 1 : 2,
-            child: FilledButton.icon(
-              onPressed: onNext,
-              style: FilledButton.styleFrom(
-                padding: EdgeInsets.symmetric(vertical: 15.h),
-                backgroundColor: isLast ? AppColors.success : AppColors.primaryBlue,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14.r),
-                ),
-              ),
-              icon: busy
-                  ? SizedBox(
-                      width: 18.w,
-                      height: 18.w,
-                      child: const CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
+                child: submitting
+                    ? SizedBox(
+                        width: 18.w,
+                        height: 18.w,
+                        child: const CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            isLast
+                                ? Tr.t('testRunFinish')
+                                : Tr.t('testRunNext'),
+                            style: TextStyle(
+                              fontSize: 14.sp,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          SizedBox(width: 6.w),
+                          Icon(
+                            isLast
+                                ? Icons.flag_rounded
+                                : Icons.chevron_right_rounded,
+                            size: 20.w,
+                          ),
+                        ],
                       ),
-                    )
-                  : Icon(isLast ? Icons.flag_rounded : Icons.arrow_forward_rounded),
-              label: Text(
-                isLast ? Tr.t('testRunFinish') : Tr.t('testRunNext'),
-                style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w600),
               ),
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _TimerPill extends StatelessWidget {
+  final String formatted;
+  final bool running;
+  final VoidCallback? onTap;
+
+  const _TimerPill({
+    required this.formatted,
+    required this.running,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    final accent = running ? AppColors.primaryBlue : palette.textSecondary;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        height: 46.h,
+        padding: EdgeInsets.symmetric(horizontal: 12.w),
+        decoration: BoxDecoration(
+          color: running
+              ? AppColors.primaryBlue.withValues(alpha: 0.1)
+              : palette.backgroundLight,
+          borderRadius: BorderRadius.circular(14.r),
+          border: Border.all(
+            color: running ? AppColors.primaryBlue : palette.border,
+            width: running ? 1.5 : 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              running ? Icons.pause_rounded : Icons.play_arrow_rounded,
+              size: 18.w,
+              color: accent,
+            ),
+            SizedBox(width: 6.w),
+            Text(
+              formatted,
+              style: TextStyle(
+                fontSize: 15.sp,
+                fontWeight: FontWeight.w700,
+                color: running ? AppColors.primaryBlue : palette.textPrimary,
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SquareButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback? onTap;
+
+  const _SquareButton({required this.icon, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    final enabled = onTap != null;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 46.w,
+        height: 46.h,
+        decoration: BoxDecoration(
+          color: palette.backgroundLight,
+          borderRadius: BorderRadius.circular(14.r),
+          border: Border.all(color: palette.border),
+        ),
+        child: Icon(
+          icon,
+          size: 22.w,
+          color: enabled ? palette.textPrimary : palette.textHint,
+        ),
       ),
     );
   }
