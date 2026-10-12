@@ -59,7 +59,7 @@ class _RoleSelectionViewState extends State<RoleSelectionView> {
                     label: '${Tr.t('setupBadge')} · 1 / 2',
                     icon: Icons.tune_rounded,
                   ),
-                  SizedBox(height: 14.h),
+                  SizedBox(height: 16.h),
                   Text(
                     'Rolingizni tanlang',
                     style: AppTextStyles.screenTitle
@@ -71,7 +71,7 @@ class _RoleSelectionViewState extends State<RoleSelectionView> {
                     style: AppTextStyles.body
                         .copyWith(color: palette.textSecondary),
                   ),
-                  SizedBox(height: 22.h),
+                  SizedBox(height: 24.h),
                   AppSelectionCard(
                     icon: Icons.sports_martial_arts,
                     title: 'Sportchi',

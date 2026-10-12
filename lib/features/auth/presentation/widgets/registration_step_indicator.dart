@@ -45,7 +45,7 @@ class RegistrationStepIndicator extends StatelessWidget {
               size: 14.w,
               color: palette.textSecondary,
             ),
-            SizedBox(width: 5.w),
+            SizedBox(width: 4.w),
             Text(
               isCoach ? 'Murabbiy' : 'Sportchi',
               style: AppTextStyles.caption
@@ -53,7 +53,7 @@ class RegistrationStepIndicator extends StatelessWidget {
             ),
           ],
         ),
-        SizedBox(height: 10.h),
+        SizedBox(height: 12.h),
         ClipRRect(
           borderRadius: BorderRadius.circular(999.r),
           child: LinearProgressIndicator(

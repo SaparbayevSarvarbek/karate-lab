@@ -279,7 +279,7 @@ class _TestRunViewState extends State<TestRunView> {
           ),
           actions: [
             Padding(
-              padding: EdgeInsets.only(right: 14.w),
+              padding: EdgeInsetsDirectional.only(end: 16.w),
               child: Center(
                 child: Text(
                   '${(progress * 100).round()}%',
@@ -339,7 +339,7 @@ class _TestRunViewState extends State<TestRunView> {
                           ),
                           child: SingleChildScrollView(
                             key: ValueKey<int>(_current),
-                            padding: EdgeInsets.fromLTRB(16.w, 14.h, 16.w, 18.h),
+                            padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 20.h),
                             child: _StepBody(
                               step: step,
                               index: _current,
@@ -419,7 +419,7 @@ class _TopBar extends StatelessWidget {
               ),
             ],
           ),
-          SizedBox(height: 10.h),
+          SizedBox(height: 12.h),
           ClipRRect(
             borderRadius: BorderRadius.circular(AppRadius.pill.r),
             child: Stack(
@@ -429,7 +429,7 @@ class _TopBar extends StatelessWidget {
                   duration: const Duration(milliseconds: 300),
                   curve: Curves.easeOut,
                   widthFactor: progress.clamp(0.0, 1.0),
-                  alignment: Alignment.centerLeft,
+                  alignment: AlignmentDirectional.centerStart,
                   child: Container(
                     height: 6.h,
                     decoration: BoxDecoration(
@@ -470,7 +470,7 @@ class _StepRail extends StatelessWidget {
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: steps.length,
-        separatorBuilder: (_, __) => SizedBox(width: 6.w),
+        separatorBuilder: (_, __) => SizedBox(width: 8.w),
         itemBuilder: (context, index) {
           final isCurrent = index == current;
           final isDone = !isCurrent && times[index] > 0;
@@ -576,7 +576,7 @@ class _StepBody extends StatelessWidget {
         if (step.repetitions.isNotEmpty ||
             step.duration > 0 ||
             recordedSeconds > 0) ...[
-          SizedBox(height: 14.h),
+          SizedBox(height: 16.h),
           Wrap(
             spacing: 8.w,
             runSpacing: 8.h,
@@ -639,9 +639,9 @@ class _StepHero extends StatelessWidget {
               Container(
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [AppColors.primaryNavy, Color(0xFF1E3A8A)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+                    colors: [AppColors.primaryNavy, AppColors.gradientDeepBlue],
+                    begin: AlignmentDirectional.topStart,
+                    end: AlignmentDirectional.bottomEnd,
                   ),
                 ),
                 child: Column(
@@ -664,11 +664,11 @@ class _StepHero extends StatelessWidget {
                   ],
                 ),
               ),
-            Positioned(
-              left: 12.w,
+            PositionedDirectional(
+              start: 12.w,
               top: 12.h,
               child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+                padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
                 decoration: BoxDecoration(
                   color: Colors.black.withValues(alpha: 0.45),
                   borderRadius: BorderRadius.circular(999.r),
@@ -714,7 +714,7 @@ class _MetaChip extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, size: 15.w, color: color),
-          SizedBox(width: 6.w),
+          SizedBox(width: 8.w),
           Text(
             label,
             style: TextStyle(
@@ -752,7 +752,7 @@ class _NavBar extends StatelessWidget {
         children: [
           if (!isFirst) ...[
             _SquareButton(icon: Icons.chevron_left_rounded, onTap: onPrevious),
-            SizedBox(width: 10.w),
+            SizedBox(width: 12.w),
           ],
           Expanded(
             child: CustomButton(
@@ -811,7 +811,7 @@ class _TimerPill extends StatelessWidget {
               size: 17.w,
               color: accent,
             ),
-            SizedBox(width: 5.w),
+            SizedBox(width: 4.w),
             ValueListenableBuilder<int>(
               valueListenable: milliseconds,
               builder: (context, value, _) => Text(

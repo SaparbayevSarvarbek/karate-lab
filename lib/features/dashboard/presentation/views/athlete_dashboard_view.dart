@@ -75,12 +75,12 @@ class _AthleteDashboardContent extends StatelessWidget {
                         padding: EdgeInsets.fromLTRB(20.w, 8.h, 20.w, 24.h),
                         children: [
                           const UserGreetingRow(fallbackName: 'Sportchi'),
-                          SizedBox(height: 18.h),
+                          SizedBox(height: 20.h),
                           ShimmerPlaceholder(
                               width: double.infinity,
                               height: 160.h,
                               borderRadius: BorderRadius.circular(24.r)),
-                          SizedBox(height: 18.h),
+                          SizedBox(height: 20.h),
                           Row(
                             children: [
                               Expanded(child: ShimmerDashboardStat()),
@@ -90,7 +90,7 @@ class _AthleteDashboardContent extends StatelessWidget {
                               Expanded(child: ShimmerDashboardStat()),
                             ],
                           ),
-                          SizedBox(height: 22.h),
+                          SizedBox(height: 24.h),
                           ShimmerPlaceholder(
                               width: 120.w,
                               height: 22.h,
@@ -121,11 +121,11 @@ class _AthleteDashboardContent extends StatelessWidget {
                         padding: EdgeInsets.fromLTRB(20.w, 8.h, 20.w, 24.h),
                         children: [
                           const UserGreetingRow(fallbackName: 'Sportchi'),
-                          SizedBox(height: 18.h),
+                          SizedBox(height: 20.h),
                           _HeroCard(onStart: () => _gotoTests(context)),
-                          SizedBox(height: 18.h),
+                          SizedBox(height: 20.h),
                           _StatsRow(data: state.data),
-                          SizedBox(height: 22.h),
+                          SizedBox(height: 24.h),
                           AppSectionHeader(title: Tr.t('myResults')),
                           SizedBox(height: 12.h),
                           _RecentResults(
@@ -160,9 +160,9 @@ class _HeroCard extends StatelessWidget {
       padding: EdgeInsets.all(20.w),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [AppColors.primaryNavy, Color(0xFF1E40AF)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+          colors: [AppColors.primaryNavy, AppColors.gradientDeepBlue],
+          begin: AlignmentDirectional.topStart,
+          end: AlignmentDirectional.bottomEnd,
         ),
         borderRadius: BorderRadius.circular(AppRadius.lg.r),
       ),
@@ -173,7 +173,7 @@ class _HeroCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
-                  padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+                  padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.14),
                     borderRadius: BorderRadius.circular(AppRadius.pill.r),
@@ -182,12 +182,12 @@ class _HeroCard extends StatelessWidget {
                     Tr.t('todaysGoal'),
                     style: TextStyle(
                       color: Colors.white70,
-                      fontSize: 11.sp,
+                      fontSize: 12.sp,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
-                SizedBox(height: 10.h),
+                SizedBox(height: 12.h),
                 Text(
                   Tr.t('heroTests'),
                   style: TextStyle(
@@ -197,7 +197,7 @@ class _HeroCard extends StatelessWidget {
                     height: 1.25,
                   ),
                 ),
-                SizedBox(height: 6.h),
+                SizedBox(height: 8.h),
                 Text(
                   'Mashqlarni bajaring, natijani kuzatib boring.',
                   style: TextStyle(
@@ -206,12 +206,12 @@ class _HeroCard extends StatelessWidget {
                     height: 1.35,
                   ),
                 ),
-                SizedBox(height: 14.h),
+                SizedBox(height: 16.h),
                 GestureDetector(
                   onTap: onStart,
                   child: Container(
                     padding:
-                        EdgeInsets.symmetric(horizontal: 18.w, vertical: 10.h),
+                        EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(AppRadius.button.r),
@@ -302,7 +302,7 @@ class _StatBox extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = context.palette;
     return Container(
-      padding: EdgeInsets.all(14.w),
+      padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         color: palette.surface,
         borderRadius: BorderRadius.circular(AppRadius.card.r),
@@ -312,14 +312,14 @@ class _StatBox extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: EdgeInsets.all(6.w),
+            padding: EdgeInsets.all(8.w),
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(10.r),
             ),
             child: Icon(icon, color: color, size: 16.w),
           ),
-          SizedBox(height: 10.h),
+          SizedBox(height: 12.h),
           Text(
             value,
             style: TextStyle(
@@ -333,7 +333,7 @@ class _StatBox extends StatelessWidget {
             title,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(color: palette.textSecondary, fontSize: 10.5.sp),
+            style: TextStyle(color: palette.textSecondary, fontSize: 12.sp),
           ),
         ],
       ),
@@ -395,7 +395,7 @@ class _ResultCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: EdgeInsets.all(14.w),
+        padding: EdgeInsets.all(16.w),
         decoration: BoxDecoration(
           color: palette.surface,
           borderRadius: BorderRadius.circular(AppRadius.card.r),
@@ -435,7 +435,7 @@ class _ResultCard extends StatelessWidget {
                       _dateLabel(result.completedAt),
                       style: TextStyle(
                         color: palette.textSecondary,
-                        fontSize: 11.sp,
+                        fontSize: 12.sp,
                       ),
                     ),
                   ],
@@ -443,7 +443,7 @@ class _ResultCard extends StatelessWidget {
               ),
             ),
             Container(
-              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
               decoration: BoxDecoration(
                 color: color.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(AppRadius.pill.r),

@@ -44,14 +44,14 @@ class AppEmptyView extends StatelessWidget {
           ),
           child: Icon(icon, size: 28.w, color: AppColors.primaryBlue),
         ),
-        SizedBox(height: 14.h),
+        SizedBox(height: 16.h),
         Text(
           title,
           textAlign: TextAlign.center,
           style: AppTextStyles.cardTitle.copyWith(color: palette.textPrimary),
         ),
         if (message != null && message!.isNotEmpty) ...[
-          SizedBox(height: 6.h),
+          SizedBox(height: 8.h),
           Text(
             message!,
             textAlign: TextAlign.center,
@@ -59,7 +59,7 @@ class AppEmptyView extends StatelessWidget {
           ),
         ],
         if (actionLabel != null && onAction != null) ...[
-          SizedBox(height: 18.h),
+          SizedBox(height: 20.h),
           CustomButton(
             text: actionLabel!,
             onPressed: onAction,
@@ -112,14 +112,14 @@ class AppErrorView extends StatelessWidget {
               child: Icon(Icons.cloud_off_rounded,
                   size: 28.w, color: AppColors.error),
             ),
-            SizedBox(height: 14.h),
+            SizedBox(height: 16.h),
             Text(
               message,
               textAlign: TextAlign.center,
               style: AppTextStyles.body.copyWith(color: palette.textSecondary),
             ),
             if (onRetry != null) ...[
-              SizedBox(height: 18.h),
+              SizedBox(height: 20.h),
               CustomButton(
                 text: retryLabel,
                 onPressed: onRetry,

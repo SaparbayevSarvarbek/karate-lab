@@ -107,9 +107,9 @@ class _HeroMedia extends StatelessWidget {
               : Container(
                   decoration: const BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [AppColors.primaryNavy, Color(0xFF1E3A8A)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
+                      colors: [AppColors.primaryNavy, AppColors.gradientDeepBlue],
+                      begin: AlignmentDirectional.topStart,
+                      end: AlignmentDirectional.bottomEnd,
                     ),
                   ),
                   child: Stack(
@@ -122,9 +122,9 @@ class _HeroMedia extends StatelessWidget {
                           color: Colors.white.withValues(alpha: 0.18),
                         ),
                       ),
-                      Positioned(
-                        left: 16.w,
-                        right: 16.w,
+                      PositionedDirectional(
+                        start: 16.w,
+                        end: 16.w,
                         bottom: 12.h,
                         child: Text(
                           'UJT testi',
@@ -160,12 +160,12 @@ class _Content extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _HeroMedia(test: test),
-          SizedBox(height: 18.h),
+          SizedBox(height: 20.h),
           Text(
             test.title,
             style: AppTextStyles.screenTitle.copyWith(color: palette.textPrimary),
           ),
-          SizedBox(height: 10.h),
+          SizedBox(height: 12.h),
           Wrap(
             spacing: 8.w,
             runSpacing: 8.h,
@@ -177,7 +177,7 @@ class _Content extends StatelessWidget {
             ],
           ),
           if (test.goal.isNotEmpty) ...[
-            SizedBox(height: 22.h),
+            SizedBox(height: 24.h),
             AppSectionHeader(title: 'Maqsad'),
             SizedBox(height: 8.h),
             Text(
@@ -186,16 +186,16 @@ class _Content extends StatelessWidget {
             ),
           ],
           if (test.qualities.isNotEmpty) ...[
-            SizedBox(height: 22.h),
+            SizedBox(height: 24.h),
             AppSectionHeader(title: 'Rivojlanadigan sifatlar'),
-            SizedBox(height: 10.h),
+            SizedBox(height: 12.h),
             Wrap(
               spacing: 8.w,
               runSpacing: 8.h,
               children: test.qualities.map((q) => _Pill(text: q)).toList(),
             ),
           ],
-          SizedBox(height: 22.h),
+          SizedBox(height: 24.h),
           AppSectionHeader(title: 'Mashqlar (${test.steps.length})'),
           SizedBox(height: 12.h),
           if (test.steps.isEmpty)
@@ -226,7 +226,7 @@ class _Pill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final child = Container(
-      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
       decoration: BoxDecoration(
         color: AppColors.primaryBlue.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(AppRadius.pill.r),
@@ -259,7 +259,7 @@ class _StepCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = context.palette;
     return Container(
-      padding: EdgeInsets.all(14.w),
+      padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         color: palette.surface,
         borderRadius: BorderRadius.circular(AppRadius.card.r),
@@ -287,7 +287,7 @@ class _StepCard extends StatelessWidget {
                   ),
                 ),
               ),
-              SizedBox(width: 10.w),
+              SizedBox(width: 12.w),
               Expanded(
                 child: Text(
                   step.title,
@@ -301,7 +301,7 @@ class _StepCard extends StatelessWidget {
             ],
           ),
           if (step.description.isNotEmpty) ...[
-            SizedBox(height: 10.h),
+            SizedBox(height: 12.h),
             Text(
               step.description,
               style: TextStyle(
@@ -312,7 +312,7 @@ class _StepCard extends StatelessWidget {
             ),
           ],
           if (step.images.isNotEmpty) ...[
-            SizedBox(height: 10.h),
+            SizedBox(height: 12.h),
             for (final img in step.images)
               Padding(
                 padding: EdgeInsets.only(bottom: 8.h),
@@ -327,7 +327,7 @@ class _StepCard extends StatelessWidget {
           if (step.repetitions.isNotEmpty ||
               step.rest.isNotEmpty ||
               step.distance.isNotEmpty) ...[
-            SizedBox(height: 10.h),
+            SizedBox(height: 12.h),
             Wrap(
               spacing: 8.w,
               runSpacing: 6.h,
@@ -374,7 +374,7 @@ class _StepMeta extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = context.palette;
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
       decoration: BoxDecoration(
         color: AppColors.primaryBlue.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(AppRadius.pill.r),
@@ -383,19 +383,19 @@ class _StepMeta extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, size: 13.w, color: AppColors.primaryBlue),
-          SizedBox(width: 5.w),
+          SizedBox(width: 4.w),
           Text(
             '$label: ',
             style: TextStyle(
               color: palette.textSecondary,
-              fontSize: 11.sp,
+              fontSize: 12.sp,
             ),
           ),
           Text(
             value,
             style: TextStyle(
               color: palette.textPrimary,
-              fontSize: 11.sp,
+              fontSize: 12.sp,
               fontWeight: FontWeight.w700,
             ),
           ),

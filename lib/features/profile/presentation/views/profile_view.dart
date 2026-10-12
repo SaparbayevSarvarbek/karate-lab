@@ -60,12 +60,7 @@ class _ProfileViewState extends State<ProfileView> {
                 onRefresh: () => _refresh(context),
                 child: SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
-                  padding: EdgeInsets.fromLTRB(
-                    AppSpacing.screenH.w,
-                    AppSpacing.sm.h,
-                    AppSpacing.screenH.w,
-                    AppSpacing.xxl.h,
-                  ),
+                  padding: EdgeInsets.fromLTRB(AppSpacing.screenH.w, AppSpacing.sm.h, AppSpacing.screenH.w, AppSpacing.xxl.h, ),
                   child: Column(
                     children: [
                       if (loading)
@@ -114,7 +109,7 @@ class ProfileAvatarSection extends StatelessWidget {
     return Column(
       children: [
         ProfileAvatar(isCoach: isCoach, profile: profile),
-        SizedBox(height: 14.h),
+        SizedBox(height: 16.h),
         ProfileName(isCoach: isCoach, name: profile?.fullName ?? ''),
       ],
     );
@@ -138,9 +133,9 @@ class ProfileAvatar extends StatelessWidget {
           size: 72,
           name: profile?.fullName ?? '',
         ),
-        Positioned(
+        PositionedDirectional(
           bottom: 0,
-          right: 0,
+          end: 0,
           child: GestureDetector(
             onTap: () async {
               final result = await context.push(
@@ -303,7 +298,7 @@ class ProfileMenuItem extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
         child: Row(
           children: [
             Container(
@@ -350,7 +345,7 @@ class ProfileThemeToggleItem extends StatelessWidget {
       builder: (context, _) {
         final isDark = ThemeController.instance.isDark;
         return Padding(
-          padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
+          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
           child: Row(
             children: [
               Container(
@@ -429,7 +424,7 @@ class ProfileLogoutButton extends StatelessWidget {
           );
         },
         child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
+          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
           child: Row(
             children: [
               Container(

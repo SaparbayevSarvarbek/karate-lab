@@ -87,7 +87,7 @@ class _GroupSelectionViewState extends State<GroupSelectionView> {
                     label: Tr.t('groupBadge'),
                     icon: Icons.groups_rounded,
                   ),
-                  SizedBox(height: 14.h),
+                  SizedBox(height: 16.h),
                   Text(
                     'Guruhni tanlang',
                     style: AppTextStyles.screenTitle
@@ -99,7 +99,7 @@ class _GroupSelectionViewState extends State<GroupSelectionView> {
                     style: AppTextStyles.body
                         .copyWith(color: palette.textSecondary),
                   ),
-                  SizedBox(height: 22.h),
+                  SizedBox(height: 24.h),
                   for (final (title, subtitle, selectable) in _groups) ...[
                     AppSelectionCard(
                       icon: Icons.workspace_premium_outlined,

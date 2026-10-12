@@ -56,7 +56,7 @@ class PhoneTextField extends StatelessWidget {
         hintText: hintText,
         hintStyle: TextStyle(color: palette.textHint, fontSize: 15.sp),
         prefixIcon: Padding(
-          padding: EdgeInsets.only(left: 16.w, right: 8.w),
+          padding: EdgeInsetsDirectional.only(start: 16.w, end: 8.w),
           child: Text(
             '+998',
             style: TextStyle(
@@ -69,7 +69,7 @@ class PhoneTextField extends StatelessWidget {
         prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
         filled: true,
         fillColor: palette.backgroundLight,
-        contentPadding: EdgeInsets.symmetric(vertical: 18.h),
+        contentPadding: EdgeInsets.symmetric(vertical: 20.h),
         border: border(palette.border),
         enabledBorder: border(palette.border),
         focusedBorder: border(AppColors.primaryBlue, 2),

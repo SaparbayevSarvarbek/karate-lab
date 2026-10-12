@@ -58,8 +58,8 @@ class OnboardingIllustration extends StatelessWidget {
         decoration: BoxDecoration(
           gradient: const LinearGradient(
             colors: [AppColors.primaryNavy, AppColors.primaryBlue],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+            begin: AlignmentDirectional.topStart,
+            end: AlignmentDirectional.bottomEnd,
           ),
           borderRadius: BorderRadius.circular(AppRadius.card.r),
         ),

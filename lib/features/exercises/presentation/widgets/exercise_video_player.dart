@@ -96,9 +96,9 @@ class _ExerciseVideoPlayerState extends State<ExerciseVideoPlayer> {
         Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [AppColors.primaryNavy, Color(0xFF1E3A8A)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+              colors: [AppColors.primaryNavy, AppColors.gradientDeepBlue],
+              begin: AlignmentDirectional.topStart,
+              end: AlignmentDirectional.bottomEnd,
             ),
           ),
         ),
@@ -158,9 +158,9 @@ class _ControlsOverlay extends StatelessWidget {
               ),
             ),
           ),
-          Positioned(
-            left: 12.w,
-            right: 12.w,
+          PositionedDirectional(
+            start: 12.w,
+            end: 12.w,
             bottom: 10.h,
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -183,10 +183,10 @@ class _ControlsOverlay extends StatelessWidget {
                       color: Colors.white,
                       size: 16.w,
                     ),
-                    SizedBox(width: 6.w),
+                    SizedBox(width: 8.w),
                     Text(
                       '${_fmt(value.position)} / ${_fmt(value.duration)}',
-                      style: TextStyle(color: Colors.white, fontSize: 11.sp),
+                      style: TextStyle(color: Colors.white, fontSize: 12.sp),
                     ),
                     const Spacer(),
                     const Icon(Icons.all_inclusive_rounded, color: Colors.white54, size: 14),
@@ -230,9 +230,9 @@ class VideoThumbnailCard extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20.r),
           gradient: const LinearGradient(
-            colors: [AppColors.primaryNavy, Color(0xFF1E3A8A)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+            colors: [AppColors.primaryNavy, AppColors.gradientDeepBlue],
+            begin: AlignmentDirectional.topStart,
+            end: AlignmentDirectional.bottomEnd,
           ),
         ),
         child: Stack(
@@ -265,11 +265,11 @@ class VideoThumbnailCard extends StatelessWidget {
                 child: Icon(Icons.play_arrow_rounded, size: 40.w, color: AppColors.primaryNavy),
               ),
             ),
-            Positioned(
-              left: 12.w,
+            PositionedDirectional(
+              start: 12.w,
               bottom: 10.h,
               child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+                padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
                 decoration: BoxDecoration(
                   color: Colors.black.withValues(alpha: 0.55),
                   borderRadius: BorderRadius.circular(10.r),
@@ -279,7 +279,7 @@ class VideoThumbnailCard extends StatelessWidget {
                   children: [
                     Icon(Icons.videocam_rounded, size: 14.w, color: Colors.white),
                     SizedBox(width: 4.w),
-                    Text('Video dars', style: TextStyle(color: Colors.white, fontSize: 11.sp, fontWeight: FontWeight.w600)),
+                    Text('Video dars', style: TextStyle(color: Colors.white, fontSize: 12.sp, fontWeight: FontWeight.w600)),
                   ],
                 ),
               ),

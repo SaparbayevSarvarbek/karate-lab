@@ -127,8 +127,8 @@ class RemoteImage extends StatelessWidget {
             AppColors.primaryNavy,
             AppColors.primaryBlue.withValues(alpha: 0.55),
           ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+          begin: AlignmentDirectional.topStart,
+          end: AlignmentDirectional.bottomEnd,
         ),
       ),
       child: Center(
@@ -195,8 +195,8 @@ class AvatarImage extends StatelessWidget {
           shape: BoxShape.circle,
           gradient: LinearGradient(
             colors: [AppColors.primaryBlue, AppColors.primaryNavy],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+            begin: AlignmentDirectional.topStart,
+            end: AlignmentDirectional.bottomEnd,
           ),
         ),
         child: Center(
@@ -204,7 +204,7 @@ class AvatarImage extends StatelessWidget {
             _initials,
             style: TextStyle(
               color: Colors.white,
-              fontSize: size * 0.36,
+              fontSize: (size * 0.36).clamp(12.0, 40.0),
               fontWeight: FontWeight.w700,
             ),
           ),

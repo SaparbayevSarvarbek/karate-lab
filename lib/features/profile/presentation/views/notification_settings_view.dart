@@ -94,12 +94,7 @@ class _NotificationSettingsViewState extends State<NotificationSettingsView> {
         child: Opacity(
           opacity: _saving ? 0.7 : 1,
           child: ListView(
-            padding: EdgeInsets.fromLTRB(
-              AppSpacing.screenH.w,
-              AppSpacing.sm.h,
-              AppSpacing.screenH.w,
-              AppSpacing.xxl.h,
-            ),
+            padding: EdgeInsets.fromLTRB(AppSpacing.screenH.w, AppSpacing.sm.h, AppSpacing.screenH.w, AppSpacing.xxl.h, ),
             children: [
               NotificationSectionHeader(title: Tr.t('notifications')),
               SizedBox(height: AppSpacing.md.h),
@@ -138,7 +133,7 @@ class _NotificationSettingsViewState extends State<NotificationSettingsView> {
                 children: [
                   NotificationTile(
                     icon: Icons.people_outline,
-                    iconColor: const Color(0xFF9333EA),
+                    iconColor: AppColors.purple,
                     title: Tr.t('notifCommunity'),
                     subtitle: Tr.t('notifCommunitySub'),
                     value: _prefs['communityUpdates'] ?? false,
@@ -239,7 +234,7 @@ class NotificationTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
       child: Row(
         children: [
           NotificationTileIcon(icon: icon, color: iconColor),

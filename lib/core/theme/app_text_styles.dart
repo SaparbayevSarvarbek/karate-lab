@@ -62,7 +62,7 @@ class AppTextStyles {
 
   /// Kichik badge / chip matni.
   static TextStyle get badge => TextStyle(
-        fontSize: 11.sp,
+        fontSize: 12.sp,
         fontWeight: FontWeight.w700,
         letterSpacing: 0.5,
       );

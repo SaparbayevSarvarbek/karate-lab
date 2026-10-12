@@ -23,7 +23,7 @@ class LoginFooterWidget extends StatelessWidget {
           onTap: onRegister,
           behavior: HitTestBehavior.opaque,
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 8.h),
+            padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 8.h),
             child: Text(
               'Ro\'yxatdan o\'tish',
               style: AppTextStyles.body.copyWith(

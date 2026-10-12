@@ -290,12 +290,7 @@ class _ProfileEditViewState extends State<ProfileEditView> {
           : SafeArea(
               bottom: false,
               child: SingleChildScrollView(
-                padding: EdgeInsets.fromLTRB(
-                  AppSpacing.screenH.w,
-                  AppSpacing.sm.h,
-                  AppSpacing.screenH.w,
-                  AppSpacing.xxl.h,
-                ),
+                padding: EdgeInsets.fromLTRB(AppSpacing.screenH.w, AppSpacing.sm.h, AppSpacing.screenH.w, AppSpacing.xxl.h, ),
                 child: Form(
                   key: _formKey,
                   child: Column(
@@ -462,9 +457,9 @@ class _AvatarSection extends StatelessWidget {
                     ),
                   ),
                 ),
-              Positioned(
+              PositionedDirectional(
                 bottom: 0,
-                right: 0,
+                end: 0,
                 child: GestureDetector(
                   onTap: busy ? null : onCameraTap,
                   child: Container(
@@ -486,7 +481,7 @@ class _AvatarSection extends StatelessWidget {
               ),
             ],
           ),
-          SizedBox(height: 10.h),
+          SizedBox(height: 12.h),
           Text(
             'Rasmni o\'zgartirish uchun bosing',
             textAlign: TextAlign.center,

@@ -140,7 +140,7 @@ class _LoginViewState extends State<LoginView> {
                             ),
                             SizedBox(height: AppSpacing.xs.h),
                             Align(
-                              alignment: Alignment.centerRight,
+                              alignment: AlignmentDirectional.centerEnd,
                               child: TextButton(
                                 onPressed: _onForgotPassword,
                                 style: TextButton.styleFrom(

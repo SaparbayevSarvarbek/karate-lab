@@ -8,6 +8,18 @@ class AppColors {
   static const Color primaryDark = Color(0xFF1A1F2E);
   static const Color primaryNavy = Color(0xFF0F172A);
 
+  // Gradients (primaryNavy / primaryBlue bilan birga ishlatiladi)
+  static const Color primaryBlueLight = Color(0xFF2B7AFF);
+  static const Color gradientDeepBlue = Color(0xFF1E40AF);
+
+  // Reyting / medal ranglari
+  static const Color medalGold = Color(0xFFFFD700);
+  static const Color medalSilver = Color(0xFFC0C0C0);
+  static const Color medalBronze = Color(0xFFCD7F32);
+
+  // Kategoriya tuslari
+  static const Color purple = Color(0xFF9333EA);
+
   // Backgrounds
   static const Color backgroundLight = Color(0xFFF5F7FA);
   static const Color backgroundWhite = Color(0xFFFFFFFF);

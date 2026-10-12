@@ -17,9 +17,9 @@ class KarateLabLogo extends StatelessWidget {
       height: size,
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [AppColors.primaryBlue, Color(0xFF2B7AFF)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+          colors: [AppColors.primaryBlue, AppColors.primaryBlueLight],
+          begin: AlignmentDirectional.topStart,
+          end: AlignmentDirectional.bottomEnd,
         ),
         borderRadius: BorderRadius.circular(size * 0.3),
       ),

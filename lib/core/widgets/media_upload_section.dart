@@ -51,7 +51,7 @@ class _MediaUploadSectionState extends State<MediaUploadSection> {
                   borderRadius: BorderRadius.circular(999.r),
                 ),
               ),
-              SizedBox(height: 14.h),
+              SizedBox(height: 16.h),
               _SheetOption(
                 icon: Icons.image_outlined,
                 label: 'Rasm',
@@ -169,10 +169,10 @@ class _MediaUploadSectionState extends State<MediaUploadSection> {
       fit: StackFit.expand,
       children: [
         Image.file(_image!, fit: BoxFit.cover),
-        Positioned(
+        PositionedDirectional(
           bottom: 0,
-          left: 0,
-          right: 0,
+          start: 0,
+          end: 0,
           child: Container(
             padding: const EdgeInsets.symmetric(vertical: 8),
             color: Colors.black54,
@@ -180,7 +180,7 @@ class _MediaUploadSectionState extends State<MediaUploadSection> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(Icons.image, color: Colors.white, size: 16),
-                SizedBox(width: 6),
+                SizedBox(width: 8),
                 Text('Rasmni almashtirish',
                     style: TextStyle(color: Colors.white, fontSize: 12)),
               ],
@@ -203,7 +203,7 @@ class _MediaUploadSectionState extends State<MediaUploadSection> {
               style: TextStyle(color: AppColors.textHint, fontSize: 13.sp)),
           SizedBox(height: 4.h),
           Text('Birini tanlang',
-              style: TextStyle(color: AppColors.textHint, fontSize: 11.sp)),
+              style: TextStyle(color: AppColors.textHint, fontSize: 12.sp)),
         ],
       ),
     );
@@ -233,7 +233,7 @@ class _SheetOption extends StatelessWidget {
         child: Row(
           children: [
             Icon(icon, color: color, size: 24.w),
-            SizedBox(width: 14.w),
+            SizedBox(width: 16.w),
             Text(
               label,
               style: TextStyle(
@@ -313,9 +313,9 @@ class _VideoPreviewState extends State<_VideoPreview> {
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
-                colors: [AppColors.primaryNavy, Color(0xFF1E3A8A)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+                colors: [AppColors.primaryNavy, AppColors.gradientDeepBlue],
+                begin: AlignmentDirectional.topStart,
+                end: AlignmentDirectional.bottomEnd,
               ),
             ),
           ),
@@ -342,9 +342,9 @@ class _VideoPreviewState extends State<_VideoPreview> {
             ),
           ),
         ),
-        Positioned(
-          left: 0,
-          right: 0,
+        PositionedDirectional(
+          start: 0,
+          end: 0,
           bottom: 0,
           child: Container(
             padding: const EdgeInsets.symmetric(vertical: 8),
@@ -353,7 +353,7 @@ class _VideoPreviewState extends State<_VideoPreview> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(Icons.videocam, color: Colors.white, size: 16),
-                SizedBox(width: 6),
+                SizedBox(width: 8),
                 Text('Videoni ko\'rish uchun bosing',
                     style: TextStyle(color: Colors.white, fontSize: 12)),
               ],

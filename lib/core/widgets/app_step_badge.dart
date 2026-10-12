@@ -24,7 +24,7 @@ class AppStepBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final tint = color ?? AppColors.primaryBlue;
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
       decoration: BoxDecoration(
         color: tint.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(AppRadius.pill.r),
@@ -34,7 +34,7 @@ class AppStepBadge extends StatelessWidget {
         children: [
           if (icon != null) ...[
             Icon(icon, size: 12.w, color: tint),
-            SizedBox(width: 5.w),
+            SizedBox(width: 4.w),
           ],
           Text(
             label.toUpperCase(),

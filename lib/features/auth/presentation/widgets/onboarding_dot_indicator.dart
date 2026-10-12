@@ -37,7 +37,7 @@ class OnboardingDot extends StatelessWidget {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
       curve: Curves.easeOut,
-      margin: EdgeInsets.only(right: 8.w),
+      margin: EdgeInsetsDirectional.only(end: 8.w),
       height: 8.w,
       width: isActive ? 20.w : 8.w,
       decoration: BoxDecoration(

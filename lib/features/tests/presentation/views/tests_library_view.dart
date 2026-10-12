@@ -158,7 +158,7 @@ class _TestsLibraryViewState extends State<TestsLibraryView> {
     final palette = context.palette;
     return Container(
       margin: EdgeInsets.only(bottom: 12.h),
-      padding: EdgeInsets.all(14.w),
+      padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         color: palette.surface,
         borderRadius: BorderRadius.circular(AppRadius.card.r),
@@ -262,7 +262,7 @@ class _TestsLibraryViewState extends State<TestsLibraryView> {
       },
       child: Container(
         margin: EdgeInsets.only(bottom: 12.h),
-        padding: EdgeInsets.all(14.w),
+        padding: EdgeInsets.all(16.w),
         decoration: BoxDecoration(
           color: palette.surface,
           borderRadius: BorderRadius.circular(AppRadius.card.r),
@@ -421,7 +421,7 @@ class _Meta extends StatelessWidget {
         SizedBox(width: 4.w),
         Text(
           text,
-          style: TextStyle(color: palette.textSecondary, fontSize: 11.sp),
+          style: TextStyle(color: palette.textSecondary, fontSize: 12.sp),
         ),
       ],
     );
@@ -440,7 +440,7 @@ class _ActionPill extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
         decoration: BoxDecoration(
           color: AppColors.primaryBlue.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(AppRadius.pill.r),
@@ -449,7 +449,7 @@ class _ActionPill extends StatelessWidget {
           label,
           style: TextStyle(
             color: AppColors.primaryBlue,
-            fontSize: 11.5.sp,
+            fontSize: 12.sp,
             fontWeight: FontWeight.w700,
           ),
         ),

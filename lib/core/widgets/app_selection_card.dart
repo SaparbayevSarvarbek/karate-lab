@@ -45,7 +45,7 @@ class AppSelectionCard extends StatelessWidget {
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 180),
             curve: Curves.easeOut,
-            padding: EdgeInsets.all(14.w),
+            padding: EdgeInsets.all(16.w),
             decoration: BoxDecoration(
               color: selected
                   ? AppColors.primaryBlue.withValues(alpha: 0.06)
@@ -96,7 +96,7 @@ class AppSelectionCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                SizedBox(width: 10.w),
+                SizedBox(width: 12.w),
                 _trailing(palette, accent),
               ],
             ),

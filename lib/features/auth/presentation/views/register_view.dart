@@ -193,12 +193,7 @@ class _RegisterViewState extends State<RegisterView> {
             : Column(
                 children: [
                   Padding(
-                    padding: EdgeInsets.fromLTRB(
-                      AppSpacing.screenH.w,
-                      AppSpacing.sm.h,
-                      AppSpacing.screenH.w,
-                      0,
-                    ),
+                    padding: EdgeInsets.fromLTRB(AppSpacing.screenH.w, AppSpacing.sm.h, AppSpacing.screenH.w, 0, ),
                     child: RegistrationStepIndicator(
                       currentStep: _currentStep,
                       totalSteps: 3,
@@ -278,12 +273,7 @@ class _RegisterViewState extends State<RegisterView> {
 
   Widget _buildStep1() {
     return SingleChildScrollView(
-      padding: EdgeInsets.fromLTRB(
-        AppSpacing.screenH.w,
-        AppSpacing.xl.h,
-        AppSpacing.screenH.w,
-        AppSpacing.xxl.h,
-      ),
+      padding: EdgeInsets.fromLTRB(AppSpacing.screenH.w, AppSpacing.xl.h, AppSpacing.screenH.w, AppSpacing.xxl.h, ),
       child: Form(
         key: _formKeys[0],
         child: Column(
@@ -325,12 +315,7 @@ class _RegisterViewState extends State<RegisterView> {
 
   Widget _buildStep2() {
     return SingleChildScrollView(
-      padding: EdgeInsets.fromLTRB(
-        AppSpacing.screenH.w,
-        AppSpacing.xl.h,
-        AppSpacing.screenH.w,
-        AppSpacing.xxl.h,
-      ),
+      padding: EdgeInsets.fromLTRB(AppSpacing.screenH.w, AppSpacing.xl.h, AppSpacing.screenH.w, AppSpacing.xxl.h, ),
       child: Form(
         key: _formKeys[1],
         child: Column(
@@ -426,12 +411,7 @@ class _RegisterViewState extends State<RegisterView> {
 
   Widget _buildStep3() {
     return SingleChildScrollView(
-      padding: EdgeInsets.fromLTRB(
-        AppSpacing.screenH.w,
-        AppSpacing.xl.h,
-        AppSpacing.screenH.w,
-        AppSpacing.xxl.h,
-      ),
+      padding: EdgeInsets.fromLTRB(AppSpacing.screenH.w, AppSpacing.xl.h, AppSpacing.screenH.w, AppSpacing.xxl.h, ),
       child: Form(
         key: _formKeys[2],
         child: Column(
@@ -527,7 +507,7 @@ class _ServerErrorBanner extends StatelessWidget {
       child: Row(
         children: [
           const Icon(Icons.error_outline, color: AppColors.error, size: 20),
-          SizedBox(width: 10.w),
+          SizedBox(width: 12.w),
           Expanded(
             child: Text(
               message,
@@ -550,7 +530,7 @@ class RegistrationCoachNote extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(14.w),
+      padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         color: AppColors.primaryBlue.withValues(alpha: 0.07),
         borderRadius: BorderRadius.circular(AppRadius.card.r),

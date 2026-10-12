@@ -125,7 +125,7 @@ class _ProfileHeader extends StatelessWidget {
           name: athlete.fullName,
           size: 64,
         ),
-        SizedBox(width: 14.w),
+        SizedBox(width: 16.w),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -199,7 +199,7 @@ class InfoRow extends StatelessWidget {
           Flexible(
             child: Text(
               value,
-              textAlign: TextAlign.right,
+              textAlign: TextAlign.end,
               style: AppTextStyles.body.copyWith(
                 fontWeight: FontWeight.w700,
                 color: palette.textPrimary,

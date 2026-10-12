@@ -114,7 +114,7 @@ class _TestDetailViewState extends State<TestDetailView> {
             padding: EdgeInsets.fromLTRB(20.w, 8.h, 20.w, 24.h),
             children: [
               _TestHero(test: test),
-              SizedBox(height: 18.h),
+              SizedBox(height: 20.h),
               Text(
                 test.name,
                 style: AppTextStyles.screenTitle
@@ -151,14 +151,14 @@ class _TestDetailViewState extends State<TestDetailView> {
                 ],
               ),
               if (paragraph.isNotEmpty) ...[
-                SizedBox(height: 14.h),
+                SizedBox(height: 16.h),
                 Text(
                   paragraph,
                   style: AppTextStyles.body
                       .copyWith(color: palette.textSecondary, height: 1.55),
                 ),
               ],
-              SizedBox(height: 22.h),
+              SizedBox(height: 24.h),
               const AppSectionHeader(title: 'Test ma\'lumotlari'),
               SizedBox(height: 12.h),
               Row(
@@ -169,14 +169,14 @@ class _TestDetailViewState extends State<TestDetailView> {
                     value: '$stepCount',
                     label: 'Savollar',
                   ),
-                  SizedBox(width: 10.w),
+                  SizedBox(width: 12.w),
                   _StatCard(
                     icon: Icons.timer_outlined,
                     color: AppColors.info,
                     value: '${duration}s',
                     label: 'Davomiylik',
                   ),
-                  SizedBox(width: 10.w),
+                  SizedBox(width: 12.w),
                   _StatCard(
                     icon: Icons.stars_rounded,
                     color: AppColors.warning,
@@ -186,9 +186,9 @@ class _TestDetailViewState extends State<TestDetailView> {
                 ],
               ),
               if (test.description.isNotEmpty && test.goal.isNotEmpty) ...[
-                SizedBox(height: 22.h),
+                SizedBox(height: 24.h),
                 const AppSectionHeader(title: 'Maqsad'),
-                SizedBox(height: 10.h),
+                SizedBox(height: 12.h),
                 Text(
                   test.goal,
                   style: AppTextStyles.body
@@ -196,7 +196,7 @@ class _TestDetailViewState extends State<TestDetailView> {
                 ),
               ],
               if (test.qualities.isNotEmpty) ...[
-                SizedBox(height: 22.h),
+                SizedBox(height: 24.h),
                 const AppSectionHeader(title: 'Rivojlanadigan sifatlar'),
                 SizedBox(height: 12.h),
                 Wrap(
@@ -210,7 +210,7 @@ class _TestDetailViewState extends State<TestDetailView> {
                       .toList(),
                 ),
               ],
-              SizedBox(height: 22.h),
+              SizedBox(height: 24.h),
               AppSectionHeader(title: 'Savollar ($stepCount)'),
               SizedBox(height: 12.h),
               if (test.steps.isEmpty)
@@ -223,12 +223,12 @@ class _TestDetailViewState extends State<TestDetailView> {
                 for (int i = 0; i < test.steps.length; i++)
                   _QuestionRow(step: test.steps[i], index: i + 1),
               if (test.notes.isNotEmpty) ...[
-                SizedBox(height: 22.h),
+                SizedBox(height: 24.h),
                 const AppSectionHeader(title: 'Murabbiy izohi'),
-                SizedBox(height: 10.h),
+                SizedBox(height: 12.h),
                 Container(
                   width: double.infinity,
-                  padding: EdgeInsets.all(14.w),
+                  padding: EdgeInsets.all(16.w),
                   decoration: BoxDecoration(
                     color: AppColors.warning.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(AppRadius.card.r),
@@ -244,7 +244,7 @@ class _TestDetailViewState extends State<TestDetailView> {
                 ),
               ],
               if (isFinished) ...[
-                SizedBox(height: 22.h),
+                SizedBox(height: 24.h),
                 Container(
                   padding: EdgeInsets.all(16.w),
                   decoration: BoxDecoration(
@@ -353,14 +353,14 @@ class _TestHero extends StatelessWidget {
                   const DecoratedBox(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
-                        colors: [AppColors.primaryNavy, Color(0xFF1E3A8A)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
+                        colors: [AppColors.primaryNavy, AppColors.gradientDeepBlue],
+                        begin: AlignmentDirectional.topStart,
+                        end: AlignmentDirectional.bottomEnd,
                       ),
                     ),
                   ),
-                  Positioned(
-                    right: -24.w,
+                  PositionedDirectional(
+                    end: -24.w,
                     bottom: -24.h,
                     child: Icon(
                       Icons.sports_martial_arts,
@@ -369,7 +369,7 @@ class _TestHero extends StatelessWidget {
                     ),
                   ),
                   Align(
-                    alignment: Alignment.bottomLeft,
+                    alignment: AlignmentDirectional.bottomStart,
                     child: Padding(
                       padding: EdgeInsets.all(16.w),
                       child: Text(
@@ -400,7 +400,7 @@ class _InfoChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(AppRadius.pill.r),
@@ -416,7 +416,7 @@ class _InfoChip extends StatelessWidget {
             label,
             style: TextStyle(
               color: color,
-              fontSize: 11.5.sp,
+              fontSize: 12.sp,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -463,7 +463,7 @@ class _StatCard extends StatelessWidget {
               ),
               child: Icon(icon, size: 18.w, color: color),
             ),
-            SizedBox(height: 10.h),
+            SizedBox(height: 12.h),
             Text(
               value,
               maxLines: 1,
@@ -480,7 +480,7 @@ class _StatCard extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                fontSize: 10.5.sp,
+                fontSize: 12.sp,
                 fontWeight: FontWeight.w600,
                 color: palette.textSecondary,
               ),
@@ -541,7 +541,7 @@ class _QuestionRow extends StatelessWidget {
                   ),
                 ),
                 if (hasMeta) ...[
-                  SizedBox(height: 6.h),
+                  SizedBox(height: 8.h),
                   Wrap(
                     spacing: 12.w,
                     runSpacing: 4.h,
@@ -582,7 +582,7 @@ class _Meta extends StatelessWidget {
         SizedBox(width: 4.w),
         Text(
           text,
-          style: TextStyle(color: palette.textSecondary, fontSize: 11.5.sp),
+          style: TextStyle(color: palette.textSecondary, fontSize: 12.sp),
         ),
       ],
     );

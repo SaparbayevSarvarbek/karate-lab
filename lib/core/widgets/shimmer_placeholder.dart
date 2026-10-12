@@ -163,7 +163,7 @@ class ShimmerProfileAvatar extends StatelessWidget {
           height: 104.w,
           borderRadius: BorderRadius.circular(52.r),
         ),
-        SizedBox(height: 14.h),
+        SizedBox(height: 16.h),
         ShimmerPlaceholder(width: 120.w, height: 22.h, borderRadius: BorderRadius.circular(11.r)),
         SizedBox(height: 8.h),
         ShimmerPlaceholder(width: 80.w, height: 20.h, borderRadius: BorderRadius.circular(10.r)),
@@ -187,9 +187,9 @@ class ShimmerTestHero extends StatelessWidget {
             height: 150.h,
             borderRadius: BorderRadius.circular(20.r),
           ),
-          Positioned(
-            left: 18.w,
-            right: 18.w,
+          PositionedDirectional(
+            start: 18.w,
+            end: 18.w,
             bottom: 14.h,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -222,11 +222,11 @@ class ShimmerTestDetail extends StatelessWidget {
         const ShimmerTestHero(),
         SizedBox(height: 16.h),
         ShimmerPlaceholder(width: 120.w, height: 22.h, borderRadius: BorderRadius.circular(11.r)),
-        SizedBox(height: 10.h),
+        SizedBox(height: 12.h),
         ShimmerPlaceholder(width: double.infinity, height: 50.h, borderRadius: BorderRadius.circular(8.r)),
-        SizedBox(height: 18.h),
+        SizedBox(height: 20.h),
         ShimmerPlaceholder(width: 140.w, height: 22.h, borderRadius: BorderRadius.circular(11.r)),
-        SizedBox(height: 10.h),
+        SizedBox(height: 12.h),
         Wrap(
           spacing: 8.w,
           runSpacing: 8.h,
@@ -254,15 +254,15 @@ class ShimmerExerciseDetail extends StatelessWidget {
     return Column(
       children: [
         ShimmerPlaceholder(width: double.infinity, height: 230.h, borderRadius: BorderRadius.zero),
-        SizedBox(height: 18.h),
+        SizedBox(height: 20.h),
         ShimmerPlaceholder(width: 100.w, height: 22.h, borderRadius: BorderRadius.circular(11.r)),
-        SizedBox(height: 10.h),
+        SizedBox(height: 12.h),
         ShimmerPlaceholder(width: double.infinity, height: 60.h, borderRadius: BorderRadius.circular(8.r)),
-        SizedBox(height: 22.h),
+        SizedBox(height: 24.h),
         ShimmerPlaceholder(width: 100.w, height: 22.h, borderRadius: BorderRadius.circular(11.r)),
         SizedBox(height: 12.h),
         ShimmerPlaceholder(width: double.infinity, height: 180.h, borderRadius: BorderRadius.circular(12.r)),
-        SizedBox(height: 22.h),
+        SizedBox(height: 24.h),
         ShimmerPlaceholder(width: 140.w, height: 22.h, borderRadius: BorderRadius.circular(11.r)),
         SizedBox(height: 12.h),
         ...List.generate(3, (i) => Padding(
@@ -294,11 +294,11 @@ class ShimmerExerciseCard extends StatelessWidget {
             height: 120.h,
             borderRadius: BorderRadius.circular(12.r),
           ),
-          SizedBox(height: 10.h),
+          SizedBox(height: 12.h),
           ShimmerPlaceholder(width: 140.w, height: 18.h, borderRadius: BorderRadius.circular(9.r)),
-          SizedBox(height: 6.h),
+          SizedBox(height: 8.h),
           ShimmerPlaceholder(width: 100.w, height: 14.h, borderRadius: BorderRadius.circular(7.r)),
-          SizedBox(height: 10.h),
+          SizedBox(height: 12.h),
           Row(
             children: [
               ShimmerPlaceholder(width: 60.w, height: 28.h, borderRadius: BorderRadius.circular(14.r)),
@@ -337,9 +337,9 @@ class ShimmerAthleteCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 ShimmerPlaceholder(width: 140.w, height: 20.h, borderRadius: BorderRadius.circular(10.r)),
-                SizedBox(height: 6.h),
+                SizedBox(height: 8.h),
                 ShimmerPlaceholder(width: 100.w, height: 16.h, borderRadius: BorderRadius.circular(8.r)),
-                SizedBox(height: 6.h),
+                SizedBox(height: 8.h),
                 ShimmerPlaceholder(width: 80.w, height: 14.h, borderRadius: BorderRadius.circular(7.r)),
               ],
             ),
@@ -366,9 +366,9 @@ class ShimmerDashboardStat extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ShimmerPlaceholder(width: 40.w, height: 40.w, borderRadius: BorderRadius.circular(12.r)),
-          SizedBox(height: 10.h),
+          SizedBox(height: 12.h),
           ShimmerPlaceholder(width: 80.w, height: 28.h, borderRadius: BorderRadius.circular(14.r)),
-          SizedBox(height: 6.h),
+          SizedBox(height: 8.h),
           ShimmerPlaceholder(width: 100.w, height: 14.h, borderRadius: BorderRadius.circular(7.r)),
         ],
       ),
@@ -384,7 +384,7 @@ class ShimmerActionTile extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.only(bottom: 10.h),
       child: Container(
-        padding: EdgeInsets.all(14.w),
+        padding: EdgeInsets.all(16.w),
         decoration: BoxDecoration(
           color: context.palette.surface,
           borderRadius: BorderRadius.circular(16.r),
@@ -420,7 +420,7 @@ class ShimmerResultCard extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.only(bottom: 10.h),
       child: Container(
-        padding: EdgeInsets.all(14.w),
+        padding: EdgeInsets.all(16.w),
         decoration: BoxDecoration(
           color: context.palette.surface,
           borderRadius: BorderRadius.circular(16.r),
@@ -473,7 +473,7 @@ class ShimmerCoachTestCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     ShimmerPlaceholder(width: 180.w, height: 18.h, borderRadius: BorderRadius.circular(9.r)),
-                    SizedBox(height: 6.h),
+                    SizedBox(height: 8.h),
                     ShimmerPlaceholder(width: 100.w, height: 14.h, borderRadius: BorderRadius.circular(7.r)),
                   ],
                 ),
@@ -485,7 +485,7 @@ class ShimmerCoachTestCard extends StatelessWidget {
           Row(
             children: [
               ShimmerPlaceholder(width: 100.w, height: 16.h, borderRadius: BorderRadius.circular(8.r)),
-              SizedBox(width: 14.w),
+              SizedBox(width: 16.w),
               ShimmerPlaceholder(width: 100.w, height: 16.h, borderRadius: BorderRadius.circular(8.r)),
               const Spacer(),
               ShimmerPlaceholder(width: 100.w, height: 36.h, borderRadius: BorderRadius.circular(12.r)),
@@ -515,12 +515,12 @@ class ShimmerTestResultCard extends StatelessWidget {
             children: [
               Expanded(
                 child: Padding(
-                  padding: EdgeInsets.fromLTRB(16.w, 14.h, 8.w, 8.h),
+                  padding: EdgeInsets.fromLTRB(16.w, 16.h, 8.w, 8.h),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       ShimmerPlaceholder(width: 80.w, height: 20.h, borderRadius: BorderRadius.circular(10.r)),
-                      SizedBox(height: 10.h),
+                      SizedBox(height: 12.h),
                       ShimmerPlaceholder(width: 180.w, height: 18.h, borderRadius: BorderRadius.circular(9.r)),
                     ],
                   ),
@@ -533,7 +533,7 @@ class ShimmerTestResultCard extends StatelessWidget {
             ],
           ),
           Padding(
-            padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 14.h),
+            padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 16.h),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

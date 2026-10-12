@@ -48,12 +48,7 @@ class _ExerciseDetailViewState extends State<ExerciseDetailView> {
       backgroundColor: palette.background,
       appBar: KarateAppBar(title: ex.title),
       body: SingleChildScrollView(
-        padding: EdgeInsets.fromLTRB(
-          AppSpacing.screenH.w,
-          AppSpacing.sm.h,
-          AppSpacing.screenH.w,
-          AppSpacing.xxl.h,
-        ),
+        padding: EdgeInsets.fromLTRB(AppSpacing.screenH.w, AppSpacing.sm.h, AppSpacing.screenH.w, AppSpacing.xxl.h, ),
         child: _isLoading
             ? const ShimmerExerciseDetail()
             : _Content(exercise: ex),
@@ -201,8 +196,8 @@ class _HeroCard extends StatelessWidget {
                     decoration: const BoxDecoration(
                       gradient: LinearGradient(
                         colors: [AppColors.primaryNavy, AppColors.primaryBlue],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
+                        begin: AlignmentDirectional.topStart,
+                        end: AlignmentDirectional.bottomEnd,
                       ),
                     ),
                     child: Center(
@@ -233,7 +228,7 @@ class _MetaChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(AppRadius.pill.r),
@@ -243,7 +238,7 @@ class _MetaChip extends StatelessWidget {
         children: [
           if (icon != null) ...[
             Icon(icon, size: 14.w, color: color),
-            SizedBox(width: 5.w),
+            SizedBox(width: 4.w),
           ],
           Text(
             label,
@@ -375,7 +370,7 @@ class _StepMeta extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = context.palette;
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
       decoration: BoxDecoration(
         color: AppColors.primaryBlue.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(AppRadius.pill.r),
@@ -384,7 +379,7 @@ class _StepMeta extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, size: 13.w, color: AppColors.primaryBlue),
-          SizedBox(width: 5.w),
+          SizedBox(width: 4.w),
           Text(
             '$label: ',
             style: AppTextStyles.caption.copyWith(

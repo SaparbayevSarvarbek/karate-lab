@@ -74,7 +74,7 @@ class _MyExercisesViewState extends State<MyExercisesView> {
                     filled: true,
                     isDense: true,
                     contentPadding:
-                        EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
+                        EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
                     fillColor: context.palette.backgroundLight,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(AppRadius.button.r),
@@ -147,8 +147,8 @@ class _MyExercisesViewState extends State<MyExercisesView> {
                   confirmDismiss: (_) async =>
                       await _confirmDelete(context, exercise),
                   background: Container(
-                    alignment: Alignment.centerRight,
-                    padding: EdgeInsets.only(right: 24.w),
+                    alignment: AlignmentDirectional.centerEnd,
+                    padding: EdgeInsetsDirectional.only(end: 24.w),
                     margin: EdgeInsets.only(bottom: 12.h),
                     decoration: BoxDecoration(
                       color: AppColors.error.withValues(alpha: 0.12),
@@ -159,7 +159,7 @@ class _MyExercisesViewState extends State<MyExercisesView> {
                       children: [
                         const Icon(Icons.delete_outline_rounded,
                             color: AppColors.error),
-                        SizedBox(width: 6.w),
+                        SizedBox(width: 8.w),
                         Text(
                           Tr.t('delete'),
                           style: TextStyle(

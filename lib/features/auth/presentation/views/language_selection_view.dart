@@ -91,7 +91,7 @@ class _LanguageSelectionViewState extends State<LanguageSelectionView> {
                     label: '${Tr.t('setupBadge')} · 1 / 3',
                     icon: Icons.tune_rounded,
                   ),
-                  SizedBox(height: 14.h),
+                  SizedBox(height: 16.h),
                   Text(
                     Tr.t('chooseLanguage'),
                     style: AppTextStyles.screenTitle
@@ -103,7 +103,7 @@ class _LanguageSelectionViewState extends State<LanguageSelectionView> {
                     style: AppTextStyles.body
                         .copyWith(color: palette.textSecondary),
                   ),
-                  SizedBox(height: 22.h),
+                  SizedBox(height: 24.h),
                   LanguageOptionWidget(
                     title: 'O\'zbekcha',
                     subtitle: Tr.t('langUzSubtitle'),

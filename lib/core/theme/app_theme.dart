@@ -73,7 +73,7 @@ class AppTheme {
         fillColor: palette.backgroundLight,
         hintStyle: TextStyle(color: palette.textHint, fontSize: 15),
         errorStyle: const TextStyle(fontSize: 12.5),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.button),
           borderSide: BorderSide(color: palette.border),

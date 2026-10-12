@@ -136,7 +136,7 @@ class MainBottomNavBar extends StatelessWidget {
     final items = isCoach ? _coachItems : _athleteItems;
 
     return Container(
-      margin: EdgeInsets.fromLTRB(16.w, 0, 16.w, 10.h),
+      margin: EdgeInsets.fromLTRB(16.w, 0, 16.w, 12.h),
       decoration: BoxDecoration(
         color: context.palette.surface,
         borderRadius: BorderRadius.circular(AppRadius.lg.r),
@@ -151,7 +151,7 @@ class MainBottomNavBar extends StatelessWidget {
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 8.h),
+          padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 8.h),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: List.generate(items.length, (index) {
@@ -225,13 +225,13 @@ class _NavBarItem extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 220),
         curve: Curves.easeOut,
-        padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 6.h),
+        padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 8.h),
         decoration: BoxDecoration(
           gradient: isSelected
               ? const LinearGradient(
-                  colors: [AppColors.primaryBlue, Color(0xFF2B7AFF)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+                  colors: [AppColors.primaryBlue, AppColors.primaryBlueLight],
+                  begin: AlignmentDirectional.topStart,
+                  end: AlignmentDirectional.bottomEnd,
                 )
               : null,
           borderRadius: BorderRadius.circular(AppRadius.card.r),
@@ -258,7 +258,7 @@ class _NavBarItem extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   color: isSelected ? Colors.white : palette.textSecondary,
-                  fontSize: 10.5.sp,
+                  fontSize: 12.sp,
                   fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                 ),
               ),

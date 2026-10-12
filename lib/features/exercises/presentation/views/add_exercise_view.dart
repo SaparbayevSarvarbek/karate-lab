@@ -209,12 +209,7 @@ class _AddExerciseViewState extends State<AddExerciseView> {
       appBar: KarateAppBar(title: Tr.t('addExerciseTitle')),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: EdgeInsets.fromLTRB(
-            AppSpacing.screenH.w,
-            AppSpacing.sm.h,
-            AppSpacing.screenH.w,
-            AppSpacing.xxl.h,
-          ),
+          padding: EdgeInsets.fromLTRB(AppSpacing.screenH.w, AppSpacing.sm.h, AppSpacing.screenH.w, AppSpacing.xxl.h, ),
           child: Form(
             key: _formKey,
             child: Column(
@@ -309,7 +304,7 @@ class _AddExerciseViewState extends State<AddExerciseView> {
                       children: [
                         Icon(Icons.add_rounded,
                             color: AppColors.primaryBlue, size: 20.w),
-                        SizedBox(width: 6.w),
+                        SizedBox(width: 8.w),
                         Text(
                           Tr.t('addStep'),
                           style: AppTextStyles.button.copyWith(
@@ -518,7 +513,7 @@ class _StepCard extends StatelessWidget {
                   prefixIcon: const Icon(Icons.repeat_rounded),
                 ),
               ),
-              SizedBox(width: 10.w),
+              SizedBox(width: 12.w),
               Expanded(
                 child: CustomTextField(
                   controller: draft.duration,
@@ -563,7 +558,7 @@ class _StepCard extends StatelessWidget {
                         children: [
                           Icon(Icons.image_outlined,
                               size: 36.w, color: AppColors.textHint),
-                          SizedBox(height: 6.h),
+                          SizedBox(height: 8.h),
                           Text(
                             Tr.t('addImageOptional'),
                             style: TextStyle(
@@ -573,9 +568,9 @@ class _StepCard extends StatelessWidget {
                       ),
                     )
                   : Align(
-                      alignment: Alignment.topRight,
+                      alignment: AlignmentDirectional.topEnd,
                       child: Container(
-                        margin: EdgeInsets.all(6.w),
+                        margin: EdgeInsets.all(8.w),
                         padding: EdgeInsets.all(4.w),
                         decoration: BoxDecoration(
                           color: Colors.black.withValues(alpha: 0.4),

@@ -83,7 +83,7 @@ class _CoachDashboardContent extends StatelessWidget {
                         padding: EdgeInsets.fromLTRB(20.w, 8.h, 20.w, 24.h),
                         children: [
                           const UserGreetingRow(fallbackName: 'Murabbiy'),
-                          SizedBox(height: 18.h),
+                          SizedBox(height: 20.h),
                           ShimmerPlaceholder(
                             width: double.infinity,
                             height: 180.h,
@@ -97,7 +97,7 @@ class _CoachDashboardContent extends StatelessWidget {
                               Expanded(child: ShimmerDashboardStat()),
                             ],
                           ),
-                          SizedBox(height: 22.h),
+                          SizedBox(height: 24.h),
                           ShimmerPlaceholder(
                               width: 120.w,
                               height: 22.h,
@@ -126,9 +126,9 @@ class _CoachDashboardContent extends StatelessWidget {
                         padding: EdgeInsets.fromLTRB(20.w, 8.h, 20.w, 24.h),
                         children: [
                           const UserGreetingRow(fallbackName: 'Murabbiy'),
-                          SizedBox(height: 18.h),
+                          SizedBox(height: 20.h),
                           _StatsGrid(data: state.data),
-                          SizedBox(height: 22.h),
+                          SizedBox(height: 24.h),
                           AppSectionHeader(title: Tr.t('quickActions')),
                           SizedBox(height: 12.h),
                           _ActionTile(
@@ -138,7 +138,7 @@ class _CoachDashboardContent extends StatelessWidget {
                             color: AppColors.primaryBlue,
                             onTap: () => _openAndReload(context, '/create-test'),
                           ),
-                          SizedBox(height: 10.h),
+                          SizedBox(height: 12.h),
                           _ActionTile(
                             title: Tr.t('addExerciseAction'),
                             subtitle: Tr.t('addExerciseSub'),
@@ -146,7 +146,7 @@ class _CoachDashboardContent extends StatelessWidget {
                             color: AppColors.success,
                             onTap: () => _openAndReload(context, '/add-exercise'),
                           ),
-                          SizedBox(height: 10.h),
+                          SizedBox(height: 12.h),
                           _ActionTile(
                             title: Tr.t('exerciseBase'),
                             subtitle: Tr.t('exerciseBaseSub'),
@@ -154,7 +154,7 @@ class _CoachDashboardContent extends StatelessWidget {
                             color: AppColors.warning,
                             onTap: () => context.push('/mashqlar'),
                           ),
-                          SizedBox(height: 10.h),
+                          SizedBox(height: 12.h),
                           _ActionTile(
                             title: Tr.t('reportsMenu'),
                             subtitle: Tr.t('reportsSub'),
@@ -195,9 +195,9 @@ class _StatsGrid extends StatelessWidget {
           padding: EdgeInsets.all(20.w),
           decoration: BoxDecoration(
             gradient: const LinearGradient(
-              colors: [AppColors.primaryNavy, Color(0xFF1E40AF)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+              colors: [AppColors.primaryNavy, AppColors.gradientDeepBlue],
+              begin: AlignmentDirectional.topStart,
+              end: AlignmentDirectional.bottomEnd,
             ),
             borderRadius: BorderRadius.circular(AppRadius.lg.r),
           ),
@@ -214,7 +214,7 @@ class _StatsGrid extends StatelessWidget {
                         fontSize: 12.sp,
                       ),
                     ),
-                    SizedBox(height: 6.h),
+                    SizedBox(height: 8.h),
                     Text(
                       '${data.totalAthletes ?? 0}',
                       style: TextStyle(
@@ -226,7 +226,7 @@ class _StatsGrid extends StatelessWidget {
                     SizedBox(height: 8.h),
                     Container(
                       padding: EdgeInsets.symmetric(
-                          horizontal: 10.w, vertical: 5.h),
+                          horizontal: 12.w, vertical: 4.h),
                       decoration: BoxDecoration(
                         color: AppColors.success.withValues(alpha: 0.25),
                         borderRadius: BorderRadius.circular(AppRadius.pill.r),
@@ -241,7 +241,7 @@ class _StatsGrid extends StatelessWidget {
                             '${data.activeAthletes ?? 0} ${Tr.t('activeAthletesShort')}',
                             style: TextStyle(
                               color: Colors.white,
-                              fontSize: 10.5.sp,
+                              fontSize: 12.sp,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -301,7 +301,7 @@ class _MiniStat extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = context.palette;
     return Container(
-      padding: EdgeInsets.all(14.w),
+      padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         color: palette.surface,
         borderRadius: BorderRadius.circular(AppRadius.card.r),
@@ -311,14 +311,14 @@ class _MiniStat extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: EdgeInsets.all(6.w),
+            padding: EdgeInsets.all(8.w),
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(10.r),
             ),
             child: Icon(icon, color: color, size: 16.w),
           ),
-          SizedBox(height: 10.h),
+          SizedBox(height: 12.h),
           Text(
             value,
             style: TextStyle(
@@ -332,7 +332,7 @@ class _MiniStat extends StatelessWidget {
             title,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(color: palette.textSecondary, fontSize: 10.5.sp),
+            style: TextStyle(color: palette.textSecondary, fontSize: 12.sp),
           ),
         ],
       ),
@@ -361,7 +361,7 @@ class _ActionTile extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: EdgeInsets.all(14.w),
+        padding: EdgeInsets.all(16.w),
         decoration: BoxDecoration(
           color: palette.surface,
           borderRadius: BorderRadius.circular(AppRadius.card.r),
@@ -397,7 +397,7 @@ class _ActionTile extends StatelessWidget {
                     subtitle,
                     style: TextStyle(
                       color: palette.textSecondary,
-                      fontSize: 11.5.sp,
+                      fontSize: 12.sp,
                     ),
                   ),
                 ],

@@ -329,7 +329,7 @@ class _ScorePill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
       decoration: BoxDecoration(
         color: _color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(AppRadius.pill.r),
@@ -393,7 +393,7 @@ class ReportsChartLegendRow extends StatelessWidget {
     return Row(
       children: [
         const ReportsLegendDot(color: AppColors.primaryBlue),
-        SizedBox(width: 6.w),
+        SizedBox(width: 8.w),
         Text(
           Tr.t('avgScore'),
           style: AppTextStyles.caption.copyWith(color: palette.textSecondary),
@@ -447,7 +447,7 @@ class ReportsChartLabelsRow extends StatelessWidget {
         for (final label in labels)
           Text(
             _shortLabel(label),
-            style: TextStyle(fontSize: 10.sp, color: palette.textHint),
+            style: TextStyle(fontSize: 12.sp, color: palette.textHint),
           ),
       ],
     );
@@ -583,7 +583,7 @@ class ReportsMetricRow extends StatelessWidget {
             ],
           ),
         ),
-        SizedBox(width: 10.w),
+        SizedBox(width: 12.w),
         _ScorePill(value: value),
       ],
     );
@@ -653,7 +653,7 @@ class _RecentResultsCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                SizedBox(width: 10.w),
+                SizedBox(width: 12.w),
                 _ScorePill(value: results[i].score),
               ],
             ),
@@ -684,7 +684,7 @@ class ReportsRankingList extends StatelessWidget {
     return Column(
       children: [
         for (var i = 0; i < sorted.length; i++) ...[
-          if (i > 0) SizedBox(height: 10.h),
+          if (i > 0) SizedBox(height: 12.h),
           ReportsRankingItem(
             rank: i + 1,
             name: sorted[i].label,
@@ -712,22 +712,22 @@ class ReportsRankingItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = context.palette;
     const medalColors = [
-      Color(0xFFFFD700),
-      Color(0xFFC0C0C0),
-      Color(0xFFCD7F32),
+      AppColors.medalGold,
+      AppColors.medalSilver,
+      AppColors.medalBronze,
     ];
     final medalColor = rank <= 3 ? medalColors[rank - 1] : palette.textHint;
 
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
       decoration: BoxDecoration(
         color: rank == 1
-            ? const Color(0xFFFFD700).withValues(alpha: 0.08)
+            ? AppColors.medalGold.withValues(alpha: 0.08)
             : palette.surface,
         borderRadius: BorderRadius.circular(AppRadius.card.r),
         border: Border.all(
           color: rank == 1
-              ? const Color(0xFFFFD700).withValues(alpha: 0.4)
+              ? AppColors.medalGold.withValues(alpha: 0.4)
               : palette.border,
         ),
       ),
@@ -763,7 +763,7 @@ class ReportsRankingItem extends StatelessWidget {
               ),
             ),
           ),
-          SizedBox(width: 10.w),
+          SizedBox(width: 12.w),
           _ScorePill(value: score),
         ],
       ),

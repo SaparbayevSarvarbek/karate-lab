@@ -113,7 +113,7 @@ class _MashqlarViewState extends State<MashqlarView> {
                       fillColor: context.palette.backgroundLight,
                       isDense: true,
                       contentPadding:
-                          EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
+                          EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(AppRadius.button.r),
                         borderSide: BorderSide.none,
@@ -201,7 +201,7 @@ class _CategoryChip extends StatelessWidget {
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
-        padding: EdgeInsets.symmetric(horizontal: 14.w),
+        padding: EdgeInsets.symmetric(horizontal: 16.w),
         alignment: Alignment.center,
         decoration: BoxDecoration(
           color: selected ? AppColors.primaryBlue : palette.backgroundLight,

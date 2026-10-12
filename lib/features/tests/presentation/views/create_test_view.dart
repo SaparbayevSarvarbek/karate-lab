@@ -237,32 +237,32 @@ class _CreateTestViewState extends State<CreateTestView> {
                         validator: (v) =>
                             (v == null || v.isEmpty) ? Tr.t('testNameRequired') : null,
                       ),
-                      SizedBox(height: 14.h),
+                      SizedBox(height: 16.h),
                       CustomTextField(
                         controller: _ageController,
                         hintText: Tr.t('ageRangeHint'),
                         prefixIcon: const Icon(Icons.cake_outlined),
                       ),
-                      SizedBox(height: 14.h),
+                      SizedBox(height: 16.h),
                       _Dropdown(
                         label: Tr.t('categoryLabel'),
                         value: _selectedCategory,
                         items: _categories,
                         onChanged: (v) => setState(() => _selectedCategory = v!),
                       ),
-                      SizedBox(height: 14.h),
+                      SizedBox(height: 16.h),
                       CustomTextField(
                         controller: _goalController,
                         hintText: Tr.t('goalHint'),
                         prefixIcon: const Icon(Icons.flag_outlined),
                       ),
-                      SizedBox(height: 14.h),
+                      SizedBox(height: 16.h),
                       CustomTextField(
                         controller: _qualitiesController,
                         hintText: Tr.t('qualitiesHint'),
                         prefixIcon: const Icon(Icons.stars_outlined),
                       ),
-                      SizedBox(height: 14.h),
+                      SizedBox(height: 16.h),
                       CustomTextField(
                         controller: _descriptionController,
                         hintText: Tr.t('descriptionOptional'),
@@ -270,7 +270,7 @@ class _CreateTestViewState extends State<CreateTestView> {
                       ),
 
                       // ── Qadamlar ─────────────────────────────────────
-                      SizedBox(height: 22.h),
+                      SizedBox(height: 24.h),
                       AppSectionHeader(title: Tr.t('stepsTitle')),
                       SizedBox(height: 8.h),
                       Text(
@@ -303,7 +303,7 @@ class _CreateTestViewState extends State<CreateTestView> {
                             children: [
                               Icon(Icons.add_rounded,
                                   color: AppColors.primaryBlue, size: 20.w),
-                              SizedBox(width: 6.w),
+                              SizedBox(width: 8.w),
                               Text(
                                 Tr.t('addStep'),
                                 style: TextStyle(
@@ -370,10 +370,10 @@ class _CoverPicker extends StatelessWidget {
                 ),
               )
             : Align(
-                alignment: Alignment.topRight,
+                alignment: AlignmentDirectional.topEnd,
                 child: Container(
                   margin: EdgeInsets.all(8.w),
-                  padding: EdgeInsets.all(6.w),
+                  padding: EdgeInsets.all(8.w),
                   decoration: BoxDecoration(
                     color: Colors.black.withValues(alpha: 0.4),
                     shape: BoxShape.circle,
@@ -457,7 +457,7 @@ class _StepCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = context.palette;
     return Container(
-      padding: EdgeInsets.all(14.w),
+      padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         color: palette.surface,
         borderRadius: BorderRadius.circular(AppRadius.card.r),
@@ -504,13 +504,13 @@ class _StepCard extends StatelessWidget {
               ),
             ],
           ),
-          SizedBox(height: 10.h),
+          SizedBox(height: 12.h),
           CustomTextField(
             controller: draft.title,
             hintText: Tr.t('stepNameHint'),
             prefixIcon: const Icon(Icons.title),
           ),
-          SizedBox(height: 10.h),
+          SizedBox(height: 12.h),
           TextFormField(
             controller: draft.description,
             maxLines: 3,
@@ -529,7 +529,7 @@ class _StepCard extends StatelessWidget {
               ),
             ),
           ),
-          SizedBox(height: 10.h),
+          SizedBox(height: 12.h),
           Row(
             children: [
               Expanded(
@@ -539,7 +539,7 @@ class _StepCard extends StatelessWidget {
                   prefixIcon: const Icon(Icons.repeat_rounded),
                 ),
               ),
-              SizedBox(width: 10.w),
+              SizedBox(width: 12.w),
               Expanded(
                 child: CustomTextField(
                   controller: draft.duration,
@@ -550,7 +550,7 @@ class _StepCard extends StatelessWidget {
               ),
             ],
           ),
-          SizedBox(height: 10.h),
+          SizedBox(height: 12.h),
           GestureDetector(
             onTap: onImageTap,
             child: Container(
@@ -578,7 +578,7 @@ class _StepCard extends StatelessWidget {
                         children: [
                           Icon(Icons.image_outlined,
                               size: 36.w, color: AppColors.textHint),
-                          SizedBox(height: 6.h),
+                          SizedBox(height: 8.h),
                           Text(
                             Tr.t('addImageOptional'),
                             style: TextStyle(
@@ -588,9 +588,9 @@ class _StepCard extends StatelessWidget {
                       ),
                     )
                   : Align(
-                      alignment: Alignment.topRight,
+                      alignment: AlignmentDirectional.topEnd,
                       child: Container(
-                        margin: EdgeInsets.all(6.w),
+                        margin: EdgeInsets.all(8.w),
                         padding: EdgeInsets.all(4.w),
                         decoration: BoxDecoration(
                           color: Colors.black.withValues(alpha: 0.4),

@@ -170,7 +170,7 @@ class _AthletesListViewState extends State<AthletesListView> {
         child: InkWell(
           onTap: () => context.push('/athlete-profile', extra: athlete),
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
+            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
             child: Row(
               children: [
                 AvatarImage(
@@ -202,7 +202,7 @@ class _AthletesListViewState extends State<AthletesListView> {
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           color: palette.textSecondary,
-                          fontSize: 11.5.sp,
+                          fontSize: 12.sp,
                         ),
                       ),
                     ],
@@ -222,7 +222,7 @@ class _AthletesListViewState extends State<AthletesListView> {
                   onTap: () => context.push('/athlete-profile', extra: athlete),
                   child: Container(
                     padding:
-                        EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+                        EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
                     decoration: BoxDecoration(
                       color: AppColors.primaryBlue.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(AppRadius.pill.r),
@@ -231,7 +231,7 @@ class _AthletesListViewState extends State<AthletesListView> {
                       'Ko\'rish',
                       style: TextStyle(
                         color: AppColors.primaryBlue,
-                        fontSize: 11.5.sp,
+                        fontSize: 12.sp,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -297,7 +297,7 @@ class _FilterChip extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 7.h),
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 7.h),
         decoration: BoxDecoration(
           color: selected ? AppColors.primaryBlue : palette.surface,
           borderRadius: BorderRadius.circular(AppRadius.pill.r),

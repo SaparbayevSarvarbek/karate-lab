@@ -38,7 +38,7 @@ class LanguageOptionWidget extends StatelessWidget {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
           curve: Curves.easeOut,
-          padding: EdgeInsets.all(14.w),
+          padding: EdgeInsets.all(16.w),
           decoration: BoxDecoration(
             color: isSelected
                 ? AppColors.primaryBlue.withValues(alpha: 0.06)
@@ -87,7 +87,7 @@ class LanguageOptionWidget extends StatelessWidget {
                   ],
                 ),
               ),
-              SizedBox(width: 10.w),
+              SizedBox(width: 12.w),
               Icon(
                 isSelected
                     ? Icons.check_circle

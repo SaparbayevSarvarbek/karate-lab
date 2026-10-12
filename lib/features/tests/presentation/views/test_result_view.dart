@@ -48,7 +48,7 @@ class TestResultView extends StatelessWidget {
           _OverallCard(test: test, result: evaluation),
           SizedBox(height: 16.h),
           _ResultStats(test: test, result: evaluation),
-          SizedBox(height: 22.h),
+          SizedBox(height: 24.h),
           if (!hasSteps)
             Container(
               padding: EdgeInsets.all(16.w),
@@ -123,9 +123,9 @@ class _OverallCard extends StatelessWidget {
       padding: EdgeInsets.all(20.w),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [AppColors.primaryNavy, Color(0xFF1E40AF)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+          colors: [AppColors.primaryNavy, AppColors.gradientDeepBlue],
+          begin: AlignmentDirectional.topStart,
+          end: AlignmentDirectional.bottomEnd,
         ),
         borderRadius: BorderRadius.circular(AppRadius.card.r),
       ),
@@ -142,7 +142,7 @@ class _OverallCard extends StatelessWidget {
               fontWeight: FontWeight.w800,
             ),
           ),
-          SizedBox(height: 18.h),
+          SizedBox(height: 20.h),
           Stack(
             alignment: Alignment.center,
             children: [
@@ -181,7 +181,7 @@ class _OverallCard extends StatelessWidget {
           ),
           SizedBox(height: 16.h),
           Container(
-            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 6.h),
+            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.16),
               borderRadius: BorderRadius.circular(AppRadius.pill.r),
@@ -196,10 +196,10 @@ class _OverallCard extends StatelessWidget {
             ),
           ),
           if (result?.age != null) ...[
-            SizedBox(height: 10.h),
+            SizedBox(height: 12.h),
             Text(
               'Yosh: ${result!.age}',
-              style: TextStyle(color: Colors.white70, fontSize: 11.5.sp),
+              style: TextStyle(color: Colors.white70, fontSize: 12.sp),
             ),
           ],
         ],
@@ -230,14 +230,14 @@ class _ResultStats extends StatelessWidget {
           value: '${score.toStringAsFixed(0)}%',
           label: 'To\'g\'ri javoblar',
         ),
-        SizedBox(width: 10.w),
+        SizedBox(width: 12.w),
         _StatCard(
           icon: Icons.timer_outlined,
           color: AppColors.primaryBlue,
           value: timeValue,
           label: 'Sarflangan vaqt',
         ),
-        SizedBox(width: 10.w),
+        SizedBox(width: 12.w),
         _StatCard(
           icon: Icons.replay_rounded,
           color: AppColors.warning,
@@ -286,7 +286,7 @@ class _StatCard extends StatelessWidget {
               ),
               child: Icon(icon, color: color, size: 18.w),
             ),
-            SizedBox(height: 10.h),
+            SizedBox(height: 12.h),
             Text(
               value,
               maxLines: 1,
@@ -305,7 +305,7 @@ class _StatCard extends StatelessWidget {
               style: TextStyle(
                 fontWeight: FontWeight.w600,
                 color: palette.textSecondary,
-                fontSize: 10.5.sp,
+                fontSize: 12.sp,
               ),
             ),
           ],
@@ -369,7 +369,7 @@ class _StepBars extends StatelessWidget {
                 ),
               ),
               if (s.seconds > 0 || s.target.isNotEmpty) ...[
-                SizedBox(height: 6.h),
+                SizedBox(height: 8.h),
                 Row(
                   children: [
                     if (s.seconds > 0)
@@ -377,7 +377,7 @@ class _StepBars extends StatelessWidget {
                         '${s.seconds.toStringAsFixed(1)}s',
                         style: TextStyle(
                           color: palette.textSecondary,
-                          fontSize: 11.sp,
+                          fontSize: 12.sp,
                         ),
                       ),
                     const Spacer(),
@@ -386,7 +386,7 @@ class _StepBars extends StatelessWidget {
                         'Me\'yor: ${s.target}',
                         style: TextStyle(
                           color: palette.textHint,
-                          fontSize: 11.sp,
+                          fontSize: 12.sp,
                         ),
                       ),
                   ],
