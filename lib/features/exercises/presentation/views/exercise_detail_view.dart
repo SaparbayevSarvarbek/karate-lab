@@ -153,7 +153,7 @@ class _Content extends StatelessWidget {
           ),
         ],
         SizedBox(height: AppSpacing.sectionGap.h),
-        AppSectionHeader(title: 'Bosqichlar (${exercise.steps.length})'),
+        const AppSectionHeader(title: 'Bosqichlar'),
         SizedBox(height: AppSpacing.md.h),
         if (exercise.steps.isEmpty)
           const AppEmptyView(
@@ -189,11 +189,14 @@ class _TextCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppCard(
-      child: Text(
-        text,
-        style: AppTextStyles.body.copyWith(
-          color: context.palette.textSecondary,
-          height: 1.55,
+      child: SizedBox(
+        width: double.infinity,
+        child: Text(
+          text,
+          style: AppTextStyles.body.copyWith(
+            color: context.palette.textSecondary,
+            height: 1.55,
+          ),
         ),
       ),
     );
@@ -293,11 +296,16 @@ class _StepCard extends StatelessWidget {
           ],
           if (step.hasImage) ...[
             SizedBox(height: AppSpacing.sm.h),
-            RemoteImage(
-              url: ApiConstants.resolveMediaUrl(step.imageUrl!),
-              width: double.infinity,
-              fit: BoxFit.fitWidth,
+            ClipRRect(
               borderRadius: BorderRadius.circular(AppRadius.tile.r),
+              child: AspectRatio(
+                aspectRatio: 16 / 9,
+                child: RemoteImage(
+                  url: ApiConstants.resolveMediaUrl(step.imageUrl!),
+                  fit: BoxFit.cover,
+                  borderRadius: BorderRadius.zero,
+                ),
+              ),
             ),
           ],
           if (step.repetitions.isNotEmpty || step.rest.isNotEmpty) ...[

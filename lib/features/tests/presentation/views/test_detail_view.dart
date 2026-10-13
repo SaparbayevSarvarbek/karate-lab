@@ -162,36 +162,38 @@ class _TestDetailViewState extends State<TestDetailView> {
               SizedBox(height: AppSpacing.sectionGap.h),
               const AppSectionHeader(title: 'Test ma\'lumotlari'),
               SizedBox(height: AppSpacing.md.h),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Expanded(
-                    child: AppStatCard(
-                      icon: Icons.list_alt_rounded,
-                      color: AppColors.primaryBlue,
-                      value: '$stepCount',
-                      label: 'Savollar',
+              IntrinsicHeight(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Expanded(
+                      child: AppStatCard(
+                        icon: Icons.list_alt_rounded,
+                        color: AppColors.primaryBlue,
+                        value: '$stepCount',
+                        label: 'Savollar',
+                      ),
                     ),
-                  ),
-                  SizedBox(width: AppSpacing.md.w),
-                  Expanded(
-                    child: AppStatCard(
-                      icon: Icons.timer_outlined,
-                      color: palette.info,
-                      value: '${duration}s',
-                      label: 'Davomiylik',
+                    SizedBox(width: AppSpacing.md.w),
+                    Expanded(
+                      child: AppStatCard(
+                        icon: Icons.timer_outlined,
+                        color: palette.info,
+                        value: '${duration}s',
+                        label: 'Davomiylik',
+                      ),
                     ),
-                  ),
-                  SizedBox(width: AppSpacing.md.w),
-                  Expanded(
-                    child: AppStatCard(
-                      icon: Icons.stars_rounded,
-                      color: palette.warning,
-                      value: scoreLabel,
-                      label: 'Ball',
+                    SizedBox(width: AppSpacing.md.w),
+                    Expanded(
+                      child: AppStatCard(
+                        icon: Icons.stars_rounded,
+                        color: palette.warning,
+                        value: scoreLabel,
+                        label: 'Ball',
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
               if (test.description.isNotEmpty && test.goal.isNotEmpty) ...[
                 SizedBox(height: AppSpacing.sectionGap.h),
@@ -223,7 +225,7 @@ class _TestDetailViewState extends State<TestDetailView> {
                 ),
               ],
               SizedBox(height: AppSpacing.sectionGap.h),
-              AppSectionHeader(title: 'Savollar ($stepCount)'),
+              const AppSectionHeader(title: 'Savollar'),
               SizedBox(height: AppSpacing.md.h),
               if (test.steps.isEmpty)
                 const AppEmptyView(

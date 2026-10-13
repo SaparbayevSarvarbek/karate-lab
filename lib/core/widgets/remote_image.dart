@@ -101,11 +101,9 @@ class RemoteImage extends StatelessWidget {
   }
 
   Widget _loading(BuildContext context, double? width, double? height) {
-    final double w = _getSafeDimension(width, 100);
-    final double h = _getSafeDimension(height, 100);
     return Container(
-      width: w,
-      height: h,
+      width: width ?? double.infinity,
+      height: height ?? 140.h,
       color: context.palette.backgroundLight,
       child: Center(
         child: SizedBox(

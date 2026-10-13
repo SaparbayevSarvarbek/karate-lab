@@ -11,7 +11,6 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_bottom_bar.dart';
 import '../../../../core/widgets/app_snackbar.dart';
-import '../../../../core/widgets/app_step_badge.dart';
 import '../../../../core/widgets/custom_button.dart';
 import '../../../../core/widgets/karate_app_bar.dart';
 import '../widgets/language_option_widget.dart';
@@ -85,11 +84,6 @@ class _LanguageSelectionViewState extends State<LanguageSelectionView> {
                   AppSpacing.screenBottom.h,
                 ),
                 children: [
-                  AppStepBadge(
-                    label: '${Tr.t('setupBadge')} · 1 / 3',
-                    icon: Icons.tune_rounded,
-                  ),
-                  SizedBox(height: AppSpacing.lg.h),
                   Text(
                     Tr.t('chooseLanguage'),
                     style: AppTextStyles.screenTitle

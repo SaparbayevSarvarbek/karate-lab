@@ -26,10 +26,10 @@ class AppFab extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       color: AppColors.primaryBlue,
-      borderRadius: BorderRadius.circular(AppRadius.pill.r),
+      borderRadius: BorderRadius.circular(AppRadius.button.r),
       child: InkWell(
         onTap: onPressed,
-        borderRadius: BorderRadius.circular(AppRadius.pill.r),
+        borderRadius: BorderRadius.circular(AppRadius.button.r),
         child: Container(
           height: 48.h,
           padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg.w),
