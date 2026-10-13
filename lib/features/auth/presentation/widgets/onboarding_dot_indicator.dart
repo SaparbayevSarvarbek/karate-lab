@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/theme/app_palette.dart';
 import '../../../../core/theme/app_radius.dart';
+import '../../../../core/theme/app_spacing.dart';
 
+/// Onboarding sahifalari uchun nuqtali ko'rsatkich.
 class OnboardingDotIndicator extends StatelessWidget {
   final int currentPage;
   final int totalPages;
@@ -16,11 +19,14 @@ class OnboardingDotIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: List.generate(
-        totalPages,
-        (index) => OnboardingDot(isActive: index == currentPage),
+    return Semantics(
+      label: '${currentPage + 1}/$totalPages',
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: List.generate(
+          totalPages,
+          (index) => OnboardingDot(isActive: index == currentPage),
+        ),
       ),
     );
   }
@@ -37,9 +43,9 @@ class OnboardingDot extends StatelessWidget {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
       curve: Curves.easeOut,
-      margin: EdgeInsetsDirectional.only(end: 8.w),
-      height: 8.w,
-      width: isActive ? 20.w : 8.w,
+      margin: EdgeInsetsDirectional.only(end: AppSpacing.sm.w),
+      height: AppSpacing.sm.w,
+      width: isActive ? AppSpacing.xl.w : AppSpacing.sm.w,
       decoration: BoxDecoration(
         color: isActive ? AppColors.primaryBlue : palette.border,
         borderRadius: BorderRadius.circular(AppRadius.pill.r),

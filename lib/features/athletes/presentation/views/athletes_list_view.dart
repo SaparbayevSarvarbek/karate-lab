@@ -9,9 +9,15 @@ import '../../../../core/di/injection.dart';
 import '../../../../core/l10n/app_translations.dart';
 import '../../../../core/theme/app_palette.dart';
 import '../../../../core/theme/app_radius.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/app_filter_chips.dart';
+import '../../../../core/widgets/app_list_tile.dart';
+import '../../../../core/widgets/app_search_field.dart';
 import '../../../../core/widgets/app_state_views.dart';
 import '../../../../core/widgets/karate_app_bar.dart';
 import '../../../../core/widgets/remote_image.dart';
+import '../../../../core/widgets/shimmer_placeholder.dart';
 import '../viewmodels/athlete_bloc.dart';
 
 /// Murabbiy uchun sportchilar ro'yxati (Swagger: `GET /athletes/`).
@@ -26,6 +32,19 @@ class _AthletesListViewState extends State<AthletesListView> {
   final _searchController = TextEditingController();
   String _query = '';
   String _filter = 'all';
+
+  static const _filters = <AppChipItem<String>>[
+    AppChipItem(value: 'all', label: 'Barchasi'),
+    AppChipItem(value: 'done', label: 'Tugalladi'),
+    AppChipItem(value: 'active', label: 'Faol'),
+  ];
+
+  EdgeInsets get _listPadding => EdgeInsets.fromLTRB(
+        AppSpacing.screenH.w,
+        AppSpacing.md.h,
+        AppSpacing.screenH.w,
+        AppSpacing.screenBottom.h,
+      );
 
   @override
   void dispose() {
@@ -44,83 +63,51 @@ class _AthletesListViewState extends State<AthletesListView> {
     return BlocProvider(
       create: (_) => getIt<AthleteBloc>()..add(const LoadAthletes()),
       child: BlocBuilder<AthleteBloc, AthleteState>(
-        builder: (context, state) => _buildScaffold(context, state),
-      ),
-    );
-  }
-
-  Scaffold _buildScaffold(BuildContext context, AthleteState state) {
-    final palette = context.palette;
-
-    return Scaffold(
-      backgroundColor: palette.background,
-      appBar: KarateAppBar(title: Tr.t('navAthletes'), showLogo: true),
-      body: Column(
-        children: [
-          Padding(
-            padding: EdgeInsets.fromLTRB(20.w, 8.h, 20.w, 12.h),
-            child: TextField(
-              controller: _searchController,
-              onChanged: (v) => setState(() => _query = v.trim()),
-              style: TextStyle(fontSize: 14.sp, color: palette.textPrimary),
-              decoration: InputDecoration(
-                hintText: Tr.t('searchAthlete'),
-                hintStyle: TextStyle(color: palette.textHint, fontSize: 13.sp),
-                prefixIcon: Icon(Icons.search_rounded,
-                    size: 20.w, color: palette.textHint),
-                filled: true,
-                isDense: true,
-                fillColor: palette.surface,
-                contentPadding:
-                    EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppRadius.button.r),
-                  borderSide: BorderSide(color: palette.border),
+        builder: (context, state) => Scaffold(
+          backgroundColor: context.palette.background,
+          appBar: KarateAppBar(title: Tr.t('navAthletes'), showLogo: true),
+          body: Column(
+            children: [
+              Padding(
+                padding: EdgeInsets.fromLTRB(
+                  AppSpacing.screenH.w,
+                  AppSpacing.screenTop.h,
+                  AppSpacing.screenH.w,
+                  AppSpacing.md.h,
                 ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppRadius.button.r),
-                  borderSide: const BorderSide(color: AppColors.primaryBlue),
+                child: AppSearchField(
+                  hint: Tr.t('searchAthlete'),
+                  controller: _searchController,
+                  onChanged: (v) => setState(() => _query = v.trim()),
                 ),
               ),
-            ),
+              AppFilterChips<String>(
+                items: _filters,
+                selected: _filter,
+                onSelected: (v) => setState(() => _filter = v),
+              ),
+              Expanded(child: _buildBody(context, state)),
+            ],
           ),
-          Padding(
-            padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 12.h),
-            child: Row(
-              children: [
-                _FilterChip(
-                  label: 'Barchasi',
-                  selected: _filter == 'all',
-                  onTap: () => setState(() => _filter = 'all'),
-                ),
-                SizedBox(width: 8.w),
-                _FilterChip(
-                  label: 'Tugalladi',
-                  selected: _filter == 'done',
-                  onTap: () => setState(() => _filter = 'done'),
-                ),
-                SizedBox(width: 8.w),
-                _FilterChip(
-                  label: 'Faol',
-                  selected: _filter == 'active',
-                  onTap: () => setState(() => _filter = 'active'),
-                ),
-              ],
-            ),
-          ),
-          Expanded(child: _buildBody(context, state)),
-        ],
+        ),
       ),
     );
   }
 
   Widget _buildBody(BuildContext context, AthleteState state) {
-    if (state is AthleteLoading || state is AthleteInitial) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    if (state is AthleteActionLoading) {
-      return const Center(child: CircularProgressIndicator());
+    if (state is AthleteLoading ||
+        state is AthleteActionLoading ||
+        state is AthleteInitial) {
+      return ListView(
+        padding: _listPadding,
+        children: List.generate(
+          6,
+          (_) => Padding(
+            padding: EdgeInsets.only(bottom: AppSpacing.md.h),
+            child: const ShimmerAthleteCard(),
+          ),
+        ),
+      );
     }
 
     if (state is AthleteError) {
@@ -135,7 +122,7 @@ class _AthletesListViewState extends State<AthletesListView> {
       final athletes = _filtered(state.athletes);
       if (athletes.isEmpty) {
         return AppEmptyView(
-          icon: Icons.people_outline,
+          icon: Icons.people_outline_rounded,
           title: _query.isEmpty ? Tr.t('athletesEmpty') : Tr.t('noOneFound'),
         );
       }
@@ -143,7 +130,7 @@ class _AthletesListViewState extends State<AthletesListView> {
         onRefresh: () async =>
             context.read<AthleteBloc>().add(const LoadAthletes()),
         child: ListView.builder(
-          padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 24.h),
+          padding: _listPadding,
           itemCount: athletes.length,
           itemBuilder: (context, index) =>
               _buildAthleteTile(context, athletes[index]),
@@ -156,90 +143,41 @@ class _AthletesListViewState extends State<AthletesListView> {
 
   Widget _buildAthleteTile(BuildContext context, Athlete athlete) {
     final palette = context.palette;
+    final subtitle = athlete.age > 0
+        ? '${Tr.t('yearsOld', {'age': '${athlete.age}'})} • ${athlete.username}'
+        : athlete.username;
 
-    return Container(
-      margin: EdgeInsets.only(bottom: 10.h),
-      decoration: BoxDecoration(
-        color: palette.surface,
-        borderRadius: BorderRadius.circular(AppRadius.card.r),
-        border: Border.all(color: palette.border),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () => context.push('/athlete-profile', extra: athlete),
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-            child: Row(
-              children: [
-                AvatarImage(
-                  url: athlete.avatar,
-                  name: athlete.fullName,
-                  size: 44,
-                ),
-                SizedBox(width: 12.w),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        athlete.fullName,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 14.5.sp,
-                          color: palette.textPrimary,
-                        ),
-                      ),
-                      SizedBox(height: 2.h),
-                      Text(
-                        athlete.age > 0
-                            ? '${Tr.t('yearsOld', {'age': '${athlete.age}'})} • ${athlete.username}'
-                            : athlete.username,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: palette.textSecondary,
-                          fontSize: 12.sp,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                IconButton(
-                  tooltip: Tr.t('delete'),
-                  visualDensity: VisualDensity.compact,
-                  icon: Icon(
-                    Icons.delete_outline_rounded,
-                    color: AppColors.error,
-                    size: 20.w,
-                  ),
-                  onPressed: () => _showDeleteDialog(context, athlete),
-                ),
-                GestureDetector(
-                  onTap: () => context.push('/athlete-profile', extra: athlete),
-                  child: Container(
-                    padding:
-                        EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryBlue.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(AppRadius.pill.r),
-                    ),
-                    child: Text(
-                      'Ko\'rish',
-                      style: TextStyle(
-                        color: AppColors.primaryBlue,
-                        fontSize: 12.sp,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+    void openProfile() =>
+        context.push('/athlete-profile', extra: athlete);
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: AppSpacing.md.h),
+      child: AppListTile(
+        leading: AvatarImage(
+          url: athlete.avatar,
+          name: athlete.fullName,
+          size: 48,
+        ),
+        title: athlete.fullName,
+        subtitle: subtitle,
+        onTap: openProfile,
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              tooltip: Tr.t('delete'),
+              onPressed: () => _showDeleteDialog(context, athlete),
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+              icon: Icon(
+                Icons.delete_outline_rounded,
+                color: palette.error,
+                size: 20.w,
+              ),
             ),
-          ),
+            SizedBox(width: AppSpacing.sm.w),
+            _ViewPill(onTap: openProfile),
+          ],
         ),
       ),
     );
@@ -249,14 +187,18 @@ class _AthletesListViewState extends State<AthletesListView> {
     showDialog<void>(
       context: context,
       builder: (dialogContext) {
+        final palette = dialogContext.palette;
         return AlertDialog(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20.r),
+            borderRadius: BorderRadius.circular(AppRadius.panel.r),
           ),
-          title: Text(Tr.t('deleteAthleteTitle'), style: TextStyle(fontSize: 16.sp)),
+          title: Text(
+            Tr.t('deleteAthleteTitle'),
+            style: AppTextStyles.sectionTitle.copyWith(color: palette.textPrimary),
+          ),
           content: Text(
             Tr.t('deleteAthleteConfirm', {'name': athlete.fullName}),
-            style: TextStyle(fontSize: 13.5.sp),
+            style: AppTextStyles.body.copyWith(color: palette.textSecondary),
           ),
           actions: [
             TextButton(
@@ -270,7 +212,7 @@ class _AthletesListViewState extends State<AthletesListView> {
               },
               child: Text(
                 Tr.t('delete'),
-                style: const TextStyle(color: AppColors.error),
+                style: AppTextStyles.label.copyWith(color: palette.error),
               ),
             ),
           ],
@@ -280,37 +222,27 @@ class _AthletesListViewState extends State<AthletesListView> {
   }
 }
 
-class _FilterChip extends StatelessWidget {
-  final String label;
-  final bool selected;
+/// Kartadagi "Ko'rish" amali — brend tusli pill.
+class _ViewPill extends StatelessWidget {
   final VoidCallback onTap;
 
-  const _FilterChip({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
+  const _ViewPill({required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    final palette = context.palette;
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 7.h),
-        decoration: BoxDecoration(
-          color: selected ? AppColors.primaryBlue : palette.surface,
-          borderRadius: BorderRadius.circular(AppRadius.pill.r),
-          border: Border.all(
-            color: selected ? AppColors.primaryBlue : palette.border,
-          ),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: selected ? Colors.white : palette.textSecondary,
-            fontSize: 12.sp,
-            fontWeight: FontWeight.w700,
+    return Material(
+      color: AppColors.primaryBlue.withValues(alpha: 0.1),
+      borderRadius: BorderRadius.circular(AppRadius.pill.r),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppRadius.pill.r),
+        child: Container(
+          height: 44.h,
+          alignment: Alignment.center,
+          padding: EdgeInsets.symmetric(horizontal: AppSpacing.md.w),
+          child: Text(
+            'Ko\'rish',
+            style: AppTextStyles.label.copyWith(color: AppColors.primaryBlue),
           ),
         ),
       ),

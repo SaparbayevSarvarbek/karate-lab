@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:shimmer/shimmer.dart';
 import '../theme/app_palette.dart';
+import '../theme/app_radius.dart';
 
 class ShimmerPlaceholder extends StatelessWidget {
   final double width;
@@ -109,7 +110,7 @@ class ShimmerCard extends StatelessWidget {
       padding: padding ?? EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         color: context.palette.surface,
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(AppRadius.card.r),
         border: Border.all(color: context.palette.border),
       ),
       child: ShimmerPlaceholder(
@@ -267,7 +268,7 @@ class ShimmerExerciseDetail extends StatelessWidget {
         SizedBox(height: 12.h),
         ...List.generate(3, (i) => Padding(
           padding: EdgeInsets.only(bottom: 12.h),
-          child: ShimmerPlaceholder(width: double.infinity, height: 120.h, borderRadius: BorderRadius.circular(16.r)),
+          child: ShimmerPlaceholder(width: double.infinity, height: 120.h, borderRadius: BorderRadius.circular(AppRadius.card.r)),
         )),
       ],
     );
@@ -283,7 +284,7 @@ class ShimmerExerciseCard extends StatelessWidget {
       padding: EdgeInsets.all(12.w),
       decoration: BoxDecoration(
         color: context.palette.surface,
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(AppRadius.card.r),
         border: Border.all(color: context.palette.border),
       ),
       child: Column(
@@ -321,7 +322,7 @@ class ShimmerAthleteCard extends StatelessWidget {
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         color: context.palette.surface,
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(AppRadius.card.r),
         border: Border.all(color: context.palette.border),
       ),
       child: Row(
@@ -387,7 +388,7 @@ class ShimmerActionTile extends StatelessWidget {
         padding: EdgeInsets.all(16.w),
         decoration: BoxDecoration(
           color: context.palette.surface,
-          borderRadius: BorderRadius.circular(16.r),
+          borderRadius: BorderRadius.circular(AppRadius.card.r),
           border: Border.all(color: context.palette.border),
         ),
         child: Row(
@@ -423,7 +424,7 @@ class ShimmerResultCard extends StatelessWidget {
         padding: EdgeInsets.all(16.w),
         decoration: BoxDecoration(
           color: context.palette.surface,
-          borderRadius: BorderRadius.circular(16.r),
+          borderRadius: BorderRadius.circular(AppRadius.card.r),
           border: Border.all(color: context.palette.border),
         ),
         child: Row(

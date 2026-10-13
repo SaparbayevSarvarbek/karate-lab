@@ -5,10 +5,10 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/l10n/app_translations.dart';
 import '../../../../core/theme/app_palette.dart';
+import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_bottom_bar.dart';
 import '../../../../core/widgets/app_selection_card.dart';
-import '../../../../core/widgets/app_step_badge.dart';
 import '../../../../core/widgets/custom_button.dart';
 import '../../../../core/widgets/karate_app_bar.dart';
 
@@ -53,25 +53,25 @@ class _RoleSelectionViewState extends State<RoleSelectionView> {
           children: [
             Expanded(
               child: ListView(
-                padding: EdgeInsets.fromLTRB(20.w, 8.h, 20.w, 24.h),
+                padding: EdgeInsets.fromLTRB(
+                  AppSpacing.screenH.w,
+                  AppSpacing.screenTop.h,
+                  AppSpacing.screenH.w,
+                  AppSpacing.screenBottom.h,
+                ),
                 children: [
-                  AppStepBadge(
-                    label: '${Tr.t('setupBadge')} · 1 / 2',
-                    icon: Icons.tune_rounded,
-                  ),
-                  SizedBox(height: 16.h),
                   Text(
                     'Rolingizni tanlang',
                     style: AppTextStyles.screenTitle
                         .copyWith(color: palette.textPrimary),
                   ),
-                  SizedBox(height: 8.h),
+                  SizedBox(height: AppSpacing.sm.h),
                   Text(
                     'Ilovadan qanday maqsadda foydalanmoqchisiz?',
                     style: AppTextStyles.body
                         .copyWith(color: palette.textSecondary),
                   ),
-                  SizedBox(height: 24.h),
+                  SizedBox(height: AppSpacing.xxl.h),
                   AppSelectionCard(
                     icon: Icons.sports_martial_arts,
                     title: 'Sportchi',
@@ -79,7 +79,7 @@ class _RoleSelectionViewState extends State<RoleSelectionView> {
                     selected: _selectedRole == AppConstants.roleAthlete,
                     onTap: () => _onRoleSelected(AppConstants.roleAthlete),
                   ),
-                  SizedBox(height: 12.h),
+                  SizedBox(height: AppSpacing.cardGap.h),
                   AppSelectionCard(
                     icon: Icons.assignment_ind_outlined,
                     title: 'Murabbiy',

@@ -6,6 +6,8 @@ import '../di/injection.dart';
 import '../l10n/app_translations.dart';
 import '../repositories/profile_repository.dart';
 import '../theme/app_palette.dart';
+import '../theme/app_spacing.dart';
+import '../theme/app_text_styles.dart';
 import 'remote_image.dart';
 
 /// Bosh sahifadagi salomlashish qatori: avatar + vaqtga qarab salomlashish + ism.
@@ -51,30 +53,26 @@ class _UserGreetingRowState extends State<UserGreetingRow> {
             AvatarImage(
               url: profile?.avatar,
               name: profile?.fullName ?? widget.fallbackName,
-              size: 46,
+              size: 44,
             ),
-            SizedBox(width: 12.w),
+            SizedBox(width: AppSpacing.md.w),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    '$_greeting,',
-                    style: TextStyle(
-                      fontSize: 12.5.sp,
-                      color: palette.textSecondary,
-                    ),
+                    _greeting,
+                    style: AppTextStyles.caption
+                        .copyWith(color: palette.textSecondary),
                   ),
                   SizedBox(height: 2.h),
                   Text(
                     profile?.fullName ?? widget.fallbackName,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 17.sp,
-                      fontWeight: FontWeight.w800,
-                      color: palette.textPrimary,
-                    ),
+                    style: AppTextStyles.title
+                        .copyWith(color: palette.textPrimary),
                   ),
                 ],
               ),

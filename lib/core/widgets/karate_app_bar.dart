@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../theme/app_palette.dart';
+import '../theme/app_spacing.dart';
+import '../theme/app_text_styles.dart';
 import 'karate_logo.dart';
 
 /// Ilova bo'ylab **yagona** yuqori panel.
@@ -9,16 +11,17 @@ import 'karate_logo.dart';
 /// Barcha sahifalar shundan foydalanadi — shunda balandlik, shrift, orqaga
 /// tugmasi va fon rangi hamma joyda bir xil bo'ladi.
 ///
-/// - `showLogo: true` — asosiy (tab) sahifalar: brend belgisi + bo'lim nomi,
-///   orqaga tugmasi ko'rsatilmaydi.
-/// - `showLogo: false` — ichki sahifalar: orqaga tugmasi (avtomatik) + sarlavha.
+/// - `showLogo: true` — asosiy (tab) sahifalar: brend belgisi + bo'lim nomi
+///   chapga tekislangan, orqaga tugmasi ko'rsatilmaydi.
+/// - `showLogo: false` — ichki sahifalar: orqaga tugmasi + markazlashgan
+///   sarlavha.
 /// - `actions` — o'ng tomondagi amallar (masalan bildirishnoma qo'ng'irog'i).
 class KarateAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final bool showLogo;
   final List<Widget>? actions;
   final Widget? leading;
-  final bool centerTitle;
+  final bool? centerTitle;
 
   const KarateAppBar({
     super.key,
@@ -26,7 +29,7 @@ class KarateAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.showLogo = false,
     this.actions,
     this.leading,
-    this.centerTitle = true,
+    this.centerTitle,
   });
 
   @override
@@ -50,27 +53,24 @@ class KarateAppBar extends StatelessWidget implements PreferredSizeWidget {
       surfaceTintColor: Colors.transparent,
       elevation: 0,
       scrolledUnderElevation: 0,
-      centerTitle: centerTitle,
+      centerTitle: centerTitle ?? !showLogo,
       leading: effectiveLeading,
       automaticallyImplyLeading: false,
-      titleSpacing: showLogo ? 0 : null,
+      titleSpacing: showLogo ? AppSpacing.screenH : null,
       title: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           if (showLogo) ...[
             const KarateLabLogo(size: 26),
-            SizedBox(width: 8.w),
+            SizedBox(width: AppSpacing.sm.w),
           ],
           Flexible(
             child: Text(
               title,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 16.5.sp,
-                fontWeight: FontWeight.w700,
-                color: palette.textPrimary,
-              ),
+              style: AppTextStyles.sectionTitle
+                  .copyWith(color: palette.textPrimary),
             ),
           ),
         ],

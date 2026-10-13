@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/constants/app_colors.dart';
 import '../../../../core/l10n/app_translations.dart';
 import '../../../../core/theme/app_palette.dart';
+import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_bottom_bar.dart';
 import '../../../../core/widgets/app_selection_card.dart';
-import '../../../../core/widgets/app_step_badge.dart';
+import '../../../../core/widgets/app_snackbar.dart';
 import '../../../../core/widgets/custom_button.dart';
 import '../../../../core/widgets/karate_app_bar.dart';
 
@@ -45,15 +45,7 @@ class _GroupSelectionViewState extends State<GroupSelectionView> {
 
   void _onSelect(String group, bool selectable) {
     if (!selectable) {
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          const SnackBar(
-            content: Text('Tez orada 🚀'),
-            backgroundColor: AppColors.primaryBlue,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+      AppSnackbar.info(context, 'Tez orada 🚀');
       return;
     }
     setState(() => _selectedGroup = group);
@@ -81,25 +73,25 @@ class _GroupSelectionViewState extends State<GroupSelectionView> {
           children: [
             Expanded(
               child: ListView(
-                padding: EdgeInsets.fromLTRB(20.w, 8.h, 20.w, 24.h),
+                padding: EdgeInsets.fromLTRB(
+                  AppSpacing.screenH.w,
+                  AppSpacing.screenTop.h,
+                  AppSpacing.screenH.w,
+                  AppSpacing.screenBottom.h,
+                ),
                 children: [
-                  AppStepBadge(
-                    label: Tr.t('groupBadge'),
-                    icon: Icons.groups_rounded,
-                  ),
-                  SizedBox(height: 16.h),
                   Text(
                     'Guruhni tanlang',
                     style: AppTextStyles.screenTitle
                         .copyWith(color: palette.textPrimary),
                   ),
-                  SizedBox(height: 8.h),
+                  SizedBox(height: AppSpacing.sm.h),
                   Text(
                     Tr.t('groupSelectHint'),
                     style: AppTextStyles.body
                         .copyWith(color: palette.textSecondary),
                   ),
-                  SizedBox(height: 24.h),
+                  SizedBox(height: AppSpacing.xxl.h),
                   for (final (title, subtitle, selectable) in _groups) ...[
                     AppSelectionCard(
                       icon: Icons.workspace_premium_outlined,
@@ -111,7 +103,8 @@ class _GroupSelectionViewState extends State<GroupSelectionView> {
                           selectable ? null : Tr.t('comingSoonBadge'),
                       onTap: () => _onSelect(title, selectable),
                     ),
-                    if (title != _groups.last.$1) SizedBox(height: 12.h),
+                    if (title != _groups.last.$1)
+                      SizedBox(height: AppSpacing.cardGap.h),
                   ],
                 ],
               ),

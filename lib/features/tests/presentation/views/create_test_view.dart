@@ -13,8 +13,14 @@ import '../../../../core/repositories/exercise_repository.dart';
 import '../../../../core/repositories/test_repository.dart';
 import '../../../../core/theme/app_palette.dart';
 import '../../../../core/theme/app_radius.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/app_badge.dart';
 import '../../../../core/widgets/app_bottom_bar.dart';
+import '../../../../core/widgets/app_card.dart';
 import '../../../../core/widgets/app_section_header.dart';
+import '../../../../core/widgets/app_snackbar.dart';
+import '../../../../core/widgets/app_state_views.dart';
 import '../../../../core/widgets/custom_button.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/karate_app_bar.dart';
@@ -115,15 +121,7 @@ class _CreateTestViewState extends State<CreateTestView> {
 
   void _toast(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(message),
-          backgroundColor: AppColors.error,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+    AppSnackbar.error(context, message);
   }
 
   List<String> get _qualities => _qualitiesController.text
@@ -177,15 +175,7 @@ class _CreateTestViewState extends State<CreateTestView> {
         _toast(error.message);
       },
       (_) {
-        ScaffoldMessenger.of(context)
-          ..hideCurrentSnackBar()
-          ..showSnackBar(
-            SnackBar(
-              content: Text(Tr.t('testCreatedSuccess')),
-              backgroundColor: AppColors.success,
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
+        AppSnackbar.success(context, Tr.t('testCreatedSuccess'));
         context.pop<bool>(true);
       },
     );
@@ -207,18 +197,14 @@ class _CreateTestViewState extends State<CreateTestView> {
             ),
       body: SafeArea(
         child: _saving
-            ? const Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CircularProgressIndicator(),
-                    SizedBox(height: 16),
-                    Text('Test yaratilmoqda...'),
-                  ],
-                ),
-              )
+            ? AppLoadingView(label: Tr.t('creatingTest'))
             : SingleChildScrollView(
-                padding: EdgeInsets.fromLTRB(20.w, 8.h, 20.w, 24.h),
+                padding: EdgeInsets.fromLTRB(
+                  AppSpacing.screenH.w,
+                  AppSpacing.screenTop.h,
+                  AppSpacing.screenH.w,
+                  AppSpacing.screenBottom.h,
+                ),
                 child: Form(
                   key: _formKey,
                   child: Column(
@@ -229,7 +215,7 @@ class _CreateTestViewState extends State<CreateTestView> {
                         busy: _pickingCover,
                         onTap: _pickCover,
                       ),
-                      SizedBox(height: 20.h),
+                      SizedBox(height: AppSpacing.xl.h),
                       CustomTextField(
                         controller: _nameController,
                         hintText: Tr.t('testNameHint'),
@@ -237,32 +223,32 @@ class _CreateTestViewState extends State<CreateTestView> {
                         validator: (v) =>
                             (v == null || v.isEmpty) ? Tr.t('testNameRequired') : null,
                       ),
-                      SizedBox(height: 16.h),
+                      SizedBox(height: AppSpacing.lg.h),
                       CustomTextField(
                         controller: _ageController,
                         hintText: Tr.t('ageRangeHint'),
                         prefixIcon: const Icon(Icons.cake_outlined),
                       ),
-                      SizedBox(height: 16.h),
+                      SizedBox(height: AppSpacing.lg.h),
                       _Dropdown(
                         label: Tr.t('categoryLabel'),
                         value: _selectedCategory,
                         items: _categories,
                         onChanged: (v) => setState(() => _selectedCategory = v!),
                       ),
-                      SizedBox(height: 16.h),
+                      SizedBox(height: AppSpacing.lg.h),
                       CustomTextField(
                         controller: _goalController,
                         hintText: Tr.t('goalHint'),
                         prefixIcon: const Icon(Icons.flag_outlined),
                       ),
-                      SizedBox(height: 16.h),
+                      SizedBox(height: AppSpacing.lg.h),
                       CustomTextField(
                         controller: _qualitiesController,
                         hintText: Tr.t('qualitiesHint'),
                         prefixIcon: const Icon(Icons.stars_outlined),
                       ),
-                      SizedBox(height: 16.h),
+                      SizedBox(height: AppSpacing.lg.h),
                       CustomTextField(
                         controller: _descriptionController,
                         hintText: Tr.t('descriptionOptional'),
@@ -270,16 +256,17 @@ class _CreateTestViewState extends State<CreateTestView> {
                       ),
 
                       // ── Qadamlar ─────────────────────────────────────
-                      SizedBox(height: 24.h),
+                      SizedBox(height: AppSpacing.sectionGap.h),
                       AppSectionHeader(title: Tr.t('stepsTitle')),
-                      SizedBox(height: 8.h),
+                      SizedBox(height: AppSpacing.sm.h),
                       Text(
                         Tr.t('stepsHint'),
-                        style: TextStyle(
-                            color: AppColors.textSecondary, fontSize: 12.5.sp),
+                        style: AppTextStyles.caption.copyWith(
+                          color: context.palette.textSecondary,
+                        ),
                       ),
                       for (var i = 0; i < _steps.length; i++) ...[
-                        SizedBox(height: 12.h),
+                        SizedBox(height: AppSpacing.cardGap.h),
                         _StepCard(
                           index: i + 1,
                           draft: _steps[i],
@@ -287,36 +274,14 @@ class _CreateTestViewState extends State<CreateTestView> {
                           onRemove: () => _removeStep(i),
                         ),
                       ],
-                      SizedBox(height: 12.h),
-                      GestureDetector(
-                        onTap: _addStep,
-                        child: Container(
-                          width: double.infinity,
-                          padding: EdgeInsets.symmetric(vertical: 12.h),
-                          decoration: BoxDecoration(
-                            color: AppColors.primaryBlue.withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(AppRadius.button.r),
-                            border: Border.all(color: AppColors.primaryBlue),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.add_rounded,
-                                  color: AppColors.primaryBlue, size: 20.w),
-                              SizedBox(width: 8.w),
-                              Text(
-                                Tr.t('addStep'),
-                                style: TextStyle(
-                                  color: AppColors.primaryBlue,
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 13.5.sp,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+                      SizedBox(height: AppSpacing.cardGap.h),
+                      CustomButton(
+                        text: Tr.t('addStep'),
+                        onPressed: _addStep,
+                        isOutlined: true,
+                        leadingIcon: Icons.add_rounded,
                       ),
-                      SizedBox(height: 8.h),
+                      SizedBox(height: AppSpacing.md.h),
                     ],
                   ),
                 ),
@@ -349,7 +314,7 @@ class _CoverPicker extends StatelessWidget {
           color: palette.backgroundLight,
           borderRadius: BorderRadius.circular(AppRadius.card.r),
           border: Border.all(
-            color: cover != null ? AppColors.primaryBlue : AppColors.border,
+            color: cover != null ? AppColors.primaryBlue : palette.border,
           ),
           image: cover != null
               ? DecorationImage(image: FileImage(cover!), fit: BoxFit.cover)
@@ -360,11 +325,17 @@ class _CoverPicker extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.image_outlined, size: 40.w, color: AppColors.textHint),
-                    SizedBox(height: 8.h),
+                    Icon(
+                      Icons.image_outlined,
+                      size: 40.w,
+                      color: palette.textHint,
+                    ),
+                    SizedBox(height: AppSpacing.sm.h),
                     Text(
                       Tr.t('addCoverImage'),
-                      style: TextStyle(color: AppColors.textHint, fontSize: 13.sp),
+                      style: AppTextStyles.body.copyWith(
+                        color: palette.textHint,
+                      ),
                     ),
                   ],
                 ),
@@ -372,13 +343,17 @@ class _CoverPicker extends StatelessWidget {
             : Align(
                 alignment: AlignmentDirectional.topEnd,
                 child: Container(
-                  margin: EdgeInsets.all(8.w),
-                  padding: EdgeInsets.all(8.w),
+                  margin: EdgeInsets.all(AppSpacing.sm.w),
+                  padding: EdgeInsets.all(AppSpacing.sm.w),
                   decoration: BoxDecoration(
                     color: Colors.black.withValues(alpha: 0.4),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(Icons.edit, color: Colors.white, size: 16.w),
+                  child: Icon(
+                    Icons.edit,
+                    color: Colors.white,
+                    size: 16.w,
+                  ),
                 ),
               ),
       ),
@@ -405,18 +380,18 @@ class _Dropdown extends StatelessWidget {
     return DropdownButtonFormField<String>(
       initialValue: value,
       isExpanded: true,
-      style: TextStyle(fontSize: 14.sp, color: palette.textPrimary),
+      style: AppTextStyles.body.copyWith(color: palette.textPrimary),
       decoration: InputDecoration(
         labelText: label,
         filled: true,
         fillColor: palette.backgroundLight,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.button.r),
-          borderSide: const BorderSide(color: AppColors.border),
+          borderSide: BorderSide(color: palette.border),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.button.r),
-          borderSide: const BorderSide(color: AppColors.border),
+          borderSide: BorderSide(color: palette.border),
         ),
       ),
       items: items.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
@@ -456,80 +431,54 @@ class _StepCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
-    return Container(
-      padding: EdgeInsets.all(16.w),
-      decoration: BoxDecoration(
-        color: palette.surface,
-        borderRadius: BorderRadius.circular(AppRadius.card.r),
-        border: Border.all(color: palette.border),
-      ),
+    return AppCard(
+      padding: EdgeInsets.all(AppSpacing.lg.w),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Container(
-                width: 30.w,
-                height: 30.w,
-                decoration: BoxDecoration(
-                  color: AppColors.primaryBlue.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: Center(
-                  child: Text(
-                    '$index',
-                    style: TextStyle(
-                      color: AppColors.primaryBlue,
-                      fontWeight: FontWeight.w800,
-                      fontSize: 13.sp,
-                    ),
-                  ),
-                ),
+              AppBadge(
+                label: '$index',
+                color: AppColors.primaryBlue,
+                filled: true,
+                dense: true,
               ),
-              SizedBox(width: 8.w),
+              SizedBox(width: AppSpacing.sm.w),
               Expanded(
                 child: Text(
                   Tr.t('stepLabel', {'index': '$index'}),
-                  style: TextStyle(
-                    fontWeight: FontWeight.w700,
+                  style: AppTextStyles.cardTitle.copyWith(
                     color: palette.textPrimary,
-                    fontSize: 14.sp,
                   ),
                 ),
               ),
               GestureDetector(
                 onTap: onRemove,
-                child: Icon(Icons.delete_outline_rounded,
-                    color: AppColors.error, size: 20.w),
+                behavior: HitTestBehavior.opaque,
+                child: Padding(
+                  padding: EdgeInsets.all(AppSpacing.xs.w),
+                  child: Icon(
+                    Icons.delete_outline_rounded,
+                    color: palette.error,
+                    size: 20.w,
+                  ),
+                ),
               ),
             ],
           ),
-          SizedBox(height: 12.h),
+          SizedBox(height: AppSpacing.lg.h),
           CustomTextField(
             controller: draft.title,
             hintText: Tr.t('stepNameHint'),
             prefixIcon: const Icon(Icons.title),
           ),
-          SizedBox(height: 12.h),
-          TextFormField(
+          SizedBox(height: AppSpacing.lg.h),
+          _DescriptionField(
             controller: draft.description,
-            maxLines: 3,
-            style: TextStyle(fontSize: 13.sp),
-            decoration: InputDecoration(
-              hintText: Tr.t('stepDescriptionHint'),
-              filled: true,
-              fillColor: palette.backgroundLight,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(AppRadius.button.r),
-                borderSide: const BorderSide(color: AppColors.border),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(AppRadius.button.r),
-                borderSide: const BorderSide(color: AppColors.border),
-              ),
-            ),
+            hintText: Tr.t('stepDescriptionHint'),
           ),
-          SizedBox(height: 12.h),
+          SizedBox(height: AppSpacing.lg.h),
           Row(
             children: [
               Expanded(
@@ -539,7 +488,7 @@ class _StepCard extends StatelessWidget {
                   prefixIcon: const Icon(Icons.repeat_rounded),
                 ),
               ),
-              SizedBox(width: 12.w),
+              SizedBox(width: AppSpacing.lg.w),
               Expanded(
                 child: CustomTextField(
                   controller: draft.duration,
@@ -550,11 +499,11 @@ class _StepCard extends StatelessWidget {
               ),
             ],
           ),
-          SizedBox(height: 12.h),
+          SizedBox(height: AppSpacing.lg.h),
           GestureDetector(
             onTap: onImageTap,
             child: Container(
-              height: 140,
+              height: 140.h,
               width: double.infinity,
               decoration: BoxDecoration(
                 color: palette.backgroundLight,
@@ -562,7 +511,7 @@ class _StepCard extends StatelessWidget {
                 border: Border.all(
                   color: draft.image != null
                       ? AppColors.primaryBlue
-                      : AppColors.border,
+                      : palette.border,
                 ),
                 image: draft.image != null
                     ? DecorationImage(
@@ -576,13 +525,17 @@ class _StepCard extends StatelessWidget {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.image_outlined,
-                              size: 36.w, color: AppColors.textHint),
-                          SizedBox(height: 8.h),
+                          Icon(
+                            Icons.image_outlined,
+                            size: 36.w,
+                            color: palette.textHint,
+                          ),
+                          SizedBox(height: AppSpacing.sm.h),
                           Text(
                             Tr.t('addImageOptional'),
-                            style: TextStyle(
-                                color: AppColors.textHint, fontSize: 12.sp),
+                            style: AppTextStyles.caption.copyWith(
+                              color: palette.textHint,
+                            ),
                           ),
                         ],
                       ),
@@ -590,19 +543,64 @@ class _StepCard extends StatelessWidget {
                   : Align(
                       alignment: AlignmentDirectional.topEnd,
                       child: Container(
-                        margin: EdgeInsets.all(8.w),
-                        padding: EdgeInsets.all(4.w),
+                        margin: EdgeInsets.all(AppSpacing.sm.w),
+                        padding: EdgeInsets.all(AppSpacing.xs.w),
                         decoration: BoxDecoration(
                           color: Colors.black.withValues(alpha: 0.4),
                           shape: BoxShape.circle,
                         ),
-                        child: Icon(Icons.edit,
-                            color: Colors.white, size: 14.w),
+                        child: Icon(
+                          Icons.edit,
+                          color: Colors.white,
+                          size: 14.w,
+                        ),
                       ),
                     ),
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _DescriptionField extends StatelessWidget {
+  final TextEditingController controller;
+  final String hintText;
+
+  const _DescriptionField({
+    required this.controller,
+    required this.hintText,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    return TextFormField(
+      controller: controller,
+      maxLines: 3,
+      style: AppTextStyles.body.copyWith(color: palette.textPrimary),
+      decoration: InputDecoration(
+        hintText: hintText,
+        hintStyle: AppTextStyles.body.copyWith(color: palette.textHint),
+        filled: true,
+        fillColor: palette.backgroundLight,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadius.button.r),
+          borderSide: BorderSide(color: palette.border),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadius.button.r),
+          borderSide: BorderSide(color: palette.border),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadius.button.r),
+          borderSide: BorderSide(color: AppColors.primaryBlue, width: 1.5),
+        ),
+        contentPadding: EdgeInsets.symmetric(
+          horizontal: AppSpacing.md.w,
+          vertical: AppSpacing.md.h,
+        ),
       ),
     );
   }

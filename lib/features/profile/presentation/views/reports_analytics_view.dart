@@ -11,7 +11,11 @@ import '../../../../core/di/injection.dart';
 import '../../../../core/l10n/app_translations.dart';
 import '../../../../core/theme/app_palette.dart';
 import '../../../../core/theme/app_radius.dart';
+import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/app_badge.dart';
+import '../../../../core/widgets/app_card.dart';
+import '../../../../core/widgets/app_icon_tile.dart';
 import '../../../../core/widgets/app_section_header.dart';
 import '../../../../core/widgets/app_state_views.dart';
 import '../../../../core/widgets/karate_app_bar.dart';
@@ -59,7 +63,7 @@ class ReportsAnalyticsView extends StatelessWidget {
 
   Widget _buildBody(BuildContext context, AnalyticsState state) {
     if (state is AnalyticsInitial || state is AnalyticsLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return const AppLoadingView();
     }
 
     if (state is AnalyticsError) {
@@ -90,7 +94,12 @@ class _AthleteReport extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: EdgeInsets.fromLTRB(20.w, 8.h, 20.w, 24.h),
+      padding: EdgeInsets.fromLTRB(
+        AppSpacing.screenH.w,
+        AppSpacing.screenTop.h,
+        AppSpacing.screenH.w,
+        AppSpacing.screenBottom.h,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -110,17 +119,17 @@ class _AthleteReport extends StatelessWidget {
               ),
             ],
           ),
-          SizedBox(height: 24.h),
+          SizedBox(height: AppSpacing.sectionGap.h),
           AppSectionHeader(title: Tr.t('reportsTrend')),
-          SizedBox(height: 12.h),
+          SizedBox(height: AppSpacing.md.h),
           ReportsTrendChartCard(points: stats.scoreOverTime),
-          SizedBox(height: 24.h),
+          SizedBox(height: AppSpacing.sectionGap.h),
           AppSectionHeader(title: Tr.t('reportsByTest')),
-          SizedBox(height: 12.h),
+          SizedBox(height: AppSpacing.md.h),
           ReportsMetricListCard(items: stats.testPerformance),
-          SizedBox(height: 24.h),
+          SizedBox(height: AppSpacing.sectionGap.h),
           AppSectionHeader(title: Tr.t('reportsRecent')),
-          SizedBox(height: 12.h),
+          SizedBox(height: AppSpacing.md.h),
           _RecentResultsCard(results: stats.recentResults),
         ],
       ),
@@ -136,7 +145,12 @@ class _CoachReport extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: EdgeInsets.fromLTRB(20.w, 8.h, 20.w, 24.h),
+      padding: EdgeInsets.fromLTRB(
+        AppSpacing.screenH.w,
+        AppSpacing.screenTop.h,
+        AppSpacing.screenH.w,
+        AppSpacing.screenBottom.h,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -156,17 +170,17 @@ class _CoachReport extends StatelessWidget {
               ),
             ],
           ),
-          SizedBox(height: 24.h),
+          SizedBox(height: AppSpacing.sectionGap.h),
           AppSectionHeader(title: Tr.t('reportsTrend')),
-          SizedBox(height: 12.h),
+          SizedBox(height: AppSpacing.md.h),
           ReportsTrendChartCard(points: stats.scoreOverTime),
-          SizedBox(height: 24.h),
+          SizedBox(height: AppSpacing.sectionGap.h),
           AppSectionHeader(title: Tr.t('reportsDistribution')),
-          SizedBox(height: 12.h),
+          SizedBox(height: AppSpacing.md.h),
           ReportsMetricListCard(items: stats.performanceDistribution),
-          SizedBox(height: 24.h),
+          SizedBox(height: AppSpacing.sectionGap.h),
           AppSectionHeader(title: Tr.t('reportsRanking')),
-          SizedBox(height: 12.h),
+          SizedBox(height: AppSpacing.md.h),
           ReportsRankingList(items: stats.athletesPerformance),
         ],
       ),
@@ -182,6 +196,13 @@ String _scoreBand(double value) {
   if (value >= 7) return 'Yuqori';
   if (value >= 4) return "O'rta";
   return 'Past';
+}
+
+/// Qiymatga qarab holat rangi (matn/badge uchun WCAG-AA variantlari).
+Color _scoreColor(AppPalette palette, double value) {
+  if (value >= 7) return palette.success;
+  if (value >= 4) return palette.warning;
+  return palette.error;
 }
 
 class ReportsSummaryItem {
@@ -209,7 +230,7 @@ class ReportsSummaryRow extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         for (var i = 0; i < items.length; i++) ...[
-          if (i > 0) SizedBox(width: 12.w),
+          if (i > 0) SizedBox(width: AppSpacing.md.w),
           Expanded(
             child: ReportsSummaryCard(
               label: items[i].label,
@@ -241,13 +262,7 @@ class ReportsSummaryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
-    return Container(
-      padding: EdgeInsets.all(16.w),
-      decoration: BoxDecoration(
-        color: palette.surface,
-        borderRadius: BorderRadius.circular(AppRadius.card.r),
-        border: Border.all(color: palette.border),
-      ),
+    return AppCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -255,88 +270,23 @@ class ReportsSummaryCard extends StatelessWidget {
             value,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: AppTextStyles.screenTitle.copyWith(color: palette.textPrimary),
+            style: AppTextStyles.stat.copyWith(color: palette.textPrimary),
           ),
-          SizedBox(height: 4.h),
+          SizedBox(height: AppSpacing.xs.h),
           Text(
             label,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: AppTextStyles.caption.copyWith(color: palette.textSecondary),
           ),
-          SizedBox(height: 12.h),
-          _TrendChip(icon: icon, color: color),
+          SizedBox(height: AppSpacing.md.h),
+          AppIconTile(
+            icon: icon,
+            color: color,
+            size: 28,
+            radius: AppRadius.xs,
+          ),
         ],
-      ),
-    );
-  }
-}
-
-/// Kichik trend belgisi — `AppStepBadge` uslubidagi pill.
-class _TrendChip extends StatelessWidget {
-  final IconData icon;
-  final Color color;
-
-  const _TrendChip({required this.icon, required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(AppRadius.pill.r),
-      ),
-      child: Icon(icon, size: 12.w, color: color),
-    );
-  }
-}
-
-/// Karta ichidagi 40x40 yumaloq ikonka bloki.
-class _IconTile extends StatelessWidget {
-  final IconData icon;
-  final Color color;
-
-  const _IconTile({required this.icon, required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 40.w,
-      height: 40.w,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(14.r),
-      ),
-      child: Icon(icon, size: 20.w, color: color),
-    );
-  }
-}
-
-/// Qiymatga qarab rang oladigan ball pill'i.
-class _ScorePill extends StatelessWidget {
-  final double value;
-
-  const _ScorePill({required this.value});
-
-  Color get _color {
-    if (value >= 7) return AppColors.success;
-    if (value >= 4) return AppColors.warning;
-    return AppColors.error;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
-      decoration: BoxDecoration(
-        color: _color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(AppRadius.pill.r),
-      ),
-      child: Text(
-        value.toStringAsFixed(1),
-        style: AppTextStyles.badge.copyWith(color: _color, letterSpacing: 0),
       ),
     );
   }
@@ -350,35 +300,30 @@ class ReportsTrendChartCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (points.isEmpty) {
-      return const AppEmptyView(
+      return AppEmptyView(
         icon: Icons.bar_chart_rounded,
-        title: '',
+        title: Tr.t('reportsNoData'),
         compact: true,
       );
     }
 
-    final palette = context.palette;
-    return Container(
-      height: 200.h,
-      padding: EdgeInsets.all(16.w),
-      decoration: BoxDecoration(
-        color: palette.surface,
-        borderRadius: BorderRadius.circular(AppRadius.card.r),
-        border: Border.all(color: palette.border),
-      ),
-      child: Column(
-        children: [
-          const ReportsChartLegendRow(),
-          SizedBox(height: 12.h),
-          Expanded(
-            child: CustomPaint(
-              painter: _TrendChartPainter(points),
-              size: Size.infinite,
+    return AppCard(
+      child: SizedBox(
+        height: 180.h,
+        child: Column(
+          children: [
+            const ReportsChartLegendRow(),
+            SizedBox(height: AppSpacing.md.h),
+            Expanded(
+              child: CustomPaint(
+                painter: _TrendChartPainter(points),
+                size: Size.infinite,
+              ),
             ),
-          ),
-          SizedBox(height: 8.h),
-          ReportsChartLabelsRow(points: points),
-        ],
+            SizedBox(height: AppSpacing.sm.h),
+            ReportsChartLabelsRow(points: points),
+          ],
+        ),
       ),
     );
   }
@@ -393,7 +338,7 @@ class ReportsChartLegendRow extends StatelessWidget {
     return Row(
       children: [
         const ReportsLegendDot(color: AppColors.primaryBlue),
-        SizedBox(width: 8.w),
+        SizedBox(width: AppSpacing.sm.w),
         Text(
           Tr.t('avgScore'),
           style: AppTextStyles.caption.copyWith(color: palette.textSecondary),
@@ -447,7 +392,7 @@ class ReportsChartLabelsRow extends StatelessWidget {
         for (final label in labels)
           Text(
             _shortLabel(label),
-            style: TextStyle(fontSize: 12.sp, color: palette.textHint),
+            style: AppTextStyles.caption.copyWith(color: palette.textHint),
           ),
       ],
     );
@@ -522,24 +467,18 @@ class ReportsMetricListCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = context.palette;
     if (items.isEmpty) {
-      return const AppEmptyView(
+      return AppEmptyView(
         icon: Icons.bar_chart_rounded,
-        title: '',
+        title: Tr.t('reportsNoData'),
         compact: true,
       );
     }
 
-    return Container(
-      padding: EdgeInsets.all(16.w),
-      decoration: BoxDecoration(
-        color: palette.surface,
-        borderRadius: BorderRadius.circular(AppRadius.card.r),
-        border: Border.all(color: palette.border),
-      ),
+    return AppCard(
       child: Column(
         children: [
           for (var i = 0; i < items.length; i++) ...[
-            if (i > 0) Divider(height: 24.h, color: palette.divider),
+            if (i > 0) Divider(height: AppSpacing.xxl.h, color: palette.divider),
             ReportsMetricRow(label: items[i].label, value: items[i].value),
           ],
         ],
@@ -559,8 +498,13 @@ class ReportsMetricRow extends StatelessWidget {
     final palette = context.palette;
     return Row(
       children: [
-        const _IconTile(icon: Icons.insights_rounded, color: AppColors.primaryBlue),
-        SizedBox(width: 12.w),
+        const AppIconTile(
+          icon: Icons.insights_rounded,
+          color: AppColors.primaryBlue,
+          size: 40,
+          radius: AppRadius.tile,
+        ),
+        SizedBox(width: AppSpacing.md.w),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -569,23 +513,36 @@ class ReportsMetricRow extends StatelessWidget {
                 label,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 13.5.sp,
-                  fontWeight: FontWeight.w600,
-                  color: palette.textPrimary,
-                ),
+                style: AppTextStyles.cardTitle
+                    .copyWith(color: palette.textPrimary),
               ),
-              SizedBox(height: 2.h),
+              SizedBox(height: AppSpacing.xxs.h),
               Text(
                 _scoreBand(value),
-                style: AppTextStyles.caption.copyWith(color: palette.textSecondary),
+                style: AppTextStyles.caption
+                    .copyWith(color: palette.textSecondary),
               ),
             ],
           ),
         ),
-        SizedBox(width: 12.w),
-        _ScorePill(value: value),
+        SizedBox(width: AppSpacing.md.w),
+        _ScoreBadge(value: value),
       ],
+    );
+  }
+}
+
+/// Qiymatga qarab rang oladigan ball badge'i.
+class _ScoreBadge extends StatelessWidget {
+  final double value;
+
+  const _ScoreBadge({required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return AppBadge(
+      label: value.toStringAsFixed(1),
+      color: _scoreColor(context.palette, value),
     );
   }
 }
@@ -612,24 +569,20 @@ class _RecentResultsCard extends StatelessWidget {
       );
     }
 
-    return Container(
-      padding: EdgeInsets.all(16.w),
-      decoration: BoxDecoration(
-        color: palette.surface,
-        borderRadius: BorderRadius.circular(AppRadius.card.r),
-        border: Border.all(color: palette.border),
-      ),
+    return AppCard(
       child: Column(
         children: [
           for (var i = 0; i < results.length; i++) ...[
-            if (i > 0) Divider(height: 24.h, color: palette.divider),
+            if (i > 0) Divider(height: AppSpacing.xxl.h, color: palette.divider),
             Row(
               children: [
-                const _IconTile(
+                const AppIconTile(
                   icon: Icons.assignment_turned_in_rounded,
                   color: AppColors.primaryBlue,
+                  size: 40,
+                  radius: AppRadius.tile,
                 ),
-                SizedBox(width: 12.w),
+                SizedBox(width: AppSpacing.md.w),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -638,13 +591,10 @@ class _RecentResultsCard extends StatelessWidget {
                         results[i].testName,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 13.5.sp,
-                          fontWeight: FontWeight.w600,
-                          color: palette.textPrimary,
-                        ),
+                        style: AppTextStyles.cardTitle
+                            .copyWith(color: palette.textPrimary),
                       ),
-                      SizedBox(height: 2.h),
+                      SizedBox(height: AppSpacing.xxs.h),
                       Text(
                         _formatDate(results[i].completedAt),
                         style: AppTextStyles.caption
@@ -653,8 +603,8 @@ class _RecentResultsCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                SizedBox(width: 12.w),
-                _ScorePill(value: results[i].score),
+                SizedBox(width: AppSpacing.md.w),
+                _ScoreBadge(value: results[i].score),
               ],
             ),
           ],
@@ -672,9 +622,9 @@ class ReportsRankingList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (items.isEmpty) {
-      return const AppEmptyView(
+      return AppEmptyView(
         icon: Icons.bar_chart_rounded,
-        title: '',
+        title: Tr.t('reportsNoData'),
         compact: true,
       );
     }
@@ -684,7 +634,7 @@ class ReportsRankingList extends StatelessWidget {
     return Column(
       children: [
         for (var i = 0; i < sorted.length; i++) ...[
-          if (i > 0) SizedBox(height: 12.h),
+          if (i > 0) SizedBox(height: AppSpacing.md.h),
           ReportsRankingItem(
             rank: i + 1,
             name: sorted[i].label,
@@ -717,20 +667,15 @@ class ReportsRankingItem extends StatelessWidget {
       AppColors.medalBronze,
     ];
     final medalColor = rank <= 3 ? medalColors[rank - 1] : palette.textHint;
+    final isTop = rank == 1;
 
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-      decoration: BoxDecoration(
-        color: rank == 1
-            ? AppColors.medalGold.withValues(alpha: 0.08)
-            : palette.surface,
-        borderRadius: BorderRadius.circular(AppRadius.card.r),
-        border: Border.all(
-          color: rank == 1
-              ? AppColors.medalGold.withValues(alpha: 0.4)
-              : palette.border,
-        ),
+    return AppCard(
+      padding: EdgeInsets.symmetric(
+        horizontal: AppSpacing.lg.w,
+        vertical: AppSpacing.md.h,
       ),
+      tone: isTop ? AppColors.medalGold.withValues(alpha: 0.08) : null,
+      borderColor: isTop ? AppColors.medalGold.withValues(alpha: 0.4) : null,
       child: Row(
         children: [
           Container(
@@ -743,28 +688,23 @@ class ReportsRankingItem extends StatelessWidget {
             ),
             child: Text(
               '$rank',
-              style: TextStyle(
+              style: AppTextStyles.badge.copyWith(
                 color: Colors.white,
-                fontSize: 13.sp,
-                fontWeight: FontWeight.w800,
+                letterSpacing: 0,
               ),
             ),
           ),
-          SizedBox(width: 12.w),
+          SizedBox(width: AppSpacing.md.w),
           Expanded(
             child: Text(
               name,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 13.5.sp,
-                fontWeight: FontWeight.w600,
-                color: palette.textPrimary,
-              ),
+              style: AppTextStyles.cardTitle.copyWith(color: palette.textPrimary),
             ),
           ),
-          SizedBox(width: 12.w),
-          _ScorePill(value: score),
+          SizedBox(width: AppSpacing.md.w),
+          _ScoreBadge(value: score),
         ],
       ),
     );

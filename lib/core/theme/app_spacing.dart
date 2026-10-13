@@ -15,7 +15,20 @@ class AppSpacing {
   static const double xl = 20;
   static const double xxl = 24;
   static const double xxxl = 32;
+  static const double huge = 40;
 
   /// Ekranlarning standart yon padding'i.
   static const double screenH = 20;
+
+  /// Sahifa eng yuqorisidagi bo'shliq (top bar ostidan keyin).
+  static const double screenTop = 8;
+
+  /// Sahifaning eng pastidagi bo'shliq (oxirgi elementdan keyin).
+  static const double screenBottom = 24;
+
+  /// Ketma-ket kartalar orasidagi masofa.
+  static const double cardGap = 12;
+
+  /// Ikki mantiqiy blok (bo'lim) orasidagi masofa.
+  static const double sectionGap = 24;
 }

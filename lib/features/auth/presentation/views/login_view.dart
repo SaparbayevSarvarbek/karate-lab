@@ -4,7 +4,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/theme/app_palette.dart';
-import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/custom_button.dart';
@@ -12,6 +11,7 @@ import '../../../../core/widgets/custom_text_field.dart';
 import '../viewmodels/bloc/auth_bloc.dart';
 import '../widgets/login_header_widget.dart';
 import '../widgets/login_footer_widget.dart';
+import '../../../../core/widgets/app_snackbar.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -38,13 +38,7 @@ class _LoginViewState extends State<LoginView> {
   }
 
   void _onForgotPassword() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Coming soon 🚀'),
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: AppColors.primaryBlue,
-      ),
-    );
+    AppSnackbar.info(context, 'Coming soon 🚀');
   }
 
   void _onLogin() {
@@ -69,13 +63,7 @@ class _LoginViewState extends State<LoginView> {
         if (state is AuthAuthenticated) {
           context.go('/main', extra: state.role);
         } else if (state is AuthError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.message),
-              backgroundColor: AppColors.error,
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
+          AppSnackbar.error(context, state.message);
         }
       },
       child: BlocBuilder<AuthBloc, AuthState>(
@@ -101,16 +89,9 @@ class _LoginViewState extends State<LoginView> {
                       SizedBox(height: AppSpacing.xxl.h),
                       const LoginHeaderWidget(),
                       SizedBox(height: AppSpacing.xxxl.h),
-                      Container(
-                        padding: EdgeInsets.all(AppSpacing.lg.w),
-                        decoration: BoxDecoration(
-                          color: palette.surface,
-                          borderRadius: BorderRadius.circular(AppRadius.card.r),
-                          border: Border.all(color: palette.border),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
                             CustomTextField(
                               controller: _usernameController,
                               label: 'Foydalanuvchi nomi',
@@ -168,7 +149,6 @@ class _LoginViewState extends State<LoginView> {
                             ),
                           ],
                         ),
-                      ),
                       SizedBox(height: AppSpacing.xxl.h),
                       LoginFooterWidget(onRegister: _onRegister),
                     ],

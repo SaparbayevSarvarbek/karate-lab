@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:ui';
 
 import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/material.dart';
@@ -13,10 +12,13 @@ import '../../../../core/l10n/app_translations.dart';
 import '../../../../core/repositories/test_repository.dart';
 import '../../../../core/theme/app_palette.dart';
 import '../../../../core/theme/app_radius.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_bottom_bar.dart';
 import '../../../../core/widgets/custom_button.dart';
 import '../../../../core/widgets/karate_app_bar.dart';
 import '../../../../core/widgets/remote_image.dart';
+import '../../../../core/widgets/app_snackbar.dart';
 
 /// Testni taymer bilan bajarish sahifasi.
 ///
@@ -211,15 +213,7 @@ class _TestRunViewState extends State<TestRunView> {
 
     result.fold(
       (error) {
-        ScaffoldMessenger.of(context)
-          ..hideCurrentSnackBar()
-          ..showSnackBar(
-            SnackBar(
-              content: Text(error.message),
-              backgroundColor: AppColors.error,
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
+        AppSnackbar.error(context, error.message);
       },
       // Natija qaytariladi — chaqiruvchi ekran natija sahifasini ochadi.
       (finished) => Navigator.of(context).pop(finished),
@@ -255,10 +249,10 @@ class _TestRunViewState extends State<TestRunView> {
 
     return PopScope(
       canPop: !_submitting,
-      onPopInvoked: (didPop) async {
+      onPopInvokedWithResult: (didPop, _) async {
         if (didPop || _submitting) return;
         final shouldExit = await _showExitConfirmation();
-        if (shouldExit == true && mounted) {
+        if (shouldExit == true && context.mounted) {
           Navigator.of(context).pop();
         }
       },
@@ -272,7 +266,7 @@ class _TestRunViewState extends State<TestRunView> {
                 ? null
                 : () async {
                     final shouldExit = await _showExitConfirmation();
-                    if (shouldExit == true && mounted) {
+                    if (shouldExit == true && context.mounted) {
                       Navigator.of(context).pop();
                     }
                   },
@@ -324,7 +318,7 @@ class _TestRunViewState extends State<TestRunView> {
                             alignment: Alignment.topCenter,
                             children: [
                               ...previousChildren,
-                              if (currentChild != null) currentChild,
+                              ?currentChild,
                             ],
                           ),
                           transitionBuilder: (child, animation) => FadeTransition(
@@ -466,11 +460,11 @@ class _StepRail extends StatelessWidget {
     final palette = context.palette;
 
     return SizedBox(
-      height: 34.h,
+      height: 44.h,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: steps.length,
-        separatorBuilder: (_, __) => SizedBox(width: 8.w),
+        separatorBuilder: (_, _) => SizedBox(width: AppSpacing.sm.w),
         itemBuilder: (context, index) {
           final isCurrent = index == current;
           final isDone = !isCurrent && times[index] > 0;
@@ -484,46 +478,45 @@ class _StepRail extends StatelessWidget {
             border = AppColors.primaryBlue;
             content = Colors.white;
           } else if (isDone) {
-            fill = AppColors.success.withValues(alpha: 0.14);
-            border = AppColors.success.withValues(alpha: 0.5);
-            content = AppColors.success;
+            fill = palette.success.withValues(alpha: 0.14);
+            border = palette.success.withValues(alpha: 0.5);
+            content = palette.success;
           } else {
             fill = palette.backgroundLight;
             border = palette.border;
             content = palette.textHint;
           }
 
-          return GestureDetector(
-            onTap: onTap != null ? () => onTap!(index) : null,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              width: 28.w,
-              height: 28.w,
-              decoration: BoxDecoration(
-                color: fill,
-                shape: BoxShape.circle,
-                border: Border.all(color: border, width: isCurrent ? 0 : 1.2),
-                boxShadow: isCurrent
-                    ? [
-                        BoxShadow(
-                          color: AppColors.primaryBlue.withValues(alpha: 0.35),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ]
-                    : null,
-              ),
+          return Semantics(
+            button: onTap != null,
+            selected: isCurrent,
+            label: '${Tr.t('testRunSteps')} ${index + 1}',
+            excludeSemantics: true,
+            child: GestureDetector(
+              onTap: onTap != null ? () => onTap!(index) : null,
+              behavior: HitTestBehavior.opaque,
               child: Center(
-                child: isDone
-                    ? Icon(Icons.check_rounded, size: 14.w, color: content)
-                    : Text(
-                        '${index + 1}',
-                        style: TextStyle(
-                          fontSize: 12.sp,
-                          fontWeight: FontWeight.w700,
-                          color: content,
-                        ),
-                      ),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  width: 32.w,
+                  height: 32.w,
+                  decoration: BoxDecoration(
+                    color: fill,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: border, width: isCurrent ? 0 : 1.2),
+                  ),
+                  child: Center(
+                    child: isDone
+                        ? Icon(Icons.check_rounded, size: 15.w, color: content)
+                        : Text(
+                            '${index + 1}',
+                            style: AppTextStyles.badge.copyWith(
+                              color: content,
+                              letterSpacing: 0,
+                            ),
+                          ),
+                  ),
+                ),
               ),
             ),
           );
@@ -552,23 +545,17 @@ class _StepBody extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _StepHero(step: step, index: index),
-        SizedBox(height: 16.h),
+        SizedBox(height: AppSpacing.lg.h),
         Text(
           step.title.isEmpty ? '${Tr.t('testRunSteps')} ${index + 1}' : step.title,
-          style: TextStyle(
-            fontSize: 19.sp,
-            fontWeight: FontWeight.w800,
-            color: palette.textPrimary,
-            height: 1.25,
-          ),
+          style: AppTextStyles.title.copyWith(color: palette.textPrimary),
         ),
         if (step.description.isNotEmpty) ...[
-          SizedBox(height: 8.h),
+          SizedBox(height: AppSpacing.sm.h),
           Text(
             step.description,
-            style: TextStyle(
+            style: AppTextStyles.body.copyWith(
               color: palette.textSecondary,
-              fontSize: 13.5.sp,
               height: 1.55,
             ),
           ),
@@ -576,10 +563,10 @@ class _StepBody extends StatelessWidget {
         if (step.repetitions.isNotEmpty ||
             step.duration > 0 ||
             recordedSeconds > 0) ...[
-          SizedBox(height: 16.h),
+          SizedBox(height: AppSpacing.lg.h),
           Wrap(
-            spacing: 8.w,
-            runSpacing: 8.h,
+            spacing: AppSpacing.sm.w,
+            runSpacing: AppSpacing.sm.h,
             children: [
               if (step.repetitions.isNotEmpty)
                 _MetaChip(
@@ -591,13 +578,13 @@ class _StepBody extends StatelessWidget {
                 _MetaChip(
                   icon: Icons.timer_outlined,
                   label: '${step.duration}s',
-                  color: AppColors.info,
+                  color: palette.info,
                 ),
               if (recordedSeconds > 0)
                 _MetaChip(
                   icon: Icons.check_circle_rounded,
                   label: '${recordedSeconds.toStringAsFixed(1)}s',
-                  color: AppColors.success,
+                  color: palette.success,
                 ),
             ],
           ),
@@ -622,7 +609,7 @@ class _StepHero extends StatelessWidget {
       aspectRatio: 16 / 10,
       child: Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(18.r),
+          borderRadius: BorderRadius.circular(AppRadius.panel.r),
           border: Border.all(color: palette.border),
         ),
         clipBehavior: Clip.antiAlias,
@@ -652,33 +639,33 @@ class _StepHero extends StatelessWidget {
                       size: 42.w,
                       color: Colors.white.withValues(alpha: 0.85),
                     ),
-                    SizedBox(height: 8.h),
+                    SizedBox(height: AppSpacing.sm.h),
                     Text(
                       Tr.t('testRunNoImage'),
-                      style: TextStyle(
+                      style: AppTextStyles.caption.copyWith(
                         color: Colors.white.withValues(alpha: 0.75),
-                        fontSize: 12.sp,
-                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ],
                 ),
               ),
             PositionedDirectional(
-              start: 12.w,
-              top: 12.h,
+              start: AppSpacing.md.w,
+              top: AppSpacing.md.h,
               child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
+                padding: EdgeInsets.symmetric(
+                  horizontal: AppSpacing.md.w,
+                  vertical: 5.h,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.black.withValues(alpha: 0.45),
-                  borderRadius: BorderRadius.circular(999.r),
+                  borderRadius: BorderRadius.circular(AppRadius.pill.r),
                 ),
                 child: Text(
                   '${index + 1}',
-                  style: TextStyle(
+                  style: AppTextStyles.badge.copyWith(
                     color: Colors.white,
-                    fontSize: 12.sp,
-                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0,
                   ),
                 ),
               ),

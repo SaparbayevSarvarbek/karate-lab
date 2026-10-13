@@ -3,13 +3,17 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../core/api/models/athlete_models.dart';
+import '../../../../core/constants/app_colors.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_palette.dart';
-import '../../../../core/theme/app_radius.dart';
+import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/app_badge.dart';
+import '../../../../core/widgets/app_card.dart';
+import '../../../../core/widgets/app_list_tile.dart';
+import '../../../../core/widgets/app_section_header.dart';
 import '../../../../core/widgets/karate_app_bar.dart';
 import '../../../../core/widgets/remote_image.dart';
-import '../../../../core/widgets/app_section_header.dart';
 import '../../../../core/widgets/shimmer_placeholder.dart';
 import '../viewmodels/athlete_bloc.dart';
 
@@ -45,7 +49,8 @@ class _AthleteProfileContent extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<AthleteBloc, AthleteState>(
       builder: (context, state) {
-        final isLoading = state is AthleteLoading && (initial == null || initial!.id == 0);
+        final isLoading =
+            state is AthleteLoading && (initial == null || initial!.id == 0);
         final athlete =
             state is AthleteLoaded ? state.athlete : (initial ?? const Athlete());
 
@@ -54,58 +59,64 @@ class _AthleteProfileContent extends StatelessWidget {
           appBar: KarateAppBar(
             title: athlete.fullName.isEmpty ? 'Sportchi' : athlete.fullName,
           ),
-          body: CustomScrollView(
-            slivers: [
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(20.w, 8.h, 20.w, 24.h),
-                  child: Column(
+          body: SingleChildScrollView(
+            padding: EdgeInsets.fromLTRB(
+              AppSpacing.screenH.w,
+              AppSpacing.screenTop.h,
+              AppSpacing.screenH.w,
+              AppSpacing.screenBottom.h,
+            ),
+            child: isLoading
+                ? const _ProfileSkeleton()
+                : Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (isLoading) ...[
-                        ShimmerPlaceholder(width: 180.w, height: 28.h, borderRadius: BorderRadius.circular(14.r)),
-                        SizedBox(height: 8.h),
-                        ShimmerPlaceholder(width: 100.w, height: 16.h, borderRadius: BorderRadius.circular(8.r)),
-                        SizedBox(height: 24.h),
-                        ...List.generate(6, (index) => Padding(
-                          padding: EdgeInsets.only(bottom: 12.h),
-                          child: ShimmerListTile(hasLeading: false, lines: 1),
-                        )),
-                      ] else ...[
-                        _ProfileHeader(athlete: athlete),
-                        SizedBox(height: 24.h),
-                        _InfoCard(
-                          title: 'Shaxsiy ma\'lumotlar',
-                          rows: [
-                            InfoRow(label: 'Ism', value: athlete.firstName),
-                            InfoRow(label: 'Familiya', value: athlete.lastName),
-                            InfoRow(
-                              label: 'Tug\'ilgan sana',
-                              value: athlete.birthDate ?? '—',
-                            ),
-                            InfoRow(
-                              label: 'Telefon',
-                              value: (athlete.phone == null || athlete.phone!.isEmpty)
-                                  ? '—'
-                                  : athlete.phone!,
-                            ),
-                            InfoRow(
-                              label: 'Yosh',
-                              value:
-                                  athlete.age > 0 ? '${athlete.age} yosh' : '—',
-                            ),
-                            InfoRow(label: 'Username', value: athlete.username),
-                          ],
-                        ),
-                      ],
+                      _ProfileHeader(athlete: athlete),
+                      SizedBox(height: AppSpacing.sectionGap.h),
+                      const AppSectionHeader(title: 'Shaxsiy ma\'lumotlar'),
+                      SizedBox(height: AppSpacing.md.h),
+                      _InfoCard(
+                        rows: [
+                          InfoRow(label: 'Ism', value: athlete.firstName),
+                          InfoRow(label: 'Familiya', value: athlete.lastName),
+                          InfoRow(
+                            label: 'Tug\'ilgan sana',
+                            value: athlete.birthDate ?? '—',
+                          ),
+                          InfoRow(
+                            label: 'Telefon',
+                            value:
+                                (athlete.phone == null || athlete.phone!.isEmpty)
+                                    ? '—'
+                                    : athlete.phone!,
+                          ),
+                          InfoRow(
+                            label: 'Yosh',
+                            value: athlete.age > 0 ? '${athlete.age} yosh' : '—',
+                          ),
+                          InfoRow(label: 'Username', value: athlete.username),
+                        ],
+                      ),
                     ],
                   ),
-                ),
-              ),
-            ],
           ),
         );
       },
+    );
+  }
+}
+
+class _ProfileSkeleton extends StatelessWidget {
+  const _ProfileSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        const ShimmerProfileAvatar(),
+        SizedBox(height: AppSpacing.sectionGap.h),
+        const ShimmerCard(height: 220),
+      ],
     );
   }
 }
@@ -118,61 +129,48 @@ class _ProfileHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
-    return Row(
+    final display = athlete.fullName.isEmpty ? 'Sportchi' : athlete.fullName;
+
+    return Column(
       children: [
-        AvatarImage(
-          url: athlete.avatar,
-          name: athlete.fullName,
-          size: 64,
+        AvatarImage(url: athlete.avatar, name: athlete.fullName, size: 88),
+        SizedBox(height: AppSpacing.lg.h),
+        Text(
+          display,
+          textAlign: TextAlign.center,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: AppTextStyles.title.copyWith(color: palette.textPrimary),
         ),
-        SizedBox(width: 16.w),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                athlete.fullName.isEmpty ? 'Sportchi' : athlete.fullName,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: AppTextStyles.screenTitle.copyWith(color: palette.textPrimary),
-              ),
-              SizedBox(height: 4.h),
-              Text(
-                '@${athlete.username}',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: AppTextStyles.caption.copyWith(color: palette.textSecondary),
-              ),
-            ],
+        if (athlete.username.isNotEmpty) ...[
+          SizedBox(height: AppSpacing.sm.h),
+          AppBadge(
+            label: '@${athlete.username}',
+            color: AppColors.primaryBlue,
+            icon: Icons.alternate_email_rounded,
           ),
-        ),
+        ],
       ],
     );
   }
 }
 
+/// Guruhli ma'lumot kartasi — qatorlar ingichka ajratgich bilan.
 class _InfoCard extends StatelessWidget {
-  final String title;
   final List<InfoRow> rows;
 
-  const _InfoCard({required this.title, required this.rows});
+  const _InfoCard({required this.rows});
 
   @override
   Widget build(BuildContext context) {
-    final palette = context.palette;
-    return Container(
-      padding: EdgeInsets.all(20.w),
-      decoration: BoxDecoration(
-        color: palette.surface,
-        borderRadius: BorderRadius.circular(AppRadius.card.r),
-        border: Border.all(color: palette.border),
-      ),
+    return AppCard(
+      padding: EdgeInsets.zero,
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          AppSectionHeader(title: title),
-          SizedBox(height: 16.h),
-          ...rows,
+          for (var i = 0; i < rows.length; i++) ...[
+            if (i > 0) const AppTileDivider(),
+            rows[i],
+          ],
         ],
       ),
     );
@@ -189,14 +187,18 @@ class InfoRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = context.palette;
     return Padding(
-      padding: EdgeInsets.only(bottom: 12.h),
+      padding: EdgeInsets.symmetric(
+        horizontal: AppSpacing.lg.w,
+        vertical: AppSpacing.md.h,
+      ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label,
-              style: AppTextStyles.body.copyWith(color: palette.textSecondary)),
-          SizedBox(width: 12.w),
-          Flexible(
+          Text(
+            label,
+            style: AppTextStyles.body.copyWith(color: palette.textSecondary),
+          ),
+          SizedBox(width: AppSpacing.md.w),
+          Expanded(
             child: Text(
               value,
               textAlign: TextAlign.end,

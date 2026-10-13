@@ -14,11 +14,13 @@ import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_bottom_bar.dart';
+import '../../../../core/widgets/app_card.dart';
 import '../../../../core/widgets/app_section_header.dart';
 import '../../../../core/widgets/custom_button.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/karate_app_bar.dart';
 import '../../../../core/widgets/media_upload_section.dart';
+import '../../../../core/widgets/app_snackbar.dart';
 
 /// Yangi mashq qo'shish: nom, yosh, turi (Texnik/UJT/MJT), umumiy rasm,
 /// maqsad, sifatlar va har biri nom/tavsif/rasm/takrorlash/vaqtdan iborat
@@ -109,15 +111,7 @@ class _AddExerciseViewState extends State<AddExerciseView> {
 
   void _showToast(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(message),
-          backgroundColor: AppColors.error,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+    AppSnackbar.error(context, message);
   }
 
   List<String> get _qualities => _qualitiesController.text
@@ -174,26 +168,10 @@ class _AddExerciseViewState extends State<AddExerciseView> {
     result.fold(
       (error) {
         setState(() => _saving = false);
-        ScaffoldMessenger.of(context)
-          ..hideCurrentSnackBar()
-          ..showSnackBar(
-            SnackBar(
-              content: Text(error.message),
-              backgroundColor: AppColors.error,
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
+        AppSnackbar.error(context, error.message);
       },
       (_) {
-        ScaffoldMessenger.of(context)
-          ..hideCurrentSnackBar()
-          ..showSnackBar(
-            SnackBar(
-              content: Text(Tr.t('exerciseAddedSuccess')),
-              backgroundColor: AppColors.success,
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
+        AppSnackbar.success(context, Tr.t('exerciseAddedSuccess'));
         final navigator = Navigator.of(context);
         navigator.popUntil((route) => route is! PopupRoute);
         if (!mounted) return;
@@ -206,16 +184,22 @@ class _AddExerciseViewState extends State<AddExerciseView> {
   Widget build(BuildContext context) {
     final palette = context.palette;
     return Scaffold(
+      backgroundColor: palette.background,
       appBar: KarateAppBar(title: Tr.t('addExerciseTitle')),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: EdgeInsets.fromLTRB(AppSpacing.screenH.w, AppSpacing.sm.h, AppSpacing.screenH.w, AppSpacing.xxl.h, ),
+          padding: EdgeInsets.fromLTRB(
+            AppSpacing.screenH.w,
+            AppSpacing.screenTop.h,
+            AppSpacing.screenH.w,
+            AppSpacing.xxl.h,
+          ),
           child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _SectionCard(
+                AppCard(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -229,7 +213,7 @@ class _AddExerciseViewState extends State<AddExerciseView> {
                   ),
                 ),
                 SizedBox(height: AppSpacing.lg.h),
-                _SectionCard(
+                AppCard(
                   child: Column(
                     children: [
                       CustomTextField(
@@ -270,7 +254,7 @@ class _AddExerciseViewState extends State<AddExerciseView> {
                 ),
 
                 // ── Bosqichlar (steps) ────────────────────────────────
-                SizedBox(height: AppSpacing.xxl.h),
+                SizedBox(height: AppSpacing.sectionGap.h),
                 AppSectionHeader(title: Tr.t('stepsTitle')),
                 SizedBox(height: AppSpacing.xs.h),
                 Text(
@@ -289,33 +273,7 @@ class _AddExerciseViewState extends State<AddExerciseView> {
                   ),
                 ],
                 SizedBox(height: AppSpacing.md.h),
-                GestureDetector(
-                  onTap: _addStep,
-                  child: Container(
-                    width: double.infinity,
-                    padding: EdgeInsets.symmetric(vertical: 12.h),
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryBlue.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(AppRadius.card.r),
-                      border: Border.all(color: AppColors.primaryBlue),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.add_rounded,
-                            color: AppColors.primaryBlue, size: 20.w),
-                        SizedBox(width: 8.w),
-                        Text(
-                          Tr.t('addStep'),
-                          style: AppTextStyles.button.copyWith(
-                            color: AppColors.primaryBlue,
-                            fontSize: 13.5.sp,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+                _AddStepButton(onTap: _addStep),
               ],
             ),
           ),
@@ -332,24 +290,44 @@ class _AddExerciseViewState extends State<AddExerciseView> {
   }
 }
 
-/// Bo'lim kartasi — 18 radius, surface fon va 1px chegara.
-class _SectionCard extends StatelessWidget {
-  final Widget child;
+/// Bosqich qo'shish tugmasi — 52 balandlikdagi konturli amal.
+class _AddStepButton extends StatelessWidget {
+  final VoidCallback onTap;
 
-  const _SectionCard({required this.child});
+  const _AddStepButton({required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    final palette = context.palette;
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(AppSpacing.lg.w),
-      decoration: BoxDecoration(
-        color: palette.surface,
-        borderRadius: BorderRadius.circular(AppRadius.card.r),
-        border: Border.all(color: palette.border),
+    final radius = BorderRadius.circular(AppRadius.card.r);
+    return Material(
+      color: AppColors.primaryBlue.withValues(alpha: 0.08),
+      borderRadius: radius,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: radius,
+        child: Container(
+          height: 52.h,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            borderRadius: radius,
+            border: Border.all(
+              color: AppColors.primaryBlue.withValues(alpha: 0.45),
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.add_rounded, color: AppColors.primaryBlue, size: 20.w),
+              SizedBox(width: AppSpacing.sm.w),
+              Text(
+                Tr.t('addStep'),
+                style: AppTextStyles.button
+                    .copyWith(color: AppColors.primaryBlue),
+              ),
+            ],
+          ),
+        ),
       ),
-      child: child,
     );
   }
 }
@@ -374,18 +352,18 @@ class AddExerciseDropdown extends StatelessWidget {
     return DropdownButtonFormField<String>(
       initialValue: value,
       isExpanded: true,
-      style: TextStyle(fontSize: 14.sp, color: palette.textPrimary),
+      style: AppTextStyles.body.copyWith(color: palette.textPrimary),
       decoration: InputDecoration(
         labelText: label,
         filled: true,
         fillColor: palette.backgroundLight,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.button.r),
-          borderSide: const BorderSide(color: AppColors.border),
+          borderSide: BorderSide(color: palette.border),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.button.r),
-          borderSide: const BorderSide(color: AppColors.border),
+          borderSide: BorderSide(color: palette.border),
         ),
       ),
       items: items
@@ -433,48 +411,45 @@ class _StepCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
-    return Container(
+    return AppCard(
       padding: EdgeInsets.all(AppSpacing.md.w),
-      decoration: BoxDecoration(
-        color: palette.surface,
-        borderRadius: BorderRadius.circular(AppRadius.card.r),
-        border: Border.all(color: palette.border),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
               Container(
-                width: 30.w,
-                height: 30.w,
+                width: 32.w,
+                height: 32.w,
+                alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: AppColors.primaryBlue.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
+                  color: AppColors.primaryBlue.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(AppRadius.tile.r),
                 ),
-                child: Center(
-                  child: Text(
-                    '$index',
-                    style: AppTextStyles.caption.copyWith(
-                      color: AppColors.primaryBlue,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
+                child: Text(
+                  '$index',
+                  style: AppTextStyles.badge
+                      .copyWith(color: AppColors.primaryBlue),
                 ),
               ),
-              SizedBox(width: 8.w),
+              SizedBox(width: AppSpacing.md.w),
               Expanded(
                 child: Text(
                   Tr.t('stepLabel', {'index': '$index'}),
-                  style: AppTextStyles.cardTitle.copyWith(
-                    color: palette.textPrimary,
-                  ),
+                  style: AppTextStyles.cardTitle
+                      .copyWith(color: palette.textPrimary),
                 ),
               ),
-              GestureDetector(
-                onTap: onRemove,
-                child: Icon(Icons.delete_outline_rounded,
-                    color: AppColors.error, size: 20.w),
+              IconButton(
+                tooltip: Tr.t('delete'),
+                onPressed: onRemove,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+                icon: Icon(
+                  Icons.delete_outline_rounded,
+                  color: palette.error,
+                  size: 20.w,
+                ),
               ),
             ],
           ),
@@ -488,18 +463,19 @@ class _StepCard extends StatelessWidget {
           TextFormField(
             controller: draft.description,
             maxLines: 3,
-            style: TextStyle(fontSize: 13.sp),
+            style: AppTextStyles.body.copyWith(color: palette.textPrimary),
             decoration: InputDecoration(
               hintText: Tr.t('stepDescriptionHint'),
+              hintStyle: AppTextStyles.body.copyWith(color: palette.textHint),
               filled: true,
               fillColor: palette.backgroundLight,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(AppRadius.button.r),
-                borderSide: const BorderSide(color: AppColors.border),
+                borderSide: BorderSide(color: palette.border),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(AppRadius.button.r),
-                borderSide: const BorderSide(color: AppColors.border),
+                borderSide: BorderSide(color: palette.border),
               ),
             ),
           ),
@@ -513,7 +489,7 @@ class _StepCard extends StatelessWidget {
                   prefixIcon: const Icon(Icons.repeat_rounded),
                 ),
               ),
-              SizedBox(width: 12.w),
+              SizedBox(width: AppSpacing.md.w),
               Expanded(
                 child: CustomTextField(
                   controller: draft.duration,
@@ -534,7 +510,7 @@ class _StepCard extends StatelessWidget {
           GestureDetector(
             onTap: busy ? null : onImageTap,
             child: Container(
-              height: 140,
+              height: 140.h,
               width: double.infinity,
               decoration: BoxDecoration(
                 color: palette.backgroundLight,
@@ -542,7 +518,7 @@ class _StepCard extends StatelessWidget {
                 border: Border.all(
                   color: draft.image != null
                       ? AppColors.primaryBlue
-                      : AppColors.border,
+                      : palette.border,
                 ),
                 image: draft.image != null
                     ? DecorationImage(
@@ -557,12 +533,12 @@ class _StepCard extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(Icons.image_outlined,
-                              size: 36.w, color: AppColors.textHint),
-                          SizedBox(height: 8.h),
+                              size: 36.w, color: palette.textHint),
+                          SizedBox(height: AppSpacing.sm.h),
                           Text(
                             Tr.t('addImageOptional'),
-                            style: TextStyle(
-                                color: AppColors.textHint, fontSize: 12.sp),
+                            style: AppTextStyles.caption
+                                .copyWith(color: palette.textHint),
                           ),
                         ],
                       ),
@@ -570,10 +546,10 @@ class _StepCard extends StatelessWidget {
                   : Align(
                       alignment: AlignmentDirectional.topEnd,
                       child: Container(
-                        margin: EdgeInsets.all(8.w),
-                        padding: EdgeInsets.all(4.w),
+                        margin: EdgeInsets.all(AppSpacing.sm.w),
+                        padding: EdgeInsets.all(AppSpacing.xs.w),
                         decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.4),
+                          color: Colors.black.withValues(alpha: 0.45),
                           shape: BoxShape.circle,
                         ),
                         child: Icon(Icons.edit,

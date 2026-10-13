@@ -9,14 +9,16 @@ import '../../../../core/di/injection.dart';
 import '../../../../core/l10n/app_translations.dart';
 import '../../../../core/repositories/profile_repository.dart';
 import '../../../../core/theme/app_palette.dart';
-import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/models/profile_model.dart';
 import '../../../../core/services/shared_prefs_service.dart';
 import '../../../../core/utils/uz_phone_formatter.dart';
 import '../../../../core/widgets/app_bottom_bar.dart';
+import '../../../../core/widgets/app_card.dart';
 import '../../../../core/widgets/app_section_header.dart';
+import '../../../../core/widgets/app_snackbar.dart';
+import '../../../../core/widgets/app_state_views.dart';
 import '../../../../core/widgets/custom_button.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/karate_app_bar.dart';
@@ -84,7 +86,9 @@ class _ProfileEditViewState extends State<ProfileEditView> {
         (error) {
           _fillFromLocal(saved);
           // Lokal zaxira ham bo'lmasa, sahifa sababsiz bo'sh ko'rinmasin.
-          if (saved == null) _showSnackBar(error.message, AppColors.error);
+          if (saved == null && mounted) {
+            AppSnackbar.error(context, error.message);
+          }
         },
         _fillFromApi,
       );
@@ -166,9 +170,11 @@ class _ProfileEditViewState extends State<ProfileEditView> {
           await getIt<ProfileRepository>().uploadAvatar(picked.path);
       if (!mounted) return;
       await result.fold(
-        (error) async => _showSnackBar(error.message, AppColors.error),
+        (error) async {
+          if (mounted) AppSnackbar.error(context, error.message);
+        },
         (_) async {
-          _showSnackBar('Foto muvaffaqiyatli yuklandi', AppColors.success);
+          AppSnackbar.success(context, 'Foto muvaffaqiyatli yuklandi');
           final updated = await getIt<ProfileRepository>().getProfile();
           if (!mounted) return;
           updated.fold(
@@ -178,23 +184,12 @@ class _ProfileEditViewState extends State<ProfileEditView> {
         },
       );
     } catch (_) {
-      _showSnackBar('Foto yuklashda xatolik yuz berdi', AppColors.error);
+      if (mounted) {
+        AppSnackbar.error(context, 'Foto yuklashda xatolik yuz berdi');
+      }
     } finally {
       if (mounted) setState(() => _avatarBusy = false);
     }
-  }
-
-  void _showSnackBar(String message, Color color) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(message),
-          backgroundColor: color,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
   }
 
   @override
@@ -251,27 +246,11 @@ class _ProfileEditViewState extends State<ProfileEditView> {
 
       await result.fold(
         (error) async {
-          ScaffoldMessenger.of(context)
-            ..hideCurrentSnackBar()
-            ..showSnackBar(
-              SnackBar(
-                content: Text(error.message),
-                backgroundColor: AppColors.error,
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
+          AppSnackbar.error(context, error.message);
         },
         (profile) async {
           if (!mounted) return;
-          ScaffoldMessenger.of(context)
-            ..hideCurrentSnackBar()
-            ..showSnackBar(
-              const SnackBar(
-                content: Text('Profil saqlandi'),
-                backgroundColor: AppColors.success,
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
+          AppSnackbar.success(context, 'Profil saqlandi');
           context.pop<Profile>(profile);
         },
       );
@@ -286,11 +265,16 @@ class _ProfileEditViewState extends State<ProfileEditView> {
       backgroundColor: context.palette.background,
       appBar: KarateAppBar(title: Tr.t('editProfileTitle')),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const AppLoadingView()
           : SafeArea(
               bottom: false,
               child: SingleChildScrollView(
-                padding: EdgeInsets.fromLTRB(AppSpacing.screenH.w, AppSpacing.sm.h, AppSpacing.screenH.w, AppSpacing.xxl.h, ),
+                padding: EdgeInsets.fromLTRB(
+                  AppSpacing.screenH.w,
+                  AppSpacing.screenTop.h,
+                  AppSpacing.screenH.w,
+                  AppSpacing.screenBottom.h,
+                ),
                 child: Form(
                   key: _formKey,
                   child: Column(
@@ -304,73 +288,85 @@ class _ProfileEditViewState extends State<ProfileEditView> {
                       SizedBox(height: AppSpacing.xxl.h),
                       AppSectionHeader(title: 'Shaxsiy ma\'lumotlar'),
                       SizedBox(height: AppSpacing.md.h),
-                      _FormCard(
-                        children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: CustomTextField(
-                                  controller: _firstNameController,
-                                  hintText: 'Ism',
-                                  prefixIcon: const Icon(Icons.person_outline),
-                                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Ism kiriting' : null,
+                      AppCard(
+                        child: Column(
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: CustomTextField(
+                                    controller: _firstNameController,
+                                    hintText: 'Ism',
+                                    prefixIcon: const Icon(Icons.person_outline),
+                                    validator: (v) =>
+                                        (v == null || v.trim().isEmpty)
+                                            ? 'Ism kiriting'
+                                            : null,
+                                  ),
                                 ),
-                              ),
-                              SizedBox(width: AppSpacing.md.w),
-                              Expanded(
-                                child: CustomTextField(
-                                  controller: _lastNameController,
-                                  hintText: 'Familiya',
-                                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Familiya kiriting' : null,
+                                SizedBox(width: AppSpacing.md.w),
+                                Expanded(
+                                  child: CustomTextField(
+                                    controller: _lastNameController,
+                                    hintText: 'Familiya',
+                                    validator: (v) =>
+                                        (v == null || v.trim().isEmpty)
+                                            ? 'Familiya kiriting'
+                                            : null,
+                                  ),
                                 ),
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: AppSpacing.lg.h),
-                          PhoneTextField(controller: _phoneController),
-                        ],
+                              ],
+                            ),
+                            SizedBox(height: AppSpacing.lg.h),
+                            PhoneTextField(controller: _phoneController),
+                          ],
+                        ),
                       ),
-                      SizedBox(height: AppSpacing.xxl.h),
+                      SizedBox(height: AppSpacing.sectionGap.h),
                       AppSectionHeader(title: 'Jismoniy ko\'rsatkichlar'),
                       SizedBox(height: AppSpacing.md.h),
-                      _FormCard(
-                        children: [
-                          GestureDetector(
-                            onTap: _pickBirthDate,
-                            child: AbsorbPointer(
-                              child: CustomTextField(
-                                controller: _dobController,
-                                hintText: 'Tug\'ilgan sana (YYYY-MM-DD)',
-                                prefixIcon: const Icon(Icons.cake_outlined),
-                                suffixIcon: const Icon(Icons.calendar_today),
+                      AppCard(
+                        child: Column(
+                          children: [
+                            GestureDetector(
+                              onTap: _pickBirthDate,
+                              child: AbsorbPointer(
+                                child: CustomTextField(
+                                  controller: _dobController,
+                                  hintText: 'Tug\'ilgan sana (YYYY-MM-DD)',
+                                  prefixIcon: const Icon(Icons.cake_outlined),
+                                  suffixIcon:
+                                      const Icon(Icons.calendar_today_rounded),
+                                ),
                               ),
                             ),
-                          ),
-                          SizedBox(height: AppSpacing.lg.h),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: CustomTextField(
-                                  controller: _heightController,
-                                  hintText: 'Bo\'y',
-                                  keyboardType: TextInputType.number,
-                                  prefixIcon: const Icon(Icons.height),
-                                  suffixText: 'sm',
+                            SizedBox(height: AppSpacing.lg.h),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: CustomTextField(
+                                    controller: _heightController,
+                                    hintText: 'Bo\'y',
+                                    keyboardType: TextInputType.number,
+                                    prefixIcon: const Icon(Icons.height_rounded),
+                                    suffixText: 'sm',
+                                  ),
                                 ),
-                              ),
-                              SizedBox(width: AppSpacing.md.w),
-                              Expanded(
-                                child: CustomTextField(
-                                  controller: _weightController,
-                                  hintText: 'Vazn',
-                                  keyboardType: TextInputType.number,
-                                  prefixIcon: const Icon(Icons.monitor_weight_outlined),
-                                  suffixText: 'kg',
+                                SizedBox(width: AppSpacing.md.w),
+                                Expanded(
+                                  child: CustomTextField(
+                                    controller: _weightController,
+                                    hintText: 'Vazn',
+                                    keyboardType: TextInputType.number,
+                                    prefixIcon: const Icon(
+                                        Icons.monitor_weight_outlined),
+                                    suffixText: 'kg',
+                                  ),
                                 ),
-                              ),
-                            ],
-                          ),
-                        ],
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
@@ -387,30 +383,6 @@ class _ProfileEditViewState extends State<ProfileEditView> {
                 trailingIcon: Icons.check_rounded,
               ),
             ),
-    );
-  }
-}
-
-class _FormCard extends StatelessWidget {
-  final List<Widget> children;
-
-  const _FormCard({required this.children});
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = context.palette;
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(AppSpacing.lg.w),
-      decoration: BoxDecoration(
-        color: palette.surface,
-        borderRadius: BorderRadius.circular(AppRadius.card.r),
-        border: Border.all(color: palette.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: children,
-      ),
     );
   }
 }
@@ -438,18 +410,21 @@ class _AvatarSection extends StatelessWidget {
             clipBehavior: Clip.none,
             children: [
               CircleAvatar(
-                radius: 42,
+                radius: 44.w,
                 backgroundColor: palette.backgroundLight,
                 backgroundImage: hasAvatar ? NetworkImage(avatarUrl!) : null,
                 child: hasAvatar
                     ? null
-                    : Icon(Icons.person,
-                        size: 42.w, color: palette.textHint),
+                    : Icon(
+                        Icons.person_rounded,
+                        size: 44.w,
+                        color: palette.textHint,
+                      ),
               ),
               if (busy)
                 Positioned.fill(
                   child: CircleAvatar(
-                    radius: 42,
+                    radius: 44.w,
                     backgroundColor: Colors.black.withValues(alpha: 0.35),
                     child: const CircularProgressIndicator(
                       color: Colors.white,
@@ -457,31 +432,42 @@ class _AvatarSection extends StatelessWidget {
                     ),
                   ),
                 ),
+              // Kamera tugmasi: ko'rinishi 34px, bosilish maydoni 44px.
               PositionedDirectional(
-                bottom: 0,
-                end: 0,
+                bottom: -2,
+                end: -2,
                 child: GestureDetector(
                   onTap: busy ? null : onCameraTap,
-                  child: Container(
-                    width: 30.w,
-                    height: 30.w,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryBlue,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: palette.background, width: 2.w),
-                    ),
-                    child: Icon(
-                      Icons.camera_alt_outlined,
-                      color: Colors.white,
-                      size: 15.w,
+                  behavior: HitTestBehavior.opaque,
+                  child: SizedBox(
+                    width: 44.w,
+                    height: 44.w,
+                    child: Center(
+                      child: Container(
+                        width: 34.w,
+                        height: 34.w,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryBlue,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: palette.background,
+                            width: 2.w,
+                          ),
+                        ),
+                        child: Icon(
+                          Icons.camera_alt_outlined,
+                          color: Colors.white,
+                          size: 17.w,
+                        ),
+                      ),
                     ),
                   ),
                 ),
               ),
             ],
           ),
-          SizedBox(height: 12.h),
+          SizedBox(height: AppSpacing.md.h),
           Text(
             'Rasmni o\'zgartirish uchun bosing',
             textAlign: TextAlign.center,

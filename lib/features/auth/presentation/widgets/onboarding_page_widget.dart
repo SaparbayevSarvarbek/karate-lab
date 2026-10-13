@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/theme/app_palette.dart';
 import '../../../../core/theme/app_radius.dart';
@@ -34,6 +35,8 @@ class OnboardingPageWidget extends StatelessWidget {
   }
 }
 
+/// Sahifa rasmi — brend gradient paneli ustida katta, juda past shaffoflikdagi
+/// ikonka. Rasm yuklamaydi (vektor), shu sababli render yengil qoladi.
 class OnboardingIllustration extends StatelessWidget {
   final String iconName;
 
@@ -46,7 +49,7 @@ class OnboardingIllustration extends StatelessWidget {
       case 'people':
         return Icons.groups_rounded;
       default:
-        return Icons.sports_martial_arts;
+        return Icons.sports_martial_arts_rounded;
     }
   }
 
@@ -61,7 +64,7 @@ class OnboardingIllustration extends StatelessWidget {
             begin: AlignmentDirectional.topStart,
             end: AlignmentDirectional.bottomEnd,
           ),
-          borderRadius: BorderRadius.circular(AppRadius.card.r),
+          borderRadius: BorderRadius.circular(AppRadius.panel.r),
         ),
         clipBehavior: Clip.antiAlias,
         child: Center(

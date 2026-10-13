@@ -7,13 +7,18 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/l10n/app_translations.dart';
 import '../../../../core/theme/app_palette.dart';
-import '../../../../core/theme/app_radius.dart';
-import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/widgets/app_badge.dart';
+import '../../../../core/widgets/app_filter_chips.dart';
+import '../../../../core/widgets/app_list_tile.dart';
+import '../../../../core/widgets/app_search_field.dart';
 import '../../../../core/widgets/app_state_views.dart';
 import '../../../../core/widgets/karate_app_bar.dart';
+import '../../../../core/widgets/shimmer_placeholder.dart';
 import '../viewmodels/mashqlar_bloc.dart';
+import '../../../../core/widgets/app_snackbar.dart';
 
-/// Mashqlar sahifasi: search + category chiplari (Barchasi / Texnik / UJT / MJT).
+/// Mashqlar sahifasi: qidiruv + kategoriya chiplari (Barchasi / Texnik / UJT / MJT).
 class MashqlarView extends StatefulWidget {
   const MashqlarView({super.key});
 
@@ -26,12 +31,12 @@ class _MashqlarViewState extends State<MashqlarView> {
   String _query = '';
   String _category = 'all'; // all | texnik | ujt | mjt
 
-  static const _categories = <String, String>{
-    'all': 'Barchasi',
-    'texnik': 'Texnik',
-    'ujt': 'UJT',
-    'mjt': 'MJT',
-  };
+  static const _categories = <AppChipItem<String>>[
+    AppChipItem(value: 'all', label: 'Barchasi'),
+    AppChipItem(value: 'texnik', label: 'Texnik'),
+    AppChipItem(value: 'ujt', label: 'UJT'),
+    AppChipItem(value: 'mjt', label: 'MJT'),
+  ];
 
   @override
   void dispose() {
@@ -61,82 +66,38 @@ class _MashqlarViewState extends State<MashqlarView> {
       child: BlocListener<MashqlarBloc, MashqlarState>(
         listener: (context, state) {
           if (state is MashqlarError) {
-            ScaffoldMessenger.of(context)
-              ..hideCurrentSnackBar()
-              ..showSnackBar(
-                SnackBar(
-                  content: Text(state.message),
-                  backgroundColor: AppColors.error,
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
+            AppSnackbar.neutral(context, state.message);
           }
           if (state is MashqlarLoaded && state.warning != null) {
-            ScaffoldMessenger.of(context)
-              ..hideCurrentSnackBar()
-              ..showSnackBar(
-                SnackBar(
-                  content: Text(state.warning!),
-                  backgroundColor: AppColors.warning,
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
+            AppSnackbar.neutral(context, state.warning!);
           }
         },
         child: Builder(
           builder: (context) => Scaffold(
             backgroundColor: context.palette.background,
-            appBar: KarateAppBar(title: Tr.t('navExercises'), showLogo: true),
+            appBar: KarateAppBar(
+              title: Tr.t('navExercises'),
+              showLogo: true,
+            ),
             body: Column(
               children: [
                 Padding(
-                  padding: EdgeInsets.fromLTRB(20.w, 8.h, 20.w, 8.h),
-                  child: TextField(
+                  padding: EdgeInsets.fromLTRB(
+                    AppSpacing.screenH.w,
+                    AppSpacing.screenTop.h,
+                    AppSpacing.screenH.w,
+                    AppSpacing.md.h,
+                  ),
+                  child: AppSearchField(
+                    hint: Tr.t('searchExerciseHint'),
                     controller: _searchController,
                     onChanged: (v) => setState(() => _query = v.trim()),
-                    style: TextStyle(
-                      fontSize: 14.sp,
-                      color: context.palette.textPrimary,
-                    ),
-                    decoration: InputDecoration(
-                      hintText: 'Mashq izlash...',
-                      hintStyle: TextStyle(
-                        color: context.palette.textHint,
-                        fontSize: 13.sp,
-                      ),
-                      prefixIcon: Icon(
-                        Icons.search,
-                        size: 20.w,
-                        color: context.palette.textHint,
-                      ),
-                      filled: true,
-                      fillColor: context.palette.backgroundLight,
-                      isDense: true,
-                      contentPadding:
-                          EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(AppRadius.button.r),
-                        borderSide: BorderSide.none,
-                      ),
-                    ),
                   ),
                 ),
-                SizedBox(
-                  height: 36.h,
-                  child: ListView.separated(
-                    scrollDirection: Axis.horizontal,
-                    padding: EdgeInsets.symmetric(horizontal: 20.w),
-                    itemCount: _categories.length,
-                    separatorBuilder: (_, _) => SizedBox(width: 8.w),
-                    itemBuilder: (context, index) {
-                      final code = _categories.keys.elementAt(index);
-                      return _CategoryChip(
-                        label: _categories[code]!,
-                        selected: _category == code,
-                        onTap: () => setState(() => _category = code),
-                      );
-                    },
-                  ),
+                AppFilterChips<String>(
+                  items: _categories,
+                  selected: _category,
+                  onSelected: (v) => setState(() => _category = v),
                 ),
                 Expanded(child: _buildBody(context)),
               ],
@@ -151,7 +112,15 @@ class _MashqlarViewState extends State<MashqlarView> {
     return BlocBuilder<MashqlarBloc, MashqlarState>(
       builder: (context, state) {
         if (state is MashqlarLoading || state is MashqlarInitial) {
-          return const Center(child: CircularProgressIndicator());
+          return ListView(
+            padding: EdgeInsets.fromLTRB(
+              AppSpacing.screenH.w,
+              AppSpacing.md.h,
+              AppSpacing.screenH.w,
+              AppSpacing.screenBottom.h,
+            ),
+            children: List.generate(6, (_) => const ShimmerActionTile()),
+          );
         }
 
         if (state is MashqlarLoaded) {
@@ -159,85 +128,35 @@ class _MashqlarViewState extends State<MashqlarView> {
           if (items.isEmpty) {
             return AppEmptyView(
               icon: Icons.search_off_rounded,
-              title: 'Mashq topilmadi',
+              title: Tr.t('noSearchResult'),
+              message: _query.isEmpty ? null : Tr.t('noSearchResultSub'),
             );
           }
           return RefreshIndicator(
             onRefresh: () async =>
                 context.read<MashqlarBloc>().add(const LoadMashqlar()),
             child: ListView.builder(
-              padding: EdgeInsets.fromLTRB(20.w, 12.h, 20.w, 24.h),
+              padding: EdgeInsets.fromLTRB(
+                AppSpacing.screenH.w,
+                AppSpacing.md.h,
+                AppSpacing.screenH.w,
+                AppSpacing.screenBottom.h,
+              ),
               itemCount: items.length,
-              itemBuilder: (context, index) =>
-                  _MashqCard(item: items[index]),
+              itemBuilder: (context, index) => Padding(
+                padding: EdgeInsets.only(bottom: AppSpacing.md.h),
+                child: _MashqCard(item: items[index]),
+              ),
             ),
           );
         }
 
         return AppErrorView(
           message: 'Mashqlarni yuklab bo\'lmadi',
+          retryLabel: Tr.t('retry'),
           onRetry: () => context.read<MashqlarBloc>().add(const LoadMashqlar()),
         );
       },
-    );
-  }
-}
-
-class _CategoryChip extends StatelessWidget {
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  const _CategoryChip({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = context.palette;
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        padding: EdgeInsets.symmetric(horizontal: 16.w),
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: selected ? AppColors.primaryBlue : palette.backgroundLight,
-          borderRadius: BorderRadius.circular(AppRadius.pill.r),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: selected ? Colors.white : palette.textSecondary,
-            fontSize: 12.sp,
-            fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Karta ichidagi 44x44 yumaloq ikonka bloki.
-class _IconTile extends StatelessWidget {
-  final IconData icon;
-  final Color color;
-
-  const _IconTile({required this.icon, required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 44.w,
-      height: 44.w,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(14.r),
-      ),
-      child: Icon(icon, size: 22.w, color: color),
     );
   }
 }
@@ -264,72 +183,14 @@ class _MashqCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final palette = context.palette;
-    return Padding(
-      padding: EdgeInsets.only(bottom: 12.h),
-      child: Material(
-        color: palette.surface,
-        borderRadius: BorderRadius.circular(AppRadius.card.r),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(AppRadius.card.r),
-          onTap: () => _open(context),
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(AppRadius.card.r),
-              border: Border.all(color: palette.border),
-            ),
-            padding: EdgeInsets.all(12.w),
-            child: Row(
-              children: [
-                _IconTile(icon: _icon, color: _accent),
-                SizedBox(width: 12.w),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        item.title,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: AppTextStyles.cardTitle
-                            .copyWith(color: palette.textPrimary),
-                      ),
-                      if (item.subtitle.isNotEmpty) ...[
-                        SizedBox(height: 3.h),
-                        Text(
-                          item.subtitle,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: AppTextStyles.caption
-                              .copyWith(color: palette.textSecondary),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-                SizedBox(width: 8.w),
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
-                  decoration: BoxDecoration(
-                    color: _accent.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(AppRadius.pill.r),
-                  ),
-                  child: Text(
-                    _label,
-                    style: AppTextStyles.badge
-                        .copyWith(color: _accent, letterSpacing: 0),
-                  ),
-                ),
-                Icon(
-                  Icons.chevron_right_rounded,
-                  color: palette.textHint,
-                  size: 22.w,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
+    return AppListTile(
+      icon: _icon,
+      iconColor: _accent,
+      title: item.title,
+      subtitle: item.subtitle.isEmpty ? null : item.subtitle,
+      showChevron: true,
+      trailing: AppBadge(label: _label, color: _accent),
+      onTap: () => _open(context),
     );
   }
 

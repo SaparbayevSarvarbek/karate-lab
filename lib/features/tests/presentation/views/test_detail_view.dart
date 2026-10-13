@@ -9,17 +9,22 @@ import '../../../../core/di/injection.dart';
 import '../../../../core/repositories/test_repository.dart';
 import '../../../../core/theme/app_palette.dart';
 import '../../../../core/theme/app_radius.dart';
+import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/app_badge.dart';
 import '../../../../core/widgets/app_bottom_bar.dart';
+import '../../../../core/widgets/app_card.dart';
 import '../../../../core/widgets/app_section_header.dart';
+import '../../../../core/widgets/app_snackbar.dart';
 import '../../../../core/widgets/app_state_views.dart';
+import '../../../../core/widgets/app_stat_card.dart';
 import '../../../../core/widgets/custom_button.dart';
 import '../../../../core/widgets/karate_app_bar.dart';
 import '../../../../core/widgets/remote_image.dart';
 import '../../../../core/widgets/shimmer_placeholder.dart';
 
-/// Test tafsilotlari: umumiy rasm, maqsad/sifatlar va
-/// qadamlar. Testni boshlash orqali taymerli bajarish sahifasiga o'tiladi.
+/// Test tafsilotlari: umumiy rasm, maqsad/sifatlar va qadamlar.
+/// Testni boshlash orqali taymerli bajarish sahifasiga o'tiladi.
 class TestDetailView extends StatefulWidget {
   final TestResult? result;
 
@@ -47,7 +52,7 @@ class _TestDetailViewState extends State<TestDetailView> {
     if (!mounted) return;
     setState(() => _busy = false);
     response.fold(
-      (error) => _showError(error.message),
+      (error) => AppSnackbar.error(context, error.message),
       (updated) async {
         setState(() => _result = updated);
         await _openRun(updated);
@@ -61,18 +66,6 @@ class _TestDetailViewState extends State<TestDetailView> {
       setState(() => _result = finished);
       await context.push('/test-result', extra: finished);
     }
-  }
-
-  void _showError(String message) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(message),
-          backgroundColor: AppColors.error,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
   }
 
   @override
@@ -104,6 +97,7 @@ class _TestDetailViewState extends State<TestDetailView> {
             : null;
     final isFinished = test.status == TestStatus.completed ||
         test.status == TestStatus.unknown;
+    final statusColor = _statusColor(palette, test.status);
 
     return Scaffold(
       backgroundColor: palette.background,
@@ -111,162 +105,166 @@ class _TestDetailViewState extends State<TestDetailView> {
       body: Stack(
         children: [
           ListView(
-            padding: EdgeInsets.fromLTRB(20.w, 8.h, 20.w, 24.h),
+            padding: EdgeInsets.fromLTRB(
+              AppSpacing.screenH.w,
+              AppSpacing.screenTop.h,
+              AppSpacing.screenH.w,
+              AppSpacing.screenBottom.h,
+            ),
             children: [
               _TestHero(test: test),
-              SizedBox(height: 20.h),
+              SizedBox(height: AppSpacing.xl.h),
               Text(
                 test.name,
                 style: AppTextStyles.screenTitle
                     .copyWith(color: palette.textPrimary),
               ),
-              SizedBox(height: 12.h),
+              SizedBox(height: AppSpacing.md.h),
               Wrap(
-                spacing: 8.w,
-                runSpacing: 8.h,
+                spacing: AppSpacing.sm.w,
+                runSpacing: AppSpacing.sm.h,
                 children: [
                   if (test.category.isNotEmpty)
-                    _InfoChip(
+                    AppBadge(
                       label: test.category,
-                      icon: Icons.category_outlined,
                       color: AppColors.primaryBlue,
+                      icon: Icons.category_outlined,
                     ),
                   if (test.age.isNotEmpty)
-                    _InfoChip(
+                    AppBadge(
                       label: test.age,
-                      icon: Icons.cake_outlined,
                       color: AppColors.primaryBlue,
+                      icon: Icons.cake_outlined,
                     ),
-                  _InfoChip(
+                  AppBadge(
                     label: test.status.label,
+                    color: statusColor,
                     icon: Icons.flag_rounded,
-                    color: _statusColor(test.status),
                   ),
                   if (dateValue != null)
-                    _InfoChip(
+                    AppBadge(
                       label: dateValue,
+                      color: palette.textSecondary,
                       icon: Icons.calendar_today_rounded,
-                      color: AppColors.primaryBlue,
                     ),
                 ],
               ),
               if (paragraph.isNotEmpty) ...[
-                SizedBox(height: 16.h),
+                SizedBox(height: AppSpacing.lg.h),
                 Text(
                   paragraph,
-                  style: AppTextStyles.body
-                      .copyWith(color: palette.textSecondary, height: 1.55),
+                  style: AppTextStyles.body.copyWith(
+                    color: palette.textSecondary,
+                    height: 1.55,
+                  ),
                 ),
               ],
-              SizedBox(height: 24.h),
+              SizedBox(height: AppSpacing.sectionGap.h),
               const AppSectionHeader(title: 'Test ma\'lumotlari'),
-              SizedBox(height: 12.h),
+              SizedBox(height: AppSpacing.md.h),
               Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  _StatCard(
-                    icon: Icons.list_alt_rounded,
-                    color: AppColors.primaryBlue,
-                    value: '$stepCount',
-                    label: 'Savollar',
+                  Expanded(
+                    child: AppStatCard(
+                      icon: Icons.list_alt_rounded,
+                      color: AppColors.primaryBlue,
+                      value: '$stepCount',
+                      label: 'Savollar',
+                    ),
                   ),
-                  SizedBox(width: 12.w),
-                  _StatCard(
-                    icon: Icons.timer_outlined,
-                    color: AppColors.info,
-                    value: '${duration}s',
-                    label: 'Davomiylik',
+                  SizedBox(width: AppSpacing.md.w),
+                  Expanded(
+                    child: AppStatCard(
+                      icon: Icons.timer_outlined,
+                      color: palette.info,
+                      value: '${duration}s',
+                      label: 'Davomiylik',
+                    ),
                   ),
-                  SizedBox(width: 12.w),
-                  _StatCard(
-                    icon: Icons.stars_rounded,
-                    color: AppColors.warning,
-                    value: scoreLabel,
-                    label: 'Ball',
+                  SizedBox(width: AppSpacing.md.w),
+                  Expanded(
+                    child: AppStatCard(
+                      icon: Icons.stars_rounded,
+                      color: palette.warning,
+                      value: scoreLabel,
+                      label: 'Ball',
+                    ),
                   ),
                 ],
               ),
               if (test.description.isNotEmpty && test.goal.isNotEmpty) ...[
-                SizedBox(height: 24.h),
+                SizedBox(height: AppSpacing.sectionGap.h),
                 const AppSectionHeader(title: 'Maqsad'),
-                SizedBox(height: 12.h),
+                SizedBox(height: AppSpacing.sm.h),
                 Text(
                   test.goal,
-                  style: AppTextStyles.body
-                      .copyWith(color: palette.textSecondary, height: 1.55),
+                  style: AppTextStyles.body.copyWith(
+                    color: palette.textSecondary,
+                    height: 1.55,
+                  ),
                 ),
               ],
               if (test.qualities.isNotEmpty) ...[
-                SizedBox(height: 24.h),
+                SizedBox(height: AppSpacing.sectionGap.h),
                 const AppSectionHeader(title: 'Rivojlanadigan sifatlar'),
-                SizedBox(height: 12.h),
+                SizedBox(height: AppSpacing.md.h),
                 Wrap(
-                  spacing: 8.w,
-                  runSpacing: 8.h,
-                  children: test.qualities
-                      .map((q) => _InfoChip(
-                            label: q,
-                            color: AppColors.primaryBlue,
-                          ))
-                      .toList(),
+                  spacing: AppSpacing.sm.w,
+                  runSpacing: AppSpacing.sm.h,
+                  children: [
+                    for (final q in test.qualities)
+                      AppBadge(
+                        label: q,
+                        color: AppColors.primaryBlue,
+                        filled: false,
+                      ),
+                  ],
                 ),
               ],
-              SizedBox(height: 24.h),
+              SizedBox(height: AppSpacing.sectionGap.h),
               AppSectionHeader(title: 'Savollar ($stepCount)'),
-              SizedBox(height: 12.h),
+              SizedBox(height: AppSpacing.md.h),
               if (test.steps.isEmpty)
-                Text(
-                  'Savollar qo\'shilmagan',
-                  style: AppTextStyles.body
-                      .copyWith(color: palette.textSecondary),
+                const AppEmptyView(
+                  icon: Icons.list_alt_rounded,
+                  title: 'Savollar qo\'shilmagan',
+                  compact: true,
                 )
               else
-                for (int i = 0; i < test.steps.length; i++)
-                  _QuestionRow(step: test.steps[i], index: i + 1),
-              if (test.notes.isNotEmpty) ...[
-                SizedBox(height: 24.h),
-                const AppSectionHeader(title: 'Murabbiy izohi'),
-                SizedBox(height: 12.h),
-                Container(
-                  width: double.infinity,
-                  padding: EdgeInsets.all(16.w),
-                  decoration: BoxDecoration(
-                    color: AppColors.warning.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(AppRadius.card.r),
-                    border: Border.all(
-                      color: AppColors.warning.withValues(alpha: 0.3),
-                    ),
-                  ),
-                  child: Text(
-                    test.notes,
-                    style: AppTextStyles.body
-                        .copyWith(color: palette.textPrimary, height: 1.6),
+                AppCard(
+                  padding: EdgeInsets.zero,
+                  child: Column(
+                    children: [
+                      for (var i = 0; i < test.steps.length; i++) ...[
+                        if (i > 0) const _RowDivider(),
+                        _QuestionRow(step: test.steps[i], index: i + 1),
+                      ],
+                    ],
                   ),
                 ),
-              ],
-              if (isFinished) ...[
-                SizedBox(height: 24.h),
-                Container(
-                  padding: EdgeInsets.all(16.w),
-                  decoration: BoxDecoration(
-                    color: AppColors.success.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(AppRadius.card.r),
-                    border: Border.all(
-                        color: AppColors.success.withValues(alpha: 0.35)),
-                  ),
+              if (test.notes.isNotEmpty) ...[
+                SizedBox(height: AppSpacing.sectionGap.h),
+                const AppSectionHeader(title: 'Murabbiy izohi'),
+                SizedBox(height: AppSpacing.md.h),
+                AppCard(
+                  tone: palette.warning.withValues(alpha: 0.07),
+                  borderColor: palette.warning.withValues(alpha: 0.3),
                   child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(Icons.check_circle_rounded,
-                          color: AppColors.success, size: 22.w),
-                      SizedBox(width: 12.w),
+                      Icon(
+                        Icons.chat_bubble_outline_rounded,
+                        size: 18.w,
+                        color: palette.warning,
+                      ),
+                      SizedBox(width: AppSpacing.sm.w),
                       Expanded(
                         child: Text(
-                          test.score == null
-                              ? 'Test yakunlangan'
-                              : 'Test yakunlangan. Ball: ${test.score!.toStringAsFixed(1)}',
-                          style: TextStyle(
-                            color: AppColors.success,
-                            fontSize: 13.5.sp,
-                            fontWeight: FontWeight.w600,
+                          test.notes,
+                          style: AppTextStyles.body.copyWith(
+                            color: palette.textPrimary,
+                            height: 1.6,
                           ),
                         ),
                       ),
@@ -274,14 +272,41 @@ class _TestDetailViewState extends State<TestDetailView> {
                   ),
                 ),
               ],
-              SizedBox(height: 12.h),
+              if (isFinished) ...[
+                SizedBox(height: AppSpacing.sectionGap.h),
+                AppCard(
+                  tone: palette.success.withValues(alpha: 0.07),
+                  borderColor: palette.success.withValues(alpha: 0.3),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.check_circle_rounded,
+                        color: palette.success,
+                        size: 22.w,
+                      ),
+                      SizedBox(width: AppSpacing.md.w),
+                      Expanded(
+                        child: Text(
+                          test.score == null
+                              ? 'Test yakunlangan'
+                              : 'Test yakunlangan. Ball: '
+                                  '${test.score!.toStringAsFixed(1)}',
+                          style: AppTextStyles.label
+                              .copyWith(color: palette.success),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+              SizedBox(height: AppSpacing.md.h),
             ],
           ),
           if (_busy)
-            Container(
-              color: Colors.black.withValues(alpha: 0.18),
-              child: const Center(
-                child: ShimmerTestDetail(),
+            Positioned.fill(
+              child: ColoredBox(
+                color: palette.background.withValues(alpha: 0.72),
+                child: const Center(child: ShimmerTestDetail()),
               ),
             ),
         ],
@@ -312,18 +337,31 @@ class _TestDetailViewState extends State<TestDetailView> {
     );
   }
 
-  Color _statusColor(TestStatus status) {
+  Color _statusColor(AppPalette palette, TestStatus status) {
     switch (status) {
       case TestStatus.completed:
-        return AppColors.success;
+        return palette.success;
       case TestStatus.inProgress:
-        return AppColors.warning;
+        return palette.warning;
       case TestStatus.pending:
-        return AppColors.info;
+        return palette.info;
       case TestStatus.unknown:
-        return AppColors.textHint;
+        return palette.textSecondary;
     }
   }
+}
+
+class _RowDivider extends StatelessWidget {
+  const _RowDivider();
+
+  @override
+  Widget build(BuildContext context) => Divider(
+        height: 1,
+        thickness: 1,
+        indent: AppSpacing.lg.w,
+        endIndent: AppSpacing.lg.w,
+        color: context.palette.divider,
+      );
 }
 
 class _TestHero extends StatelessWidget {
@@ -337,7 +375,7 @@ class _TestHero extends StatelessWidget {
       aspectRatio: 16 / 9,
       child: Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(AppRadius.card.r),
+          borderRadius: BorderRadius.circular(AppRadius.panel.r),
           border: Border.all(color: context.palette.border),
         ),
         clipBehavior: Clip.antiAlias,
@@ -353,7 +391,10 @@ class _TestHero extends StatelessWidget {
                   const DecoratedBox(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
-                        colors: [AppColors.primaryNavy, AppColors.gradientDeepBlue],
+                        colors: [
+                          AppColors.primaryNavy,
+                          AppColors.gradientDeepBlue,
+                        ],
                         begin: AlignmentDirectional.topStart,
                         end: AlignmentDirectional.bottomEnd,
                       ),
@@ -371,122 +412,17 @@ class _TestHero extends StatelessWidget {
                   Align(
                     alignment: AlignmentDirectional.bottomStart,
                     child: Padding(
-                      padding: EdgeInsets.all(16.w),
+                      padding: EdgeInsets.all(AppSpacing.lg.w),
                       child: Text(
                         'Rasm qo\'shilmagan',
-                        style: TextStyle(
+                        style: AppTextStyles.caption.copyWith(
                           color: Colors.white.withValues(alpha: 0.75),
-                          fontSize: 12.sp,
-                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ),
                   ),
                 ],
               ),
-      ),
-    );
-  }
-}
-
-/// Kichik ma'lumot pilli (kategoriya, yosh, holat, sifatlar).
-class _InfoChip extends StatelessWidget {
-  final String label;
-  final IconData? icon;
-  final Color color;
-
-  const _InfoChip({required this.label, this.icon, required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(AppRadius.pill.r),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (icon != null) ...[
-            Icon(icon, size: 12.w, color: color),
-            SizedBox(width: 4.w),
-          ],
-          Text(
-            label,
-            style: TextStyle(
-              color: color,
-              fontSize: 12.sp,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Uchta teng statistika kartasidan biri.
-class _StatCard extends StatelessWidget {
-  final IconData icon;
-  final Color color;
-  final String value;
-  final String label;
-
-  const _StatCard({
-    required this.icon,
-    required this.color,
-    required this.value,
-    required this.label,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = context.palette;
-    return Expanded(
-      child: Container(
-        padding: EdgeInsets.all(12.w),
-        decoration: BoxDecoration(
-          color: palette.surface,
-          borderRadius: BorderRadius.circular(AppRadius.card.r),
-          border: Border.all(color: palette.border),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: 36.w,
-              height: 36.w,
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(AppRadius.button.r),
-              ),
-              child: Icon(icon, size: 18.w, color: color),
-            ),
-            SizedBox(height: 12.h),
-            Text(
-              value,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 18.sp,
-                fontWeight: FontWeight.w800,
-                color: palette.textPrimary,
-              ),
-            ),
-            SizedBox(height: 2.h),
-            Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 12.sp,
-                fontWeight: FontWeight.w600,
-                color: palette.textSecondary,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -503,29 +439,26 @@ class _QuestionRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = context.palette;
     final hasMeta = step.repetitions.isNotEmpty || step.duration > 0;
+
     return Padding(
-      padding: EdgeInsets.only(bottom: 14.h),
+      padding: EdgeInsets.all(AppSpacing.lg.w),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            width: 32.w,
-            height: 32.w,
+            width: 30.w,
+            height: 30.w,
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: AppColors.primaryBlue.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
+              color: AppColors.primaryBlue.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(AppRadius.tile.r),
             ),
             child: Text(
               '$index',
-              style: TextStyle(
-                color: AppColors.primaryBlue,
-                fontSize: 13.sp,
-                fontWeight: FontWeight.w800,
-              ),
+              style: AppTextStyles.badge.copyWith(color: AppColors.primaryBlue),
             ),
           ),
-          SizedBox(width: 12.w),
+          SizedBox(width: AppSpacing.md.w),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -534,25 +467,25 @@ class _QuestionRow extends StatelessWidget {
                   step.title.isEmpty ? 'Qadam $index' : step.title,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 13.5.sp,
-                    fontWeight: FontWeight.w600,
-                    color: palette.textPrimary,
-                  ),
+                  style: AppTextStyles.cardTitle
+                      .copyWith(color: palette.textPrimary),
                 ),
                 if (hasMeta) ...[
-                  SizedBox(height: 8.h),
+                  SizedBox(height: AppSpacing.sm.h),
                   Wrap(
-                    spacing: 12.w,
-                    runSpacing: 4.h,
+                    spacing: AppSpacing.md.w,
+                    runSpacing: AppSpacing.xs.h,
                     children: [
                       if (step.repetitions.isNotEmpty)
                         _Meta(
-                            icon: Icons.repeat_rounded, text: step.repetitions),
+                          icon: Icons.repeat_rounded,
+                          text: step.repetitions,
+                        ),
                       if (step.duration > 0)
                         _Meta(
-                            icon: Icons.timer_outlined,
-                            text: '${step.duration}s'),
+                          icon: Icons.timer_outlined,
+                          text: '${step.duration}s',
+                        ),
                     ],
                   ),
                 ],
@@ -565,7 +498,6 @@ class _QuestionRow extends StatelessWidget {
   }
 }
 
-/// Kichik meta yozuv (ikonka + matn).
 class _Meta extends StatelessWidget {
   final IconData icon;
   final String text;
@@ -578,11 +510,11 @@ class _Meta extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 13.w, color: palette.textHint),
+        Icon(icon, size: 13.5.w, color: palette.textHint),
         SizedBox(width: 4.w),
         Text(
           text,
-          style: TextStyle(color: palette.textSecondary, fontSize: 12.sp),
+          style: AppTextStyles.caption.copyWith(color: palette.textSecondary),
         ),
       ],
     );

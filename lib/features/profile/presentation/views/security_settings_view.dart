@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../core/api/models/settings_models.dart';
-import '../../../../core/constants/app_colors.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/l10n/app_translations.dart';
 import '../../../../core/repositories/settings_repository.dart';
@@ -10,9 +9,12 @@ import '../../../../core/theme/app_palette.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/app_badge.dart';
+import '../../../../core/widgets/app_card.dart';
+import '../../../../core/widgets/app_icon_tile.dart';
 import '../../../../core/widgets/app_section_header.dart';
+import '../../../../core/widgets/app_snackbar.dart';
 import '../../../../core/widgets/app_state_views.dart';
-import '../../../../core/widgets/app_step_badge.dart';
 import '../../../../core/widgets/custom_button.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/karate_app_bar.dart';
@@ -81,7 +83,10 @@ class _SecuritySettingsViewState extends State<SecuritySettingsView> {
             onPressed: () => Navigator.pop(dialogContext, true),
             child: Text(
               Tr.t('signOutDevice'),
-              style: const TextStyle(color: AppColors.error, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                color: dialogContext.palette.error,
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
         ],
@@ -92,9 +97,9 @@ class _SecuritySettingsViewState extends State<SecuritySettingsView> {
     final result = await getIt<SettingsRepository>().deleteSession(session.id);
     if (!mounted) return;
     result.fold(
-      (error) => _showSnackBar(error.message, AppColors.error),
+      (error) => AppSnackbar.error(context, error.message),
       (_) {
-        _showSnackBar(Tr.t('sessionEnded'), AppColors.success);
+        AppSnackbar.success(context, Tr.t('sessionEnded'));
         setState(() {
           _sessions.removeWhere((s) => s.id == session.id);
         });
@@ -118,7 +123,10 @@ class _SecuritySettingsViewState extends State<SecuritySettingsView> {
             onPressed: () => Navigator.pop(context, true),
             child: Text(
               Tr.t('signOutDevice'),
-              style: const TextStyle(color: AppColors.error, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                color: context.palette.error,
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
         ],
@@ -131,9 +139,9 @@ class _SecuritySettingsViewState extends State<SecuritySettingsView> {
     if (!mounted) return;
     setState(() => _sessionsBusy = false);
     result.fold(
-      (error) => _showSnackBar(error.message, AppColors.error),
+      (error) => AppSnackbar.error(context, error.message),
       (_) {
-        _showSnackBar(Tr.t('sessionsEndedAll'), AppColors.success);
+        AppSnackbar.success(context, Tr.t('sessionsEndedAll'));
         setState(() {
           _sessions = [];
           _sessionsLoading = true;
@@ -141,18 +149,6 @@ class _SecuritySettingsViewState extends State<SecuritySettingsView> {
         _loadSessions();
       },
     );
-  }
-
-  void _showSnackBar(String message, Color color) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(message),
-          backgroundColor: color,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
   }
 
   Future<void> _changePassword() async {
@@ -172,14 +168,14 @@ class _SecuritySettingsViewState extends State<SecuritySettingsView> {
     result.fold(
       (error) {
         setState(() => _saving = false);
-        _showSnackBar(error.message, AppColors.error);
+        AppSnackbar.error(context, error.message);
       },
       (_) {
         _currentPasswordController.clear();
         _newPasswordController.clear();
         _confirmPasswordController.clear();
         setState(() => _saving = false);
-        _showSnackBar(Tr.t('passwordUpdated'), AppColors.success);
+        AppSnackbar.success(context, Tr.t('passwordUpdated'));
       },
     );
   }
@@ -192,60 +188,70 @@ class _SecuritySettingsViewState extends State<SecuritySettingsView> {
       body: SingleChildScrollView(
         padding: EdgeInsets.fromLTRB(
           AppSpacing.screenH.w,
-          AppSpacing.sm.h,
+          AppSpacing.screenTop.h,
           AppSpacing.screenH.w,
-          AppSpacing.xxl.h,
+          AppSpacing.screenBottom.h,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SecurityUpdatePasswordSection(),
+            AppSectionHeader(
+              title: Tr.t('updatePasswordBtn'),
+              subtitle: Tr.t('secUpdateHint'),
+            ),
             SizedBox(height: AppSpacing.md.h),
-            Form(
-              key: _formKey,
-              child: Column(
-                children: [
-                  SecurityPasswordField(
-                    controller: _currentPasswordController,
-                    hint: Tr.t('currentPassword'),
-                    obscure: _obscureCurrent,
-                    onToggle: () => setState(() => _obscureCurrent = !_obscureCurrent),
-                    validator: (v) => v!.isEmpty ? Tr.t('enterCurrentPassword') : null,
-                  ),
-                  SizedBox(height: AppSpacing.lg.h),
-                  SecurityPasswordField(
-                    controller: _newPasswordController,
-                    hint: Tr.t('newPassword'),
-                    obscure: _obscureNew,
-                    onToggle: () => setState(() => _obscureNew = !_obscureNew),
-                    validator: (v) {
-                      if (v == null || v.isEmpty) return Tr.t('enterNewPassword');
-                      if (v.length < 6) return Tr.t('passwordMin');
-                      return null;
-                    },
-                  ),
-                  SizedBox(height: AppSpacing.lg.h),
-                  SecurityPasswordField(
-                    controller: _confirmPasswordController,
-                    hint: Tr.t('confirmPassword'),
-                    obscure: _obscureConfirm,
-                    onToggle: () => setState(() => _obscureConfirm = !_obscureConfirm),
-                    validator: (v) {
-                      if (v != _newPasswordController.text) return Tr.t('passwordMismatch');
-                      return null;
-                    },
-                  ),
-                ],
+            AppCard(
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    SecurityPasswordField(
+                      controller: _currentPasswordController,
+                      label: Tr.t('currentPassword'),
+                      obscure: _obscureCurrent,
+                      onToggle: () =>
+                          setState(() => _obscureCurrent = !_obscureCurrent),
+                      validator: (v) =>
+                          v!.isEmpty ? Tr.t('enterCurrentPassword') : null,
+                    ),
+                    SizedBox(height: AppSpacing.lg.h),
+                    SecurityPasswordField(
+                      controller: _newPasswordController,
+                      label: Tr.t('newPassword'),
+                      obscure: _obscureNew,
+                      onToggle: () => setState(() => _obscureNew = !_obscureNew),
+                      validator: (v) {
+                        if (v == null || v.isEmpty) return Tr.t('enterNewPassword');
+                        if (v.length < 6) return Tr.t('passwordMin');
+                        return null;
+                      },
+                    ),
+                    SizedBox(height: AppSpacing.lg.h),
+                    SecurityPasswordField(
+                      controller: _confirmPasswordController,
+                      label: Tr.t('confirmPassword'),
+                      obscure: _obscureConfirm,
+                      onToggle: () =>
+                          setState(() => _obscureConfirm = !_obscureConfirm),
+                      validator: (v) {
+                        if (v != _newPasswordController.text) {
+                          return Tr.t('passwordMismatch');
+                        }
+                        return null;
+                      },
+                    ),
+                  ],
+                ),
               ),
             ),
-            SizedBox(height: AppSpacing.xl.h),
+            SizedBox(height: AppSpacing.lg.h),
             CustomButton(
               text: _saving ? Tr.t('updating') : Tr.t('updatePasswordBtn'),
               isLoading: _saving,
               onPressed: _changePassword,
               leadingIcon: Icons.lock_reset_rounded,
             ),
-            SizedBox(height: AppSpacing.xxxl.h),
+            SizedBox(height: AppSpacing.sectionGap.h),
             _ActiveSessionsSection(
               sessions: _sessions,
               loading: _sessionsLoading,
@@ -253,7 +259,7 @@ class _SecuritySettingsViewState extends State<SecuritySettingsView> {
               onLogoutOthers: _logoutOtherDevices,
               onDeleteSession: _deleteSession,
             ),
-            SizedBox(height: AppSpacing.xxxl.h),
+            SizedBox(height: AppSpacing.sectionGap.h),
             const SecurityDeleteAccountSection(),
           ],
         ),
@@ -262,29 +268,10 @@ class _SecuritySettingsViewState extends State<SecuritySettingsView> {
   }
 }
 
-class SecurityUpdatePasswordSection extends StatelessWidget {
-  const SecurityUpdatePasswordSection({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        AppSectionHeader(title: Tr.t('updatePasswordBtn')),
-        SizedBox(height: 4.h),
-        Text(
-          Tr.t('secUpdateHint'),
-          style: AppTextStyles.caption
-              .copyWith(color: context.palette.textSecondary),
-        ),
-      ],
-    );
-  }
-}
-
+/// Parol maydoni — yorliq bilan (forma ierarxiyasi uchun).
 class SecurityPasswordField extends StatelessWidget {
   final TextEditingController controller;
-  final String hint;
+  final String label;
   final bool obscure;
   final VoidCallback onToggle;
   final String? Function(String?)? validator;
@@ -292,7 +279,7 @@ class SecurityPasswordField extends StatelessWidget {
   const SecurityPasswordField({
     super.key,
     required this.controller,
-    required this.hint,
+    required this.label,
     required this.obscure,
     required this.onToggle,
     this.validator,
@@ -302,11 +289,15 @@ class SecurityPasswordField extends StatelessWidget {
   Widget build(BuildContext context) {
     return CustomTextField(
       controller: controller,
-      hintText: hint,
+      label: label,
+      hintText: '',
       obscureText: obscure,
-      prefixIcon: const Icon(Icons.lock_outline),
+      prefixIcon: const Icon(Icons.lock_outline_rounded),
       suffixIcon: IconButton(
-        icon: Icon(obscure ? Icons.visibility_off : Icons.visibility, color: AppColors.textHint),
+        icon: Icon(
+          obscure ? Icons.visibility_off_rounded : Icons.visibility_rounded,
+        ),
+        color: context.palette.textHint,
         onPressed: onToggle,
       ),
       validator: validator,
@@ -325,14 +316,9 @@ class SecurityDeleteAccountSection extends StatelessWidget {
       children: [
         AppSectionHeader(title: 'Xavfli zona'),
         SizedBox(height: AppSpacing.md.h),
-        Container(
-          width: double.infinity,
-          padding: EdgeInsets.all(AppSpacing.lg.w),
-          decoration: BoxDecoration(
-            color: AppColors.error.withValues(alpha: 0.06),
-            borderRadius: BorderRadius.circular(AppRadius.card.r),
-            border: Border.all(color: AppColors.error.withValues(alpha: 0.25)),
-          ),
+        AppCard(
+          tone: palette.error.withValues(alpha: 0.06),
+          borderColor: palette.error.withValues(alpha: 0.25),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -341,10 +327,10 @@ class SecurityDeleteAccountSection extends StatelessWidget {
                 children: [
                   Icon(
                     Icons.warning_amber_rounded,
-                    color: AppColors.error,
+                    color: palette.error,
                     size: 20.w,
                   ),
-                  SizedBox(width: 8.w),
+                  SizedBox(width: AppSpacing.sm.w),
                   Expanded(
                     child: Text(
                       Tr.t('deleteAccountText'),
@@ -355,26 +341,14 @@ class SecurityDeleteAccountSection extends StatelessWidget {
                 ],
               ),
               SizedBox(height: AppSpacing.lg.h),
-              OutlinedButton.icon(
-                onPressed: () {
-                  showDialog(context: context, builder: (_) => const SecurityDeleteDialog());
-                },
-                icon: Icon(Icons.delete_forever_rounded,
-                    color: AppColors.error, size: 18.w),
-                label: Text(
-                  Tr.t('deleteAccountTitle'),
-                  style: TextStyle(
-                    color: AppColors.error,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 14.sp,
-                  ),
-                ),
-                style: OutlinedButton.styleFrom(
-                  side: BorderSide(color: AppColors.error.withValues(alpha: 0.6)),
-                  minimumSize: Size(double.infinity, 52.h),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppRadius.button.r),
-                  ),
+              CustomButton(
+                text: Tr.t('deleteAccountTitle'),
+                isOutlined: true,
+                tone: AppButtonTone.danger,
+                leadingIcon: Icons.delete_forever_rounded,
+                onPressed: () => showDialog(
+                  context: context,
+                  builder: (_) => const SecurityDeleteDialog(),
                 ),
               ),
             ],
@@ -394,10 +368,19 @@ class SecurityDeleteDialog extends StatelessWidget {
       title: Text(Tr.t('deleteAccountTitle')),
       content: Text(Tr.t('deleteAccountText')),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: Text(Tr.t('cancel'))),
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: Text(Tr.t('delete'), style: const TextStyle(color: AppColors.error, fontWeight: FontWeight.bold)),
+          child: Text(Tr.t('cancel')),
+        ),
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(
+            Tr.t('delete'),
+            style: TextStyle(
+              color: context.palette.error,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
         ),
       ],
     );
@@ -428,27 +411,21 @@ class _ActiveSessionsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final palette = context.palette;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         AppSectionHeader(
           title: Tr.t('activeSessions'),
+          subtitle: Tr.t('swipeHint'),
           actionLabel: busy ? Tr.t('signingOut') : Tr.t('logOutOthersBtn'),
-          onAction: (busy || loading || sessions.length < 2)
-              ? null
-              : onLogoutOthers,
-        ),
-        SizedBox(height: 4.h),
-        Text(
-          Tr.t('swipeHint'),
-          style: AppTextStyles.caption.copyWith(color: palette.textHint),
+          onAction:
+              (busy || loading || sessions.length < 2) ? null : onLogoutOthers,
         ),
         SizedBox(height: AppSpacing.md.h),
         if (loading)
           const Padding(
-            padding: EdgeInsets.symmetric(vertical: 16),
-            child: Center(child: CircularProgressIndicator()),
+            padding: EdgeInsets.symmetric(vertical: AppSpacing.xxl),
+            child: AppLoadingView(),
           )
         else if (sessions.isEmpty)
           AppEmptyView(
@@ -487,6 +464,7 @@ class _SwipeableSessionTile extends StatefulWidget {
 class _SwipeableSessionTileState extends State<_SwipeableSessionTile> {
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
     return Dismissible(
       key: ValueKey(widget.session.id),
       direction: DismissDirection.endToStart,
@@ -496,15 +474,18 @@ class _SwipeableSessionTileState extends State<_SwipeableSessionTile> {
       },
       background: Container(
         alignment: AlignmentDirectional.centerEnd,
-        padding: const EdgeInsetsDirectional.only(end: 20),
-        margin: const EdgeInsets.only(bottom: 10),
+        padding: EdgeInsetsDirectional.only(end: AppSpacing.xl.w),
+        margin: EdgeInsets.only(bottom: AppSpacing.sm.h),
         decoration: BoxDecoration(
-          color: AppColors.error.withValues(alpha: 0.12),
+          color: palette.error.withValues(alpha: 0.12),
           borderRadius: BorderRadius.circular(AppRadius.card.r),
         ),
-        child: const Icon(Icons.delete_outline_rounded, color: AppColors.error),
+        child: Icon(Icons.delete_outline_rounded, color: palette.error),
       ),
-      child: _SessionTile(session: widget.session, formatDate: widget.formatDate),
+      child: _SessionTile(
+        session: widget.session,
+        formatDate: widget.formatDate,
+      ),
     );
   }
 }
@@ -518,28 +499,19 @@ class _SessionTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
-    final tint = session.isActive ? AppColors.success : palette.textHint;
-    return Container(
-      margin: EdgeInsets.only(bottom: 10.h),
-      padding: EdgeInsets.all(12.w),
-      decoration: BoxDecoration(
-        color: palette.surface,
-        borderRadius: BorderRadius.circular(AppRadius.card.r),
-        border: Border.all(color: palette.border),
-      ),
+    final tint = session.isActive ? palette.success : palette.textHint;
+    return AppCard(
+      margin: EdgeInsets.only(bottom: AppSpacing.sm.h),
+      padding: EdgeInsets.all(AppSpacing.md.w),
       child: Row(
         children: [
-          Container(
-            width: 40.w,
-            height: 40.w,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: tint.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12.r),
-            ),
-            child: Icon(Icons.smartphone_rounded, size: 20.w, color: tint),
+          AppIconTile(
+            icon: Icons.smartphone_rounded,
+            color: tint,
+            size: 40,
+            radius: AppRadius.tile,
           ),
-          SizedBox(width: 12.w),
+          SizedBox(width: AppSpacing.md.w),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -548,16 +520,14 @@ class _SessionTile extends StatelessWidget {
                   session.deviceInfo,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 13.5.sp,
-                    color: palette.textPrimary,
-                  ),
+                  style: AppTextStyles.cardTitle
+                      .copyWith(color: palette.textPrimary),
                 ),
-                SizedBox(height: 2.h),
+                SizedBox(height: AppSpacing.xxs.h),
                 Text(
                   [
-                    if (session.ipAddress != null && session.ipAddress!.isNotEmpty)
+                    if (session.ipAddress != null &&
+                        session.ipAddress!.isNotEmpty)
                       session.ipAddress!,
                     if (session.createdAt != null)
                       formatDate(session.createdAt),
@@ -571,11 +541,8 @@ class _SessionTile extends StatelessWidget {
             ),
           ),
           if (session.isActive) ...[
-            SizedBox(width: 8.w),
-            AppStepBadge(
-              label: Tr.t('activeBadge'),
-              color: AppColors.success,
-            ),
+            SizedBox(width: AppSpacing.sm.w),
+            AppBadge(label: Tr.t('activeBadge'), color: palette.success),
           ],
         ],
       ),

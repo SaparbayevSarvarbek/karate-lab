@@ -6,6 +6,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../core/l10n/app_translations.dart';
 import '../../../../core/theme/app_palette.dart';
 import '../../../../core/theme/app_radius.dart';
+import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../exercises/presentation/views/my_exercises_view.dart';
@@ -13,6 +14,7 @@ import '../../../mashqlar/presentation/views/mashqlar_view.dart';
 import '../../../tests/presentation/views/tests_library_view.dart';
 import '../../../profile/presentation/views/profile_view.dart';
 import '../../../athletes/presentation/views/athletes_list_view.dart';
+import '../../../../core/widgets/app_snackbar.dart';
 import 'coach_dashboard_view.dart';
 import 'athlete_dashboard_view.dart';
 
@@ -32,63 +34,42 @@ class _MainLayoutViewState extends State<MainLayoutView> {
   /// Orqaga tugmasini birinchi bosishda snackbar, ikkinchisida chiqish.
   Future<bool> _onWillPop() async {
     final now = DateTime.now();
-    if (_lastBackPress != null && now.difference(_lastBackPress!) < const Duration(seconds: 2)) {
+    if (_lastBackPress != null &&
+        now.difference(_lastBackPress!) < const Duration(seconds: 2)) {
       return true; // chiqishga ruxsat
     }
     _lastBackPress = now;
     if (!mounted) return false;
-    // Snackbar ranglari mavzuga bog'liq: light'da oq, dark'da to'q yuza.
-    final palette = context.palette;
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(
-            'Chiqish uchun yana bir marta bosing',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: palette.textPrimary,
-              fontSize: 13.5.sp,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          duration: const Duration(seconds: 2),
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: palette.surface,
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppRadius.button.r),
-            side: BorderSide(color: palette.border),
-          ),
-          margin: EdgeInsets.symmetric(horizontal: 40.w, vertical: 20.h),
-        ),
-      );
+    AppSnackbar.neutral(context, 'Chiqish uchun yana bir marta bosing');
     return false;
   }
 
   bool get isCoach => widget.role == AppConstants.roleCoach;
 
-  List<Widget> get _coachScreens => [
-        CoachDashboardView(onSelectTab: _selectTab),
-        const AthletesListView(),
-        const MyExercisesView(),
-        TestsLibraryView(userRole: widget.role),
-        ProfileView(userRole: widget.role),
-      ];
+  /// Sahifalar bir marta quriladi va holati saqlanadi (`_LazyIndexedStack`).
+  late final List<Widget> _screens = isCoach
+      ? [
+          CoachDashboardView(onSelectTab: _selectTab),
+          const AthletesListView(),
+          const MyExercisesView(),
+          TestsLibraryView(userRole: widget.role),
+          ProfileView(userRole: widget.role),
+        ]
+      : [
+          AthleteDashboardView(onSelectTab: _selectTab),
+          const MashqlarView(),
+          TestsLibraryView(userRole: widget.role),
+          ProfileView(userRole: widget.role),
+        ];
 
-  List<Widget> get _athleteScreens => [
-        AthleteDashboardView(onSelectTab: _selectTab),
-        const MashqlarView(),
-        TestsLibraryView(userRole: widget.role),
-        ProfileView(userRole: widget.role),
-      ];
-
-  void _selectTab(int index) => setState(() => _currentIndex = index);
+  void _selectTab(int index) {
+    if (index == _currentIndex) return;
+    HapticFeedback.selectionClick();
+    setState(() => _currentIndex = index);
+  }
 
   @override
   Widget build(BuildContext context) {
-    final screens = isCoach ? _coachScreens : _athleteScreens;
-
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) async {
@@ -105,9 +86,9 @@ class _MainLayoutViewState extends State<MainLayoutView> {
       },
       child: Scaffold(
         backgroundColor: context.palette.background,
-        body: IndexedStack(
+        body: _LazyIndexedStack(
           index: _currentIndex,
-          children: screens,
+          children: _screens,
         ),
         bottomNavigationBar: MainBottomNavBar(
           currentIndex: _currentIndex,
@@ -115,6 +96,50 @@ class _MainLayoutViewState extends State<MainLayoutView> {
           onTap: _selectTab,
         ),
       ),
+    );
+  }
+}
+
+/// `IndexedStack` ning dangasa (lazy) varianti.
+///
+/// Oddiy `IndexedStack` barcha sahifalarni darhol quradi — natijada ilova
+/// ochilganda 4-5 ta ekran bir vaqtda tarmoqqa so'rov yuboradi va sekin
+/// ishga tushadi. Bu yerda sahifa faqat birinchi marta ochilganda quriladi,
+/// keyin esa holati saqlanib qoladi.
+class _LazyIndexedStack extends StatefulWidget {
+  final int index;
+  final List<Widget> children;
+
+  const _LazyIndexedStack({required this.index, required this.children});
+
+  @override
+  State<_LazyIndexedStack> createState() => _LazyIndexedStackState();
+}
+
+class _LazyIndexedStackState extends State<_LazyIndexedStack> {
+  late final List<bool> _activated =
+      List<bool>.filled(widget.children.length, false);
+
+  @override
+  void initState() {
+    super.initState();
+    _activated[widget.index] = true;
+  }
+
+  @override
+  void didUpdateWidget(covariant _LazyIndexedStack oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _activated[widget.index] = true;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return IndexedStack(
+      index: widget.index,
+      children: [
+        for (var i = 0; i < widget.children.length; i++)
+          _activated[i] ? widget.children[i] : const SizedBox.shrink(),
+      ],
     );
   }
 }
@@ -133,40 +158,51 @@ class MainBottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
     final items = isCoach ? _coachItems : _athleteItems;
 
-    return Container(
-      margin: EdgeInsets.fromLTRB(16.w, 0, 16.w, 12.h),
-      decoration: BoxDecoration(
-        color: context.palette.surface,
-        borderRadius: BorderRadius.circular(AppRadius.lg.r),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 16,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 8.h),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: List.generate(items.length, (index) {
-              final item = items[index];
-              final isSelected = currentIndex == index;
-              return Expanded(
-                child: _NavBarItem(
-                  icon: item.icon,
-                  activeIcon: item.activeIcon,
-                  label: item.label,
-                  isSelected: isSelected,
-                  onTap: () => onTap(index),
+    return Padding(
+      padding: EdgeInsets.fromLTRB(12.w, 0, 12.w, 10.h),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(AppRadius.panel.r),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 18,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Material(
+          color: palette.surface,
+          borderRadius: BorderRadius.circular(AppRadius.panel.r),
+          clipBehavior: Clip.antiAlias,
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(AppRadius.panel.r),
+              border: Border.all(color: palette.border),
+            ),
+            child: SafeArea(
+              top: false,
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 8.h),
+                child: Row(
+                  children: [
+                    for (var i = 0; i < items.length; i++)
+                      Expanded(
+                        child: _NavBarItem(
+                          icon: items[i].icon,
+                          activeIcon: items[i].activeIcon,
+                          label: items[i].label,
+                          isSelected: currentIndex == i,
+                          onTap: () => onTap(i),
+                        ),
+                      ),
+                  ],
                 ),
-              );
-            }),
+              ),
+            ),
           ),
         ),
       ),
@@ -174,19 +210,55 @@ class MainBottomNavBar extends StatelessWidget {
   }
 
   List<_NavItemData> get _coachItems => [
-    _NavItemData(icon: Icons.dashboard_outlined, activeIcon: Icons.dashboard, label: Tr.t('navDashboard')),
-    _NavItemData(icon: Icons.people_outline, activeIcon: Icons.people, label: Tr.t('navAthletes')),
-    _NavItemData(icon: Icons.fitness_center_outlined, activeIcon: Icons.fitness_center, label: Tr.t('navExercises')),
-    _NavItemData(icon: Icons.assignment_outlined, activeIcon: Icons.assignment, label: Tr.t('navTests')),
-    _NavItemData(icon: Icons.person_outline, activeIcon: Icons.person, label: Tr.t('navProfile')),
-  ];
+        _NavItemData(
+          icon: Icons.space_dashboard_outlined,
+          activeIcon: Icons.space_dashboard_rounded,
+          label: Tr.t('navDashboard'),
+        ),
+        _NavItemData(
+          icon: Icons.people_alt_outlined,
+          activeIcon: Icons.people_alt_rounded,
+          label: Tr.t('navAthletes'),
+        ),
+        _NavItemData(
+          icon: Icons.fitness_center_outlined,
+          activeIcon: Icons.fitness_center_rounded,
+          label: Tr.t('navExercises'),
+        ),
+        _NavItemData(
+          icon: Icons.assignment_outlined,
+          activeIcon: Icons.assignment_rounded,
+          label: Tr.t('navTests'),
+        ),
+        _NavItemData(
+          icon: Icons.person_outline_rounded,
+          activeIcon: Icons.person_rounded,
+          label: Tr.t('navProfile'),
+        ),
+      ];
 
   List<_NavItemData> get _athleteItems => [
-    _NavItemData(icon: Icons.home_outlined, activeIcon: Icons.home, label: Tr.t('navHome')),
-    _NavItemData(icon: Icons.fitness_center_outlined, activeIcon: Icons.fitness_center, label: Tr.t('navExercises')),
-    _NavItemData(icon: Icons.assignment_outlined, activeIcon: Icons.assignment, label: Tr.t('navTests')),
-    _NavItemData(icon: Icons.person_outline, activeIcon: Icons.person, label: Tr.t('navProfile')),
-  ];
+        _NavItemData(
+          icon: Icons.home_outlined,
+          activeIcon: Icons.home_rounded,
+          label: Tr.t('navHome'),
+        ),
+        _NavItemData(
+          icon: Icons.fitness_center_outlined,
+          activeIcon: Icons.fitness_center_rounded,
+          label: Tr.t('navExercises'),
+        ),
+        _NavItemData(
+          icon: Icons.assignment_outlined,
+          activeIcon: Icons.assignment_rounded,
+          label: Tr.t('navTests'),
+        ),
+        _NavItemData(
+          icon: Icons.person_outline_rounded,
+          activeIcon: Icons.person_rounded,
+          label: Tr.t('navProfile'),
+        ),
+      ];
 }
 
 class _NavItemData {
@@ -194,7 +266,7 @@ class _NavItemData {
   final IconData activeIcon;
   final String label;
 
-  _NavItemData({
+  const _NavItemData({
     required this.icon,
     required this.activeIcon,
     required this.label,
@@ -219,51 +291,52 @@ class _NavBarItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 220),
-        curve: Curves.easeOut,
-        padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 8.h),
-        decoration: BoxDecoration(
-          gradient: isSelected
-              ? const LinearGradient(
-                  colors: [AppColors.primaryBlue, AppColors.primaryBlueLight],
-                  begin: AlignmentDirectional.topStart,
-                  end: AlignmentDirectional.bottomEnd,
-                )
-              : null,
-          borderRadius: BorderRadius.circular(AppRadius.card.r),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 200),
-              transitionBuilder: (child, anim) =>
-                  ScaleTransition(scale: anim, child: child),
-              child: Icon(
-                isSelected ? activeIcon : icon,
-                key: ValueKey(isSelected),
-                color: isSelected ? Colors.white : palette.textSecondary,
-                size: 22.w,
+    final foreground =
+        isSelected ? AppColors.primaryBlue : palette.textSecondary;
+
+    return Semantics(
+      button: true,
+      selected: isSelected,
+      label: label,
+      excludeSemantics: true,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppRadius.button.r),
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: 2.h),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeOut,
+                width: 46.w,
+                height: 28.h,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? AppColors.primaryBlue.withValues(alpha: 0.12)
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(AppRadius.button.r),
+                ),
+                child: Icon(
+                  isSelected ? activeIcon : icon,
+                  size: 21.w,
+                  color: foreground,
+                ),
               ),
-            ),
-            SizedBox(height: 4.h),
-            Flexible(
-              child: Text(
+              SizedBox(height: 3.h),
+              Text(
                 label,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: isSelected ? Colors.white : palette.textSecondary,
-                  fontSize: 12.sp,
-                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                style: AppTextStyles.navLabel.copyWith(
+                  color: foreground,
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

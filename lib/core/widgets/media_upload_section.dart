@@ -5,6 +5,11 @@ import 'package:image_picker/image_picker.dart';
 import 'package:video_player/video_player.dart';
 import '../constants/app_colors.dart';
 import '../theme/app_palette.dart';
+import '../theme/app_radius.dart';
+import '../theme/app_spacing.dart';
+import '../theme/app_text_styles.dart';
+import 'app_list_tile.dart';
+import 'app_snackbar.dart';
 
 /// Yagona media karta — rasm YOKI video (faqat bittasi).
 ///
@@ -32,40 +37,25 @@ class _MediaUploadSectionState extends State<MediaUploadSection> {
     if (_busy) return;
     final action = await showModalBottomSheet<String>(
       context: context,
-      backgroundColor: context.palette.background,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
-      ),
       builder: (sheetContext) {
-        final palette = sheetContext.palette;
         return SafeArea(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              SizedBox(height: 12.h),
-              Container(
-                width: 40.w,
-                height: 4.h,
-                decoration: BoxDecoration(
-                  color: palette.border,
-                  borderRadius: BorderRadius.circular(999.r),
-                ),
-              ),
-              SizedBox(height: 16.h),
-              _SheetOption(
+              AppMenuRow(
                 icon: Icons.image_outlined,
-                label: 'Rasm',
-                color: AppColors.primaryBlue,
+                title: 'Rasm',
+                tint: AppColors.primaryBlue,
                 onTap: () => Navigator.of(sheetContext).pop('image'),
               ),
-              Divider(height: 1, color: palette.divider),
-              _SheetOption(
+              const AppTileDivider(),
+              AppMenuRow(
                 icon: Icons.videocam_outlined,
-                label: 'Video',
-                color: AppColors.success,
+                title: 'Video',
+                tint: AppColors.success,
                 onTap: () => Navigator.of(sheetContext).pop('video'),
               ),
-              SizedBox(height: 12.h),
+              SizedBox(height: AppSpacing.sm.h),
             ],
           ),
         );
@@ -124,32 +114,26 @@ class _MediaUploadSectionState extends State<MediaUploadSection> {
 
   void _showToast(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(message),
-          backgroundColor: AppColors.error,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+    AppSnackbar.error(context, message);
   }
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
+    final radius = BorderRadius.circular(AppRadius.card.r);
     return InkWell(
       onTap: _busy ? null : _choose,
-      borderRadius: BorderRadius.circular(16.r),
+      borderRadius: radius,
       child: Container(
         height: 180.h,
         width: double.infinity,
         decoration: BoxDecoration(
-          color: context.palette.backgroundLight,
-          borderRadius: BorderRadius.circular(16.r),
+          color: palette.backgroundLight,
+          borderRadius: radius,
           border: Border.all(
             color: (_image != null || _video != null)
                 ? AppColors.primaryBlue
-                : AppColors.border,
+                : palette.border,
           ),
         ),
         clipBehavior: Clip.antiAlias,
@@ -174,15 +158,17 @@ class _MediaUploadSectionState extends State<MediaUploadSection> {
           start: 0,
           end: 0,
           child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            color: Colors.black54,
+            padding: EdgeInsets.symmetric(vertical: AppSpacing.sm.h),
+            color: Colors.black.withValues(alpha: 0.55),
             child: const Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(Icons.image, color: Colors.white, size: 16),
                 SizedBox(width: 8),
-                Text('Rasmni almashtirish',
-                    style: TextStyle(color: Colors.white, fontSize: 12)),
+                Text(
+                  'Rasmni almashtirish',
+                  style: TextStyle(color: Colors.white, fontSize: 12),
+                ),
               ],
             ),
           ),
@@ -192,58 +178,27 @@ class _MediaUploadSectionState extends State<MediaUploadSection> {
   }
 
   Widget _buildPlaceholder() {
+    final palette = context.palette;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.add_photo_alternate_outlined,
-              size: 40.w, color: AppColors.textHint),
-          SizedBox(height: 8.h),
-          Text('Rasm yoki video qo\'shish',
-              style: TextStyle(color: AppColors.textHint, fontSize: 13.sp)),
-          SizedBox(height: 4.h),
-          Text('Birini tanlang',
-              style: TextStyle(color: AppColors.textHint, fontSize: 12.sp)),
+          Icon(
+            Icons.add_photo_alternate_outlined,
+            size: 40.w,
+            color: palette.textHint,
+          ),
+          SizedBox(height: AppSpacing.sm.h),
+          Text(
+            'Rasm yoki video qo\'shish',
+            style: AppTextStyles.body.copyWith(color: palette.textHint),
+          ),
+          SizedBox(height: AppSpacing.xs.h),
+          Text(
+            'Birini tanlang',
+            style: AppTextStyles.caption.copyWith(color: palette.textHint),
+          ),
         ],
-      ),
-    );
-  }
-}
-
-class _SheetOption extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final Color color;
-  final VoidCallback onTap;
-
-  const _SheetOption({
-    required this.icon,
-    required this.label,
-    required this.color,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = context.palette;
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
-        child: Row(
-          children: [
-            Icon(icon, color: color, size: 24.w),
-            SizedBox(width: 16.w),
-            Text(
-              label,
-              style: TextStyle(
-                color: palette.textPrimary,
-                fontSize: 15.sp,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -347,15 +302,17 @@ class _VideoPreviewState extends State<_VideoPreview> {
           end: 0,
           bottom: 0,
           child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            color: Colors.black54,
+            padding: EdgeInsets.symmetric(vertical: AppSpacing.sm.h),
+            color: Colors.black.withValues(alpha: 0.55),
             child: const Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(Icons.videocam, color: Colors.white, size: 16),
                 SizedBox(width: 8),
-                Text('Videoni ko\'rish uchun bosing',
-                    style: TextStyle(color: Colors.white, fontSize: 12)),
+                Text(
+                  'Videoni ko\'rish uchun bosing',
+                  style: TextStyle(color: Colors.white, fontSize: 12),
+                ),
               ],
             ),
           ),

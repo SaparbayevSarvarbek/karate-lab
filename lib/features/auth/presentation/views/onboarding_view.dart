@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+
 import '../../../../core/theme/app_palette.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -55,6 +56,7 @@ class _OnboardingViewState extends State<OnboardingView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: context.palette.background,
       body: SafeArea(
         child: Column(
           children: [
@@ -118,7 +120,7 @@ class OnboardingBottomSection extends StatelessWidget {
             onPressed: onNext,
           ),
           SizedBox(
-            height: 40.h,
+            height: 48.h,
             child: isLast
                 ? const SizedBox.shrink()
                 : TextButton(

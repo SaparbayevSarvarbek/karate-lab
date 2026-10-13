@@ -8,8 +8,11 @@ import '../../../../core/theme/app_palette.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
-import '../../../../core/widgets/karate_app_bar.dart';
+import '../../../../core/widgets/app_badge.dart';
+import '../../../../core/widgets/app_card.dart';
 import '../../../../core/widgets/app_section_header.dart';
+import '../../../../core/widgets/app_state_views.dart';
+import '../../../../core/widgets/karate_app_bar.dart';
 import '../../../../core/widgets/remote_image.dart';
 import '../../../../core/widgets/shimmer_placeholder.dart';
 import '../widgets/exercise_video_player.dart';
@@ -33,7 +36,6 @@ class _ExerciseDetailViewState extends State<ExerciseDetailView> {
   @override
   void initState() {
     super.initState();
-    // Simulate loading or use a FutureBuilder pattern
     Future.delayed(const Duration(milliseconds: 300), () {
       if (mounted) setState(() => _isLoading = false);
     });
@@ -47,23 +49,32 @@ class _ExerciseDetailViewState extends State<ExerciseDetailView> {
     return Scaffold(
       backgroundColor: palette.background,
       appBar: KarateAppBar(title: ex.title),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.fromLTRB(AppSpacing.screenH.w, AppSpacing.sm.h, AppSpacing.screenH.w, AppSpacing.xxl.h, ),
-        child: _isLoading
-            ? const ShimmerExerciseDetail()
-            : _Content(exercise: ex),
+      body: ListView(
+        padding: EdgeInsets.fromLTRB(
+          AppSpacing.screenH.w,
+          AppSpacing.screenTop.h,
+          AppSpacing.screenH.w,
+          AppSpacing.screenBottom.h,
+        ),
+        children: [
+          if (_isLoading)
+            const ShimmerExerciseDetail()
+          else
+            _Content(exercise: ex),
+        ],
       ),
     );
   }
 }
 
 /// Mashq kategoriyasiga mos rang: MJT → warning, UJT → success, aks holda brand.
-Color _accentOf(String category) {
+Color _accentOf(BuildContext context, String category) {
+  final palette = context.palette;
   switch (category.toUpperCase()) {
     case 'MJT':
-      return AppColors.warning;
+      return palette.warning;
     case 'UJT':
-      return AppColors.success;
+      return palette.success;
     default:
       return AppColors.primaryBlue;
   }
@@ -77,11 +88,11 @@ class _Content extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
-    final accent = _accentOf(exercise.category);
+    final accent = _accentOf(context, exercise.category);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _HeroCard(exercise: exercise, accent: accent),
+        _HeroCard(exercise: exercise),
         SizedBox(height: AppSpacing.lg.h),
         Text(
           exercise.title,
@@ -96,72 +107,95 @@ class _Content extends StatelessWidget {
             runSpacing: AppSpacing.sm.h,
             children: [
               if (exercise.category.isNotEmpty)
-                _MetaChip(
+                AppBadge(
                   label: exercise.category,
-                  icon: Icons.sports_martial_arts_rounded,
                   color: accent,
+                  icon: Icons.sports_martial_arts_rounded,
                 ),
               if (exercise.age.isNotEmpty)
-                _MetaChip(
+                AppBadge(
                   label: exercise.age,
+                  color: AppColors.primaryBlue,
                   icon: Icons.cake_outlined,
                 ),
               if (exercise.duration > 0)
-                _MetaChip(
+                AppBadge(
                   label: exercise.durationLabel,
+                  color: AppColors.primaryBlue,
                   icon: Icons.timer_outlined,
                 ),
             ],
           ),
         ],
         if (exercise.description.isNotEmpty) ...[
-          SizedBox(height: AppSpacing.xl.h),
+          SizedBox(height: AppSpacing.sectionGap.h),
           const AppSectionHeader(title: 'Tavsif'),
-          SizedBox(height: AppSpacing.sm.h),
-          Text(
-            exercise.description,
-            style: AppTextStyles.body.copyWith(color: palette.textSecondary),
-          ),
+          SizedBox(height: AppSpacing.md.h),
+          _TextCard(text: exercise.description),
         ],
         if (exercise.goal.isNotEmpty) ...[
-          SizedBox(height: AppSpacing.xl.h),
+          SizedBox(height: AppSpacing.sectionGap.h),
           const AppSectionHeader(title: 'Maqsad'),
-          SizedBox(height: AppSpacing.sm.h),
-          Text(
-            exercise.goal,
-            style: AppTextStyles.body.copyWith(color: palette.textSecondary),
-          ),
+          SizedBox(height: AppSpacing.md.h),
+          _TextCard(text: exercise.goal),
         ],
         if (exercise.qualities.isNotEmpty) ...[
-          SizedBox(height: AppSpacing.xl.h),
+          SizedBox(height: AppSpacing.sectionGap.h),
           const AppSectionHeader(title: 'Rivojlanadigan sifatlar'),
-          SizedBox(height: AppSpacing.sm.h),
+          SizedBox(height: AppSpacing.md.h),
           Wrap(
             spacing: AppSpacing.sm.w,
             runSpacing: AppSpacing.sm.h,
             children: [
-              for (final q in exercise.qualities) _MetaChip(label: q),
+              for (final q in exercise.qualities)
+                AppBadge(label: q, color: AppColors.primaryBlue, filled: false),
             ],
           ),
         ],
-        SizedBox(height: AppSpacing.xl.h),
+        SizedBox(height: AppSpacing.sectionGap.h),
         AppSectionHeader(title: 'Bosqichlar (${exercise.steps.length})'),
         SizedBox(height: AppSpacing.md.h),
         if (exercise.steps.isEmpty)
-          Text(
-            'Bosqichlar kiritilmagan',
-            style: AppTextStyles.body.copyWith(color: palette.textSecondary),
+          const AppEmptyView(
+            icon: Icons.list_alt_rounded,
+            title: 'Bosqichlar kiritilmagan',
+            compact: true,
           )
         else
-          for (int i = 0; i < exercise.steps.length; i++)
-            Padding(
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: exercise.steps.length,
+            itemBuilder: (context, i) => Padding(
               padding: EdgeInsets.only(bottom: AppSpacing.md.h),
               child: _StepCard(
                 step: exercise.steps[i],
                 index: i + 1,
+                accent: accent,
               ),
             ),
+          ),
       ],
+    );
+  }
+}
+
+/// Kartaga o'ralgan izoh matni (sahifa fonida yolg'iz qolmasligi uchun).
+class _TextCard extends StatelessWidget {
+  final String text;
+
+  const _TextCard({required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return AppCard(
+      child: Text(
+        text,
+        style: AppTextStyles.body.copyWith(
+          color: context.palette.textSecondary,
+          height: 1.55,
+        ),
+      ),
     );
   }
 }
@@ -169,9 +203,8 @@ class _Content extends StatelessWidget {
 /// Hero media kartasi — 16:9 nisbatda video, rasm yoki gradient.
 class _HeroCard extends StatelessWidget {
   final Exercise exercise;
-  final Color accent;
 
-  const _HeroCard({required this.exercise, required this.accent});
+  const _HeroCard({required this.exercise});
 
   @override
   Widget build(BuildContext context) {
@@ -179,7 +212,7 @@ class _HeroCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: palette.surface,
-        borderRadius: BorderRadius.circular(AppRadius.card.r),
+        borderRadius: BorderRadius.circular(AppRadius.panel.r),
         border: Border.all(color: palette.border),
       ),
       clipBehavior: Clip.antiAlias,
@@ -213,99 +246,37 @@ class _HeroCard extends StatelessWidget {
   }
 }
 
-/// Meta chip — pill shaklida, brend tusli fon.
-class _MetaChip extends StatelessWidget {
-  final String label;
-  final IconData? icon;
-  final Color color;
-
-  const _MetaChip({
-    required this.label,
-    this.icon,
-    this.color = AppColors.primaryBlue,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(AppRadius.pill.r),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (icon != null) ...[
-            Icon(icon, size: 14.w, color: color),
-            SizedBox(width: 4.w),
-          ],
-          Text(
-            label,
-            style: AppTextStyles.caption.copyWith(
-              color: color,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Bosqich kartasi — 32px doira indeks, nom va tafsilotlar.
+/// Bosqich kartasi — raqamli belgi, nom va tafsilotlar.
 class _StepCard extends StatelessWidget {
   final ExerciseStep step;
   final int index;
+  final Color accent;
 
   const _StepCard({
     required this.step,
     required this.index,
+    required this.accent,
   });
 
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
-    return Container(
+    return AppCard(
       padding: EdgeInsets.all(AppSpacing.md.w),
-      decoration: BoxDecoration(
-        color: palette.surface,
-        borderRadius: BorderRadius.circular(AppRadius.card.r),
-        border: Border.all(color: palette.border),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Container(
-                width: 32.w,
-                height: 32.w,
-                decoration: BoxDecoration(
-                  color: AppColors.primaryBlue.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: Center(
-                  child: Text(
-                    '$index',
-                    style: AppTextStyles.caption.copyWith(
-                      color: AppColors.primaryBlue,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(width: AppSpacing.sm.w),
+              _StepBadge(index: index, accent: accent),
+              SizedBox(width: AppSpacing.md.w),
               Expanded(
                 child: step.title.isEmpty
                     ? const SizedBox.shrink()
                     : Text(
                         step.title,
-                        style: TextStyle(
-                          color: palette.textPrimary,
-                          fontSize: 13.5.sp,
-                          fontWeight: FontWeight.w600,
-                        ),
+                        style: AppTextStyles.cardTitle
+                            .copyWith(color: palette.textPrimary),
                       ),
               ),
             ],
@@ -316,6 +287,7 @@ class _StepCard extends StatelessWidget {
               step.description,
               style: AppTextStyles.caption.copyWith(
                 color: palette.textSecondary,
+                height: 1.5,
               ),
             ),
           ],
@@ -325,13 +297,13 @@ class _StepCard extends StatelessWidget {
               url: ApiConstants.resolveMediaUrl(step.imageUrl!),
               width: double.infinity,
               fit: BoxFit.fitWidth,
-              borderRadius: BorderRadius.circular(AppRadius.sm.r),
+              borderRadius: BorderRadius.circular(AppRadius.tile.r),
             ),
           ],
           if (step.repetitions.isNotEmpty || step.rest.isNotEmpty) ...[
             SizedBox(height: AppSpacing.sm.h),
             Wrap(
-              spacing: AppSpacing.md.w,
+              spacing: AppSpacing.sm.w,
               runSpacing: AppSpacing.sm.h,
               children: [
                 if (step.repetitions.isNotEmpty)
@@ -355,6 +327,31 @@ class _StepCard extends StatelessWidget {
   }
 }
 
+/// Bosqich tartib raqami plitasi.
+class _StepBadge extends StatelessWidget {
+  final int index;
+  final Color accent;
+
+  const _StepBadge({required this.index, required this.accent});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 32.w,
+      height: 32.w,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: accent.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(AppRadius.tile.r),
+      ),
+      child: Text(
+        '$index',
+        style: AppTextStyles.badge.copyWith(color: accent),
+      ),
+    );
+  }
+}
+
 class _StepMeta extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -370,10 +367,14 @@ class _StepMeta extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = context.palette;
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+      padding: EdgeInsets.symmetric(
+        horizontal: AppSpacing.md.w,
+        vertical: 6.h,
+      ),
       decoration: BoxDecoration(
-        color: AppColors.primaryBlue.withValues(alpha: 0.08),
+        color: palette.backgroundLight,
         borderRadius: BorderRadius.circular(AppRadius.pill.r),
+        border: Border.all(color: palette.border),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -382,9 +383,7 @@ class _StepMeta extends StatelessWidget {
           SizedBox(width: 4.w),
           Text(
             '$label: ',
-            style: AppTextStyles.caption.copyWith(
-              color: palette.textSecondary,
-            ),
+            style: AppTextStyles.caption.copyWith(color: palette.textSecondary),
           ),
           Text(
             value,

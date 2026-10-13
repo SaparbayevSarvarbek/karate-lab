@@ -29,7 +29,7 @@ class ApiConstants {
   /// ⚠️ Router IP ni o'zgartirsa, bu qiymat eskiradi. Ishonchli yo'l —
   /// `--dart-define=API_BASE_URL=...` bilan berish (pastdagi misolga qarang).
   /// Joriy IP: `ipconfig | findstr IPv4`.
-  static const String devLanUrl = 'http://192.168.13.20:8000';
+  static const String devLanUrl = 'http://192.168.13.116:8000';
 
   /// Debug build'da standart manzil (fizik qurilma + Wi-Fi).
   static const String _devDefault = devLanUrl;

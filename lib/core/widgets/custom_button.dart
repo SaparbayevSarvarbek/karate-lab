@@ -2,13 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../constants/app_colors.dart';
+import '../theme/app_palette.dart';
 import '../theme/app_radius.dart';
 import '../theme/app_text_styles.dart';
+
+/// Tugma rangi varianti.
+enum AppButtonTone { primary, neutral, success, danger }
 
 /// Ilova bo'ylab yagona asosiy tugma.
 ///
 /// - Standart holatda to'liq kenglikka cho'ziladi (`expand: true`).
 /// - `isOutlined` bilan konturli variant.
+/// - `tone` bilan holat rangi (neytral / muvaffaqiyat / xavfli).
 /// - `trailingIcon` bilan o'q belgisi (masalan "Davom etish →").
 class CustomButton extends StatelessWidget {
   final String text;
@@ -20,8 +25,9 @@ class CustomButton extends StatelessWidget {
   final IconData? leadingIcon;
   final IconData? trailingIcon;
 
-  /// Fon rangi. Berilmasa — brend ko'ki (`AppColors.primaryBlue`).
+  /// Fon rangi. Berilmasa — `tone` bo'yicha aniqlanadi.
   final Color? color;
+  final AppButtonTone tone;
 
   const CustomButton({
     super.key,
@@ -34,22 +40,32 @@ class CustomButton extends StatelessWidget {
     this.leadingIcon,
     this.trailingIcon,
     this.color,
+    this.tone = AppButtonTone.primary,
   });
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
+    final accent = color ??
+        switch (tone) {
+          AppButtonTone.primary => AppColors.primaryBlue,
+          AppButtonTone.neutral => palette.textPrimary,
+          AppButtonTone.success => palette.success,
+          AppButtonTone.danger => palette.error,
+        };
+
     final minSize = Size(expand ? double.infinity : 0, height.h);
     final shape = RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(AppRadius.button.r),
     );
-    final child = _buildChild();
+    final child = _buildChild(accent);
 
     if (isOutlined) {
       return OutlinedButton(
         onPressed: isLoading ? null : onPressed,
         style: OutlinedButton.styleFrom(
-          foregroundColor: AppColors.primaryBlue,
-          side: BorderSide(color: AppColors.primaryBlue.withValues(alpha: 0.5)),
+          foregroundColor: accent,
+          side: BorderSide(color: accent.withValues(alpha: 0.45)),
           minimumSize: minSize,
           padding: EdgeInsets.symmetric(horizontal: 20.w),
           shape: shape,
@@ -59,14 +75,12 @@ class CustomButton extends StatelessWidget {
       );
     }
 
-    final background = color ?? AppColors.primaryBlue;
-
     return ElevatedButton(
       onPressed: isLoading ? null : onPressed,
       style: ElevatedButton.styleFrom(
-        backgroundColor: background,
+        backgroundColor: accent,
         foregroundColor: Colors.white,
-        disabledBackgroundColor: background.withValues(alpha: 0.45),
+        disabledBackgroundColor: accent.withValues(alpha: 0.45),
         disabledForegroundColor: Colors.white,
         elevation: 0,
         shadowColor: Colors.transparent,
@@ -79,14 +93,14 @@ class CustomButton extends StatelessWidget {
     );
   }
 
-  Widget _buildChild() {
+  Widget _buildChild(Color accent) {
     if (isLoading) {
       return SizedBox(
-        width: 22.w,
-        height: 22.w,
-        child: const CircularProgressIndicator(
+        width: 20.w,
+        height: 20.w,
+        child: CircularProgressIndicator(
           strokeWidth: 2.2,
-          color: Colors.white,
+          color: isOutlined ? accent : Colors.white,
         ),
       );
     }

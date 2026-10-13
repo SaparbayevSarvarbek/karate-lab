@@ -6,10 +6,14 @@ import '../../../../core/api/models/test_models.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/theme/app_palette.dart';
 import '../../../../core/theme/app_radius.dart';
+import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_bottom_bar.dart';
+import '../../../../core/widgets/app_card.dart';
+import '../../../../core/widgets/app_hero_panel.dart';
 import '../../../../core/widgets/app_section_header.dart';
 import '../../../../core/widgets/app_state_views.dart';
+import '../../../../core/widgets/app_stat_card.dart';
 import '../../../../core/widgets/custom_button.dart';
 import '../../../../core/widgets/karate_app_bar.dart';
 
@@ -43,30 +47,46 @@ class TestResultView extends StatelessWidget {
       backgroundColor: palette.background,
       appBar: const KarateAppBar(title: 'Test natijasi'),
       body: ListView(
-        padding: EdgeInsets.fromLTRB(20.w, 8.h, 20.w, 24.h),
+        padding: EdgeInsets.fromLTRB(
+          AppSpacing.screenH.w,
+          AppSpacing.screenTop.h,
+          AppSpacing.screenH.w,
+          AppSpacing.screenBottom.h,
+        ),
         children: [
           _OverallCard(test: test, result: evaluation),
-          SizedBox(height: 16.h),
+          SizedBox(height: AppSpacing.lg.h),
           _ResultStats(test: test, result: evaluation),
-          SizedBox(height: 24.h),
+          SizedBox(height: AppSpacing.sectionGap.h),
           if (!hasSteps)
-            Container(
-              padding: EdgeInsets.all(16.w),
-              decoration: BoxDecoration(
-                color: AppColors.warning.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(AppRadius.card.r),
-                border:
-                    Border.all(color: AppColors.warning.withValues(alpha: 0.3)),
-              ),
-              child: Text(
-                'Qadamlar bo\'yicha batafsil natija mavjud emas.',
-                style: AppTextStyles.body.copyWith(color: palette.textSecondary),
+            AppCard(
+              tone: palette.warning.withValues(alpha: 0.07),
+              borderColor: palette.warning.withValues(alpha: 0.3),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    Icons.info_outline_rounded,
+                    size: 18.w,
+                    color: palette.warning,
+                  ),
+                  SizedBox(width: AppSpacing.sm.w),
+                  Expanded(
+                    child: Text(
+                      'Qadamlar bo\'yicha batafsil natija mavjud emas.',
+                      style: AppTextStyles.body
+                          .copyWith(color: palette.textSecondary),
+                    ),
+                  ),
+                ],
               ),
             )
           else ...[
             const AppSectionHeader(title: 'Ko\'nikmalar bo\'yicha natija'),
-            SizedBox(height: 12.h),
-            _StepBars(steps: evaluation.steps),
+            SizedBox(height: AppSpacing.md.h),
+            AppCard(
+              child: _StepBars(steps: evaluation.steps),
+            ),
           ],
         ],
       ),
@@ -83,18 +103,35 @@ class TestResultView extends StatelessWidget {
   }
 }
 
-Color colorFromName(String name) {
+/// Baho rangini mavzuga mos holat rangiga o'giradi.
+Color _toneColor(AppPalette palette, String name) {
   switch (name) {
     case 'green':
-      return AppColors.success;
+      return palette.success;
     case 'blue':
-      return AppColors.info;
+      return palette.info;
     case 'orange':
-      return AppColors.warning;
+      return palette.warning;
     case 'red':
-      return AppColors.error;
+      return palette.error;
     default:
-      return AppColors.textHint;
+      return palette.textSecondary;
+  }
+}
+
+/// Diagramma (progress bar) uchun yorqinroq grafik variant.
+Color _graphicColor(String name) {
+  switch (name) {
+    case 'green':
+      return AppColors.successBright;
+    case 'blue':
+      return AppColors.infoBright;
+    case 'orange':
+      return AppColors.warningBright;
+    case 'red':
+      return AppColors.errorBright;
+    default:
+      return AppColors.textSecondary;
   }
 }
 
@@ -114,21 +151,14 @@ class _OverallCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
     final score = result?.score ?? test.score ?? 0;
     final rating = result?.rating ?? '';
-    final color = colorFromName(result?.color ?? 'grey');
+    final ringColor = _toneColor(palette, result?.color ?? 'grey');
     final grade = rating.isNotEmpty ? rating : gradeFromScore(score);
 
-    return Container(
-      padding: EdgeInsets.all(20.w),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [AppColors.primaryNavy, AppColors.gradientDeepBlue],
-          begin: AlignmentDirectional.topStart,
-          end: AlignmentDirectional.bottomEnd,
-        ),
-        borderRadius: BorderRadius.circular(AppRadius.card.r),
-      ),
+    return AppHeroPanel(
+      watermark: Icons.emoji_events_rounded,
       child: Column(
         children: [
           Text(
@@ -136,25 +166,21 @@ class _OverallCard extends StatelessWidget {
             textAlign: TextAlign.center,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 16.sp,
-              fontWeight: FontWeight.w800,
-            ),
+            style: AppTextStyles.cardTitle.copyWith(color: Colors.white),
           ),
-          SizedBox(height: 20.h),
+          SizedBox(height: AppSpacing.xl.h),
           Stack(
             alignment: Alignment.center,
             children: [
               SizedBox(
-                width: 120.w,
-                height: 120.w,
+                width: 128.w,
+                height: 128.w,
                 child: CircularProgressIndicator(
                   value: (score / 100).clamp(0.0, 1.0),
-                  strokeWidth: 10.w,
+                  strokeWidth: 9.w,
                   strokeCap: StrokeCap.round,
-                  backgroundColor: Colors.white.withValues(alpha: 0.2),
-                  valueColor: AlwaysStoppedAnimation<Color>(color),
+                  backgroundColor: Colors.white.withValues(alpha: 0.18),
+                  valueColor: AlwaysStoppedAnimation<Color>(ringColor),
                 ),
               ),
               Column(
@@ -162,44 +188,46 @@ class _OverallCard extends StatelessWidget {
                 children: [
                   Text(
                     score.toStringAsFixed(1),
-                    style: TextStyle(
+                    style: AppTextStyles.stat.copyWith(
+                      fontSize: 32.sp,
                       color: Colors.white,
-                      fontSize: 30.sp,
-                      fontWeight: FontWeight.w800,
                     ),
                   ),
                   Text(
                     '/ 100',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 12.sp,
+                    style: AppTextStyles.caption.copyWith(
+                      color: Colors.white.withValues(alpha: 0.7),
                     ),
                   ),
                 ],
               ),
             ],
           ),
-          SizedBox(height: 16.h),
+          SizedBox(height: AppSpacing.lg.h),
           Container(
-            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+            padding: EdgeInsets.symmetric(
+              horizontal: AppSpacing.lg.w,
+              vertical: 7.h,
+            ),
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.16),
               borderRadius: BorderRadius.circular(AppRadius.pill.r),
             ),
             child: Text(
               grade,
-              style: TextStyle(
+              style: AppTextStyles.badge.copyWith(
                 color: Colors.white,
-                fontSize: 13.sp,
-                fontWeight: FontWeight.w700,
+                letterSpacing: 0,
               ),
             ),
           ),
           if (result?.age != null) ...[
-            SizedBox(height: 12.h),
+            SizedBox(height: AppSpacing.md.h),
             Text(
               'Yosh: ${result!.age}',
-              style: TextStyle(color: Colors.white70, fontSize: 12.sp),
+              style: AppTextStyles.caption.copyWith(
+                color: Colors.white.withValues(alpha: 0.7),
+              ),
             ),
           ],
         ],
@@ -216,6 +244,7 @@ class _ResultStats extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
     final score = result?.score ?? test.score ?? 0;
     final steps = result?.steps ?? const <StepResult>[];
     final totalSeconds = steps.fold<double>(0, (sum, s) => sum + s.seconds);
@@ -223,94 +252,35 @@ class _ResultStats extends StatelessWidget {
         steps.isEmpty ? '—' : '${totalSeconds.toStringAsFixed(1)}s';
 
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _StatCard(
-          icon: Icons.check_circle_outline_rounded,
-          color: AppColors.success,
-          value: '${score.toStringAsFixed(0)}%',
-          label: 'To\'g\'ri javoblar',
+        Expanded(
+          child: AppStatCard(
+            icon: Icons.check_circle_outline_rounded,
+            color: palette.success,
+            value: '${score.toStringAsFixed(0)}%',
+            label: 'To\'g\'ri javoblar',
+          ),
         ),
-        SizedBox(width: 12.w),
-        _StatCard(
-          icon: Icons.timer_outlined,
-          color: AppColors.primaryBlue,
-          value: timeValue,
-          label: 'Sarflangan vaqt',
+        SizedBox(width: AppSpacing.md.w),
+        Expanded(
+          child: AppStatCard(
+            icon: Icons.timer_outlined,
+            color: AppColors.primaryBlue,
+            value: timeValue,
+            label: 'Sarflangan vaqt',
+          ),
         ),
-        SizedBox(width: 12.w),
-        _StatCard(
-          icon: Icons.replay_rounded,
-          color: AppColors.warning,
-          value: '—',
-          label: 'Urinishlar',
+        SizedBox(width: AppSpacing.md.w),
+        Expanded(
+          child: AppStatCard(
+            icon: Icons.replay_rounded,
+            color: palette.warning,
+            value: '—',
+            label: 'Urinishlar',
+          ),
         ),
       ],
-    );
-  }
-}
-
-class _StatCard extends StatelessWidget {
-  final IconData icon;
-  final Color color;
-  final String value;
-  final String label;
-
-  const _StatCard({
-    required this.icon,
-    required this.color,
-    required this.value,
-    required this.label,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = context.palette;
-
-    return Expanded(
-      child: Container(
-        padding: EdgeInsets.all(12.w),
-        decoration: BoxDecoration(
-          color: palette.surface,
-          borderRadius: BorderRadius.circular(AppRadius.card.r),
-          border: Border.all(color: palette.border),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: 36.w,
-              height: 36.w,
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(AppRadius.button.r),
-              ),
-              child: Icon(icon, color: color, size: 18.w),
-            ),
-            SizedBox(height: 12.h),
-            Text(
-              value,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontWeight: FontWeight.w800,
-                fontSize: 18.sp,
-                color: palette.textPrimary,
-              ),
-            ),
-            SizedBox(height: 2.h),
-            Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontWeight: FontWeight.w600,
-                color: palette.textSecondary,
-                fontSize: 12.sp,
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
@@ -322,80 +292,84 @@ class _StepBars extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final palette = context.palette;
     final sorted = [...steps]..sort((a, b) => a.order.compareTo(b.order));
+
     return Column(
-      children: sorted.map((s) {
-        final color = colorFromName(s.color);
-        final pct = s.percent.clamp(0.0, 100.0);
-        return Padding(
-          padding: EdgeInsets.only(bottom: 16.h),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        for (var i = 0; i < sorted.length; i++) ...[
+          if (i > 0) SizedBox(height: AppSpacing.lg.h),
+          _StepBar(step: sorted[i]),
+        ],
+      ],
+    );
+  }
+}
+
+class _StepBar extends StatelessWidget {
+  final StepResult step;
+
+  const _StepBar({required this.step});
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    final pct = step.percent.clamp(0.0, 100.0);
+    final textColor = _toneColor(palette, step.color);
+    final barColor = _graphicColor(step.color);
+    final hasMeta = step.seconds > 0 || step.target.isNotEmpty;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                step.title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AppTextStyles.label
+                    .copyWith(color: palette.textPrimary),
+              ),
+            ),
+            SizedBox(width: AppSpacing.sm.w),
+            Text(
+              '${pct.toStringAsFixed(0)}%',
+              style: AppTextStyles.label.copyWith(color: textColor),
+            ),
+          ],
+        ),
+        SizedBox(height: AppSpacing.sm.h),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(AppRadius.pill.r),
+          child: LinearProgressIndicator(
+            value: pct / 100,
+            minHeight: 6.h,
+            backgroundColor: palette.backgroundLight,
+            valueColor: AlwaysStoppedAnimation<Color>(barColor),
+          ),
+        ),
+        if (hasMeta) ...[
+          SizedBox(height: AppSpacing.sm.h),
+          Row(
             children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      s.title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 12.5.sp,
-                        color: palette.textPrimary,
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: 8.w),
-                  Text(
-                    '${pct.toStringAsFixed(0)}%',
-                    style: TextStyle(
-                      color: color,
-                      fontSize: 12.5.sp,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 8.h),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(AppRadius.pill.r),
-                child: LinearProgressIndicator(
-                  value: pct / 100,
-                  minHeight: 6.h,
-                  backgroundColor: palette.backgroundLight,
-                  valueColor: AlwaysStoppedAnimation<Color>(color),
+              if (step.seconds > 0)
+                Text(
+                  '${step.seconds.toStringAsFixed(1)}s',
+                  style: AppTextStyles.caption
+                      .copyWith(color: palette.textSecondary),
                 ),
-              ),
-              if (s.seconds > 0 || s.target.isNotEmpty) ...[
-                SizedBox(height: 8.h),
-                Row(
-                  children: [
-                    if (s.seconds > 0)
-                      Text(
-                        '${s.seconds.toStringAsFixed(1)}s',
-                        style: TextStyle(
-                          color: palette.textSecondary,
-                          fontSize: 12.sp,
-                        ),
-                      ),
-                    const Spacer(),
-                    if (s.target.isNotEmpty)
-                      Text(
-                        'Me\'yor: ${s.target}',
-                        style: TextStyle(
-                          color: palette.textHint,
-                          fontSize: 12.sp,
-                        ),
-                      ),
-                  ],
+              const Spacer(),
+              if (step.target.isNotEmpty)
+                Text(
+                  'Me\'yor: ${step.target}',
+                  style: AppTextStyles.caption
+                      .copyWith(color: palette.textHint),
                 ),
-              ],
             ],
           ),
-        );
-      }).toList(),
+        ],
+      ],
     );
   }
 }

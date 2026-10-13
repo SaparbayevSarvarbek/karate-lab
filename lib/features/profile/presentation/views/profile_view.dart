@@ -8,10 +8,11 @@ import '../../../../core/constants/app_constants.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/l10n/app_translations.dart';
 import '../../../../core/theme/app_palette.dart';
-import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/theme/theme_controller.dart';
+import '../../../../core/widgets/app_badge.dart';
+import '../../../../core/widgets/app_list_tile.dart';
 import '../../../../core/widgets/karate_app_bar.dart';
 import '../../../../core/widgets/remote_image.dart';
 import '../../../../core/widgets/shimmer_placeholder.dart';
@@ -60,19 +61,21 @@ class _ProfileViewState extends State<ProfileView> {
                 onRefresh: () => _refresh(context),
                 child: SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
-                  padding: EdgeInsets.fromLTRB(AppSpacing.screenH.w, AppSpacing.sm.h, AppSpacing.screenH.w, AppSpacing.xxl.h, ),
+                  padding: EdgeInsets.fromLTRB(
+                    AppSpacing.screenH.w,
+                    AppSpacing.screenTop.h,
+                    AppSpacing.screenH.w,
+                    AppSpacing.screenBottom.h,
+                  ),
                   child: Column(
                     children: [
                       if (loading)
                         const ShimmerProfileAvatar()
                       else
-                        ProfileAvatarSection(isCoach: isCoach, profile: profile),
+                        _ProfileHeader(profile: profile, isCoach: isCoach),
                       SizedBox(height: AppSpacing.xxl.h),
-                      if (loading)
-                        const ShimmerListTile(hasLeading: true, lines: 1)
-                      else
-                        ProfileMenuList(isCoach: isCoach),
-                      SizedBox(height: AppSpacing.xxl.h),
+                      ProfileMenuList(isCoach: isCoach),
+                      SizedBox(height: AppSpacing.xl.h),
                       const ProfileLogoutButton(),
                     ],
                   ),
@@ -94,94 +97,91 @@ class _ProfileViewState extends State<ProfileView> {
   }
 }
 
-class ProfileAvatarSection extends StatelessWidget {
-  final bool isCoach;
+/// Avatar + ism + rol nishoni.
+class _ProfileHeader extends StatelessWidget {
   final Profile? profile;
+  final bool isCoach;
 
-  const ProfileAvatarSection({
-    super.key,
-    required this.isCoach,
-    this.profile,
-  });
+  const _ProfileHeader({required this.profile, required this.isCoach});
 
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        ProfileAvatar(isCoach: isCoach, profile: profile),
-        SizedBox(height: 16.h),
-        ProfileName(isCoach: isCoach, name: profile?.fullName ?? ''),
-      ],
+  Future<void> _openEdit(BuildContext context) async {
+    final result = await context.push(
+      '/profile-edit',
+      extra: isCoach ? AppConstants.roleCoach : AppConstants.roleAthlete,
     );
+    if (!context.mounted) return;
+    if (result is Profile) {
+      context.read<ProfileBloc>().add(const LoadProfile());
+    }
   }
-}
-
-class ProfileAvatar extends StatelessWidget {
-  final bool isCoach;
-  final Profile? profile;
-
-  const ProfileAvatar({super.key, required this.isCoach, this.profile});
 
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
-    return Stack(
-      clipBehavior: Clip.none,
+    final name = profile?.fullName ?? '';
+    final display = name.isNotEmpty ? name : Tr.t('userFallback');
+    final roleLabel = isCoach ? Tr.t('roleCoach') : Tr.t('roleAthlete');
+
+    return Column(
       children: [
-        AvatarImage(
-          url: profile?.avatar,
-          size: 72,
-          name: profile?.fullName ?? '',
-        ),
-        PositionedDirectional(
-          bottom: 0,
-          end: 0,
-          child: GestureDetector(
-            onTap: () async {
-              final result = await context.push(
-                '/profile-edit',
-                extra:
-                    isCoach ? AppConstants.roleCoach : AppConstants.roleAthlete,
-              );
-              if (!context.mounted) return;
-              if (result is Profile) {
-                context.read<ProfileBloc>().add(const LoadProfile());
-              }
-            },
-            child: Container(
-              width: 26.w,
-              height: 26.w,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
+        Stack(
+          clipBehavior: Clip.none,
+          children: [
+            AvatarImage(url: profile?.avatar, size: 88, name: name),
+            PositionedDirectional(
+              bottom: 0,
+              end: 0,
+              child: Material(
                 color: AppColors.primaryBlue,
-                shape: BoxShape.circle,
-                border: Border.all(color: palette.background, width: 2.w),
+                shape: CircleBorder(
+                  side: BorderSide(color: palette.background, width: 2.5.w),
+                ),
+                child: InkWell(
+                  onTap: () => _openEdit(context),
+                  customBorder: const CircleBorder(),
+                  child: Padding(
+                    padding: EdgeInsets.all(6.w),
+                    child: Icon(
+                      Icons.edit_rounded,
+                      color: Colors.white,
+                      size: 14.w,
+                    ),
+                  ),
+                ),
               ),
-              child: Icon(Icons.edit, color: Colors.white, size: 13.w),
             ),
-          ),
+          ],
+        ),
+        SizedBox(height: AppSpacing.lg.h),
+        Text(
+          display,
+          textAlign: TextAlign.center,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: AppTextStyles.title.copyWith(color: palette.textPrimary),
+        ),
+        SizedBox(height: AppSpacing.sm.h),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            AppBadge(
+              label: roleLabel,
+              color: AppColors.primaryBlue,
+              icon: isCoach
+                  ? Icons.sports_rounded
+                  : Icons.sports_martial_arts_rounded,
+            ),
+            if ((profile?.phone ?? '').isNotEmpty) ...[
+              SizedBox(width: AppSpacing.sm.w),
+              AppBadge(
+                label: profile!.phone,
+                color: palette.textSecondary,
+                icon: Icons.phone_rounded,
+              ),
+            ],
+          ],
         ),
       ],
-    );
-  }
-}
-
-class ProfileName extends StatelessWidget {
-  final bool isCoach;
-  final String name;
-
-  const ProfileName({super.key, required this.isCoach, this.name = ''});
-
-  @override
-  Widget build(BuildContext context) {
-    final display = name.isNotEmpty ? name : Tr.t('userFallback');
-    return Text(
-      display,
-      textAlign: TextAlign.center,
-      style: AppTextStyles.screenTitle.copyWith(
-        fontSize: 19.sp,
-        color: context.palette.textPrimary,
-      ),
     );
   }
 }
@@ -193,55 +193,54 @@ class ProfileMenuList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final role =
-        isCoach ? AppConstants.roleCoach : AppConstants.roleAthlete;
+    final role = isCoach ? AppConstants.roleCoach : AppConstants.roleAthlete;
+
+    Future<void> openEdit(BuildContext context) async {
+      final result = await context.push('/profile-edit', extra: role);
+      if (!context.mounted) return;
+      if (result is Profile) {
+        context.read<ProfileBloc>().add(const LoadProfile());
+      }
+    }
+
     return Column(
       children: [
-        ProfileMenuGroup(
+        AppGroup(
           children: [
-            ProfileMenuItem(
+            AppMenuRow(
               title: Tr.t('menuPersonal'),
-              icon: Icons.person_outline,
-              onTap: () async {
-                final result = await context.push(
-                  '/profile-edit',
-                  extra: role,
-                );
-                if (!context.mounted) return;
-                if (result is Profile) {
-                  context.read<ProfileBloc>().add(const LoadProfile());
-                }
-              },
+              icon: Icons.person_outline_rounded,
+              onTap: () => openEdit(context),
             ),
-            ProfileMenuItem(
+            AppMenuRow(
               title: Tr.t('menuNotifications'),
-              icon: Icons.notifications_none,
+              icon: Icons.notifications_none_rounded,
               onTap: () => context.push('/notification-settings'),
             ),
-            ProfileMenuItem(
+            AppMenuRow(
               title: Tr.t('menuSecurity'),
-              icon: Icons.lock_outline,
+              icon: Icons.lock_outline_rounded,
               onTap: () => context.push('/security-settings'),
             ),
           ],
         ),
         SizedBox(height: AppSpacing.lg.h),
-        ProfileMenuGroup(
+        AppGroup(
           children: [
-            ProfileMenuItem(
+            AppMenuRow(
               title: Tr.t('menuReports'),
-              icon: Icons.bar_chart,
+              icon: Icons.insights_rounded,
               onTap: () => context.push('/reports', extra: role),
             ),
           ],
         ),
         SizedBox(height: AppSpacing.lg.h),
-        ProfileMenuGroup(
+        AppGroup(
           children: [
             const ProfileThemeToggleItem(),
-            ProfileMenuItem(
+            AppMenuRow(
               title: Tr.t('menuLanguage'),
-              icon: Icons.language,
+              icon: Icons.language_rounded,
               onTap: () => context.push('/language'),
             ),
           ],
@@ -251,154 +250,27 @@ class ProfileMenuList extends StatelessWidget {
   }
 }
 
-/// Bitta guruh — yumaloqlangan, chegarali `surface` karta. Ichidagi
-/// qatorlar 1px `divider` bilan ajratiladi.
-class ProfileMenuGroup extends StatelessWidget {
-  final List<Widget> children;
-
-  const ProfileMenuGroup({super.key, required this.children});
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = context.palette;
-    final rows = <Widget>[];
-    for (var i = 0; i < children.length; i++) {
-      if (i > 0) rows.add(const ProfileMenuDivider());
-      rows.add(children[i]);
-    }
-    return Container(
-      decoration: BoxDecoration(
-        color: palette.surface,
-        borderRadius: BorderRadius.circular(AppRadius.card.r),
-        border: Border.all(color: palette.border),
-      ),
-      child: Column(children: rows),
-    );
-  }
-}
-
-class ProfileMenuItem extends StatelessWidget {
-  final String title;
-  final IconData icon;
-  final VoidCallback onTap;
-  final bool danger;
-
-  const ProfileMenuItem({
-    super.key,
-    required this.title,
-    required this.icon,
-    required this.onTap,
-    this.danger = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = context.palette;
-    final tint = danger ? AppColors.error : AppColors.primaryBlue;
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-        child: Row(
-          children: [
-            Container(
-              width: 40.w,
-              height: 40.w,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: tint.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12.r),
-              ),
-              child: Icon(icon, color: tint, size: 20.w),
-            ),
-            SizedBox(width: 12.w),
-            Expanded(
-              child: Text(
-                title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 13.5.sp,
-                  fontWeight: FontWeight.w600,
-                  color: danger ? AppColors.error : palette.textPrimary,
-                ),
-              ),
-            ),
-            Icon(Icons.chevron_right, size: 20.w, color: palette.textHint),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class ProfileThemeToggleItem extends StatelessWidget {
   const ProfileThemeToggleItem({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final palette = context.palette;
     // `ThemeController` singleton bo'lgani uchun unga to'g'ridan-to'g'ri
     // bog'lanish shart: aks holda switch va yozuv darhol yangilanmaydi.
     return ListenableBuilder(
       listenable: ThemeController.instance,
       builder: (context, _) {
         final isDark = ThemeController.instance.isDark;
-        return Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-          child: Row(
-            children: [
-              Container(
-                width: 40.w,
-                height: 40.w,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: AppColors.primaryBlue.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12.r),
-                ),
-                child: Icon(
-                  isDark ? Icons.dark_mode : Icons.light_mode,
-                  color: AppColors.primaryBlue,
-                  size: 20.w,
-                ),
-              ),
-              SizedBox(width: 12.w),
-              Expanded(
-                child: Text(
-                  isDark ? Tr.t('themeDark') : Tr.t('themeLight'),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 13.5.sp,
-                    fontWeight: FontWeight.w600,
-                    color: palette.textPrimary,
-                  ),
-                ),
-              ),
-              Switch(
-                value: isDark,
-                onChanged: (v) => ThemeController.instance.setDark(v),
-                activeThumbColor: AppColors.primaryBlue,
-              ),
-            ],
+        return AppMenuRow(
+          icon: isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
+          title: isDark ? Tr.t('themeDark') : Tr.t('themeLight'),
+          trailing: Switch(
+            value: isDark,
+            onChanged: (v) => ThemeController.instance.setDark(v),
+            activeThumbColor: AppColors.primaryBlue,
           ),
         );
       },
-    );
-  }
-}
-
-class ProfileMenuDivider extends StatelessWidget {
-  const ProfileMenuDivider({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Divider(
-      height: 1,
-      thickness: 1,
-      indent: 14.w,
-      endIndent: 14.w,
-      color: context.palette.divider,
     );
   }
 }
@@ -408,50 +280,18 @@ class ProfileLogoutButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final palette = context.palette;
-    return Container(
-      decoration: BoxDecoration(
-        color: palette.surface,
-        borderRadius: BorderRadius.circular(AppRadius.card.r),
-        border: Border.all(color: palette.border),
-      ),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(AppRadius.card.r),
-        onTap: () {
-          showDialog(
+    return AppGroup(
+      children: [
+        AppMenuRow(
+          icon: Icons.logout_rounded,
+          title: Tr.t('logout'),
+          danger: true,
+          onTap: () => showDialog(
             context: context,
             builder: (_) => const ProfileLogoutDialog(),
-          );
-        },
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-          child: Row(
-            children: [
-              Container(
-                width: 40.w,
-                height: 40.w,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: AppColors.error.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12.r),
-                ),
-                child: Icon(Icons.logout, color: AppColors.error, size: 20.w),
-              ),
-              SizedBox(width: 12.w),
-              Expanded(
-                child: Text(
-                  Tr.t('logout'),
-                  style: TextStyle(
-                    fontSize: 13.5.sp,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.error,
-                  ),
-                ),
-              ),
-            ],
           ),
         ),
-      ),
+      ],
     );
   }
 }
@@ -461,17 +301,24 @@ class ProfileLogoutDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
     return AlertDialog(
       title: Text(Tr.t('logoutConfirmTitle')),
       content: Text(Tr.t('logoutConfirmText')),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: Text(Tr.t('cancel'))),
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(Tr.t('cancel')),
+        ),
         TextButton(
           onPressed: () {
             Navigator.pop(context);
             context.read<AuthBloc>().add(LogoutRequested());
           },
-          child: Text(Tr.t('exit'), style: const TextStyle(color: AppColors.error, fontWeight: FontWeight.bold)),
+          child: Text(
+            Tr.t('exit'),
+            style: TextStyle(color: palette.error, fontWeight: FontWeight.w700),
+          ),
         ),
       ],
     );

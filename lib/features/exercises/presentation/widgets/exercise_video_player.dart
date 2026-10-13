@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:video_player/video_player.dart';
 
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/theme/app_radius.dart';
 
 class ExerciseVideoPlayer extends StatefulWidget {
   final String url;
@@ -68,7 +69,7 @@ class _ExerciseVideoPlayerState extends State<ExerciseVideoPlayer> {
       child: Container(
         decoration: BoxDecoration(
           color: Colors.black,
-          borderRadius: BorderRadius.circular(20.r),
+          borderRadius: BorderRadius.circular(AppRadius.panel.r),
         ),
         clipBehavior: Clip.antiAlias,
         child: _hasError
@@ -257,7 +258,7 @@ class VideoThumbnailCard extends StatelessWidget {
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.25),
+                      color: Colors.black.withValues(alpha: 0.06),
                       blurRadius: 16,
                     ),
                   ],
