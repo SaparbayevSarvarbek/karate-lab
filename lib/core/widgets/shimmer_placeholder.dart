@@ -485,11 +485,27 @@ class ShimmerCoachTestCard extends StatelessWidget {
           SizedBox(height: 12.h),
           Row(
             children: [
-              ShimmerPlaceholder(width: 100.w, height: 16.h, borderRadius: BorderRadius.circular(8.r)),
+              Expanded(
+                child: ShimmerPlaceholder(
+                  width: double.infinity,
+                  height: 16.h,
+                  borderRadius: BorderRadius.circular(8.r),
+                ),
+              ),
               SizedBox(width: 16.w),
-              ShimmerPlaceholder(width: 100.w, height: 16.h, borderRadius: BorderRadius.circular(8.r)),
-              const Spacer(),
-              ShimmerPlaceholder(width: 100.w, height: 36.h, borderRadius: BorderRadius.circular(12.r)),
+              Expanded(
+                child: ShimmerPlaceholder(
+                  width: double.infinity,
+                  height: 16.h,
+                  borderRadius: BorderRadius.circular(8.r),
+                ),
+              ),
+              SizedBox(width: 16.w),
+              ShimmerPlaceholder(
+                width: 100.w,
+                height: 36.h,
+                borderRadius: BorderRadius.circular(12.r),
+              ),
             ],
           ),
         ],

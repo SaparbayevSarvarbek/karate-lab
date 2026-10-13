@@ -10,7 +10,6 @@ import '../../../../core/theme/app_palette.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
-import '../../../../core/widgets/app_filter_chips.dart';
 import '../../../../core/widgets/app_list_tile.dart';
 import '../../../../core/widgets/app_search_field.dart';
 import '../../../../core/widgets/app_state_views.dart';
@@ -30,13 +29,6 @@ class AthletesListView extends StatefulWidget {
 class _AthletesListViewState extends State<AthletesListView> {
   final _searchController = TextEditingController();
   String _query = '';
-  String _filter = 'all';
-
-  static const _filters = <AppChipItem<String>>[
-    AppChipItem(value: 'all', label: 'Barchasi'),
-    AppChipItem(value: 'done', label: 'Tugalladi'),
-    AppChipItem(value: 'active', label: 'Faol'),
-  ];
 
   EdgeInsets get _listPadding => EdgeInsets.fromLTRB(
         AppSpacing.screenH.w,
@@ -79,11 +71,6 @@ class _AthletesListViewState extends State<AthletesListView> {
                   controller: _searchController,
                   onChanged: (v) => setState(() => _query = v.trim()),
                 ),
-              ),
-              AppFilterChips<String>(
-                items: _filters,
-                selected: _filter,
-                onSelected: (v) => setState(() => _filter = v),
               ),
               Expanded(child: _buildBody(context, state)),
             ],

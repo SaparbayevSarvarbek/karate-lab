@@ -13,6 +13,7 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_badge.dart';
 import '../../../../core/widgets/app_fab.dart';
+import '../../../../core/widgets/app_filter_chips.dart';
 import '../../../../core/widgets/app_list_tile.dart';
 import '../../../../core/widgets/app_search_field.dart';
 import '../../../../core/widgets/app_state_views.dart';
@@ -34,6 +35,14 @@ class MyExercisesView extends StatefulWidget {
 class _MyExercisesViewState extends State<MyExercisesView> {
   final _searchController = TextEditingController();
   String _query = '';
+  String _category = 'all';
+
+  static const _categories = <AppChipItem<String>>[
+    AppChipItem(value: 'all', label: 'Barchasi'),
+    AppChipItem(value: 'UJT', label: 'UJT'),
+    AppChipItem(value: 'MJT', label: 'MJT'),
+    AppChipItem(value: 'Texnik', label: 'Texnik'),
+  ];
 
   @override
   void dispose() {
@@ -42,9 +51,17 @@ class _MyExercisesViewState extends State<MyExercisesView> {
   }
 
   List<Exercise> _filtered(List<Exercise> items) {
-    if (_query.isEmpty) return items;
-    final q = _query.toLowerCase();
-    return items.where((e) => e.title.toLowerCase().contains(q)).toList();
+    Iterable<Exercise> result = items;
+    if (_category != 'all') {
+      result = result.where(
+        (e) => e.category.toLowerCase() == _category.toLowerCase(),
+      );
+    }
+    if (_query.isNotEmpty) {
+      final q = _query.toLowerCase();
+      result = result.where((e) => e.title.toLowerCase().contains(q));
+    }
+    return result.toList();
   }
 
   @override
@@ -69,6 +86,11 @@ class _MyExercisesViewState extends State<MyExercisesView> {
                   controller: _searchController,
                   onChanged: (v) => setState(() => _query = v.trim()),
                 ),
+              ),
+              AppFilterChips<String>(
+                items: _categories,
+                selected: _category,
+                onSelected: (v) => setState(() => _category = v),
               ),
               Expanded(child: _buildBody(context)),
             ],

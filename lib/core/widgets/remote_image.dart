@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../api/api_constants.dart';
 import '../constants/app_colors.dart';
 import '../theme/app_palette.dart';
 
@@ -36,12 +37,16 @@ class RemoteImage extends StatelessWidget {
     final double? effectiveWidth = _sanitize(width);
     final double? effectiveHeight = _sanitize(height);
 
+    final String? resolvedUrl = _isEmpty
+        ? null
+        : (_isAsset ? url : ApiConstants.resolveMediaUrl(url!));
+
     final Widget child;
     if (_isEmpty) {
       child = _placeholder(context, effectiveWidth, effectiveHeight);
     } else if (_isAsset) {
       child = Image.asset(
-        url!,
+        resolvedUrl!,
         width: effectiveWidth,
         height: effectiveHeight,
         fit: fit,
@@ -53,7 +58,7 @@ class RemoteImage extends StatelessWidget {
       );
     } else {
       child = Image.network(
-        url!,
+        resolvedUrl!,
         width: effectiveWidth,
         height: effectiveHeight,
         fit: fit,
@@ -213,7 +218,7 @@ class AvatarImage extends StatelessWidget {
     }
     return ClipOval(
       child: Image.network(
-        url!,
+        ApiConstants.resolveMediaUrl(url!),
         width: safeSize,
         height: safeSize,
         fit: BoxFit.cover,

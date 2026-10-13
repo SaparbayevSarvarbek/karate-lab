@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import '../../../../core/api/models/analytics_models.dart';
 import '../../../../core/api/models/athlete_models.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/di/injection.dart';
+import '../../../../core/repositories/analytics_repository.dart';
 import '../../../../core/theme/app_palette.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -12,6 +14,7 @@ import '../../../../core/widgets/app_badge.dart';
 import '../../../../core/widgets/app_card.dart';
 import '../../../../core/widgets/app_list_tile.dart';
 import '../../../../core/widgets/app_section_header.dart';
+import '../../../../core/widgets/app_stat_card.dart';
 import '../../../../core/widgets/karate_app_bar.dart';
 import '../../../../core/widgets/remote_image.dart';
 import '../../../../core/widgets/shimmer_placeholder.dart';
@@ -72,6 +75,10 @@ class _AthleteProfileContent extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _ProfileHeader(athlete: athlete),
+                      if (athlete.id > 0) ...[
+                        SizedBox(height: AppSpacing.sectionGap.h),
+                        _AthleteStatistics(athleteId: athlete.id),
+                      ],
                       SizedBox(height: AppSpacing.sectionGap.h),
                       const AppSectionHeader(title: 'Shaxsiy ma\'lumotlar'),
                       SizedBox(height: AppSpacing.md.h),
@@ -121,6 +128,86 @@ class _ProfileSkeleton extends StatelessWidget {
   }
 }
 
+/// Sportchi statistikasi (`/coach/athletes/{id}/statistics/`).
+class _AthleteStatistics extends StatefulWidget {
+  final int athleteId;
+
+  const _AthleteStatistics({required this.athleteId});
+
+  @override
+  State<_AthleteStatistics> createState() => _AthleteStatisticsState();
+}
+
+class _AthleteStatisticsState extends State<_AthleteStatistics> {
+  late final Future<AthleteStatistics?> _future;
+
+  @override
+  void initState() {
+    super.initState();
+    _future = getIt<AnalyticsRepository>()
+        .getCoachAthleteStatistics(widget.athleteId)
+        .then((result) => result.fold((_) => null, (stats) => stats));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    return FutureBuilder<AthleteStatistics?>(
+      future: _future,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const ShimmerCard(height: 96);
+        }
+        final stats = snapshot.data;
+        if (stats == null) return const SizedBox.shrink();
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const AppSectionHeader(title: 'Statistika'),
+            SizedBox(height: AppSpacing.md.h),
+            IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(
+                    child: AppStatCard(
+                      label: 'Bajarilgan',
+                      value: '${stats.completedTests}',
+                      icon: Icons.task_alt_rounded,
+                      color: palette.success,
+                    ),
+                  ),
+                  SizedBox(width: AppSpacing.md.w),
+                  Expanded(
+                    child: AppStatCard(
+                      label: "O'rtacha ball",
+                      value: stats.averageScore == null
+                          ? '—'
+                          : stats.averageScore!.toStringAsFixed(1),
+                      icon: Icons.speed_rounded,
+                      color: AppColors.primaryBlue,
+                    ),
+                  ),
+                  SizedBox(width: AppSpacing.md.w),
+                  Expanded(
+                    child: AppStatCard(
+                      label: 'Muvaffaqiyat',
+                      value: '${stats.successRate.round()}%',
+                      icon: Icons.trending_up_rounded,
+                      color: palette.warning,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
 class _ProfileHeader extends StatelessWidget {
   final Athlete athlete;
 
@@ -131,26 +218,28 @@ class _ProfileHeader extends StatelessWidget {
     final palette = context.palette;
     final display = athlete.fullName.isEmpty ? 'Sportchi' : athlete.fullName;
 
-    return Column(
-      children: [
-        AvatarImage(url: athlete.avatar, name: athlete.fullName, size: 88),
-        SizedBox(height: AppSpacing.lg.h),
-        Text(
-          display,
-          textAlign: TextAlign.center,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: AppTextStyles.title.copyWith(color: palette.textPrimary),
-        ),
-        if (athlete.username.isNotEmpty) ...[
-          SizedBox(height: AppSpacing.sm.h),
-          AppBadge(
-            label: '@${athlete.username}',
-            color: AppColors.primaryBlue,
-            icon: Icons.alternate_email_rounded,
+    return SizedBox(
+      width: double.infinity,
+      child: Column(
+        children: [
+          AvatarImage(url: athlete.avatar, name: athlete.fullName, size: 96),
+          SizedBox(height: AppSpacing.lg.h),
+          Text(
+            display,
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: AppTextStyles.title.copyWith(color: palette.textPrimary),
           ),
+          if (athlete.username.isNotEmpty) ...[
+            SizedBox(height: AppSpacing.sm.h),
+            AppBadge(
+              label: '@${athlete.username}',
+              color: AppColors.primaryBlue,
+            ),
+          ],
         ],
-      ],
+      ),
     );
   }
 }

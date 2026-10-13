@@ -167,9 +167,6 @@ class _ProfileHeader extends StatelessWidget {
             AppBadge(
               label: roleLabel,
               color: AppColors.primaryBlue,
-              icon: isCoach
-                  ? Icons.sports_rounded
-                  : Icons.sports_martial_arts_rounded,
             ),
             if (!isCoach && (profile?.phone ?? '').isNotEmpty) ...[
               SizedBox(width: AppSpacing.sm.w),

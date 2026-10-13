@@ -33,7 +33,6 @@ class AppFab extends StatelessWidget {
         child: Container(
           height: 48.h,
           padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg.w),
-          alignment: Alignment.center,
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
