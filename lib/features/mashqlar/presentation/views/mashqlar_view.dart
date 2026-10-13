@@ -9,6 +9,7 @@ import '../../../../core/l10n/app_translations.dart';
 import '../../../../core/theme/app_palette.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_badge.dart';
+import '../../../../core/widgets/app_fab.dart';
 import '../../../../core/widgets/app_filter_chips.dart';
 import '../../../../core/widgets/app_list_tile.dart';
 import '../../../../core/widgets/app_search_field.dart';
@@ -79,6 +80,15 @@ class _MashqlarViewState extends State<MashqlarView> {
               title: Tr.t('navExercises'),
               showLogo: true,
             ),
+            floatingActionButton: AppFab(
+              label: 'Mashq',
+              onPressed: () async {
+                final added = await context.push('/add-exercise');
+                if (added == true && context.mounted) {
+                  context.read<MashqlarBloc>().add(const LoadMashqlar());
+                }
+              },
+            ),
             body: Column(
               children: [
                 Padding(
@@ -117,7 +127,7 @@ class _MashqlarViewState extends State<MashqlarView> {
               AppSpacing.screenH.w,
               AppSpacing.md.h,
               AppSpacing.screenH.w,
-              AppSpacing.screenBottom.h,
+              96.h,
             ),
             children: List.generate(6, (_) => const ShimmerActionTile()),
           );

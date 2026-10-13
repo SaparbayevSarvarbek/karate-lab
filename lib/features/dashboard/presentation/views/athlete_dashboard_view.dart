@@ -17,9 +17,8 @@ import '../../../../core/widgets/app_icon_tile.dart';
 import '../../../../core/widgets/app_section_header.dart';
 import '../../../../core/widgets/app_state_views.dart';
 import '../../../../core/widgets/app_stat_card.dart';
-import '../../../../core/widgets/karate_app_bar.dart';
+import '../../../../core/widgets/dashboard_app_bar.dart';
 import '../../../../core/widgets/shimmer_placeholder.dart';
-import '../../../../core/widgets/user_greeting_row.dart';
 import '../viewmodels/dashboard_bloc.dart';
 
 class AthleteDashboardView extends StatelessWidget {
@@ -59,9 +58,8 @@ class _AthleteDashboardContent extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: palette.background,
-      appBar: KarateAppBar(
-        title: Tr.t('navHome'),
-        showLogo: true,
+      appBar: DashboardAppBar(
+        fallbackName: 'Sportchi',
         actions: [
           IconButton(
             onPressed: () => context.push('/notification-settings'),
@@ -88,8 +86,6 @@ class _AthleteDashboardContent extends StatelessWidget {
                   AppSpacing.screenBottom.h,
                 ),
                 children: [
-                  const UserGreetingRow(fallbackName: 'Sportchi'),
-                  SizedBox(height: AppSpacing.xl.h),
                   ShimmerPlaceholder(
                     width: double.infinity,
                     height: 168.h,
@@ -139,8 +135,6 @@ class _AthleteDashboardContent extends StatelessWidget {
                   AppSpacing.screenBottom.h,
                 ),
                 children: [
-                  const UserGreetingRow(fallbackName: 'Sportchi'),
-                  SizedBox(height: AppSpacing.xl.h),
                   _HeroCard(onStart: _gotoTests),
                   SizedBox(height: AppSpacing.xl.h),
                   _StatsRow(data: state.data),
@@ -267,37 +261,40 @@ class _StatsRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Expanded(
-          child: AppStatCard(
-            label: Tr.t('avgScore'),
-            value:
-                data.avgScore == null ? '—' : data.avgScore!.toStringAsFixed(1),
-            icon: Icons.speed_rounded,
-            color: AppColors.primaryBlue,
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            child: AppStatCard(
+              label: Tr.t('avgScore'),
+              value: data.avgScore == null
+                  ? '—'
+                  : data.avgScore!.toStringAsFixed(1),
+              icon: Icons.speed_rounded,
+              color: AppColors.primaryBlue,
+            ),
           ),
-        ),
-        SizedBox(width: AppSpacing.md.w),
-        Expanded(
-          child: AppStatCard(
-            label: Tr.t('activeDays'),
-            value: '${data.activeDays ?? 0}',
-            icon: Icons.local_fire_department_rounded,
-            color: palette.warning,
+          SizedBox(width: AppSpacing.md.w),
+          Expanded(
+            child: AppStatCard(
+              label: Tr.t('activeDays'),
+              value: '${data.activeDays ?? 0}',
+              icon: Icons.local_fire_department_rounded,
+              color: palette.warning,
+            ),
           ),
-        ),
-        SizedBox(width: AppSpacing.md.w),
-        Expanded(
-          child: AppStatCard(
-            label: Tr.t('completed'),
-            value: '${data.completedTests ?? 0}',
-            icon: Icons.task_alt_rounded,
-            color: palette.success,
+          SizedBox(width: AppSpacing.md.w),
+          Expanded(
+            child: AppStatCard(
+              label: Tr.t('completed'),
+              value: '${data.completedTests ?? 0}',
+              icon: Icons.task_alt_rounded,
+              color: palette.success,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

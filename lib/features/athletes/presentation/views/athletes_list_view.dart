@@ -4,7 +4,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/api/models/athlete_models.dart';
-import '../../../../core/constants/app_colors.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/l10n/app_translations.dart';
 import '../../../../core/theme/app_palette.dart';
@@ -147,105 +146,92 @@ class _AthletesListViewState extends State<AthletesListView> {
         ? '${Tr.t('yearsOld', {'age': '${athlete.age}'})} • ${athlete.username}'
         : athlete.username;
 
-    void openProfile() =>
-        context.push('/athlete-profile', extra: athlete);
+    void openProfile() => context.push('/athlete-profile', extra: athlete);
 
     return Padding(
       padding: EdgeInsets.only(bottom: AppSpacing.md.h),
-      child: AppListTile(
-        leading: AvatarImage(
-          url: athlete.avatar,
-          name: athlete.fullName,
-          size: 48,
-        ),
-        title: athlete.fullName,
-        subtitle: subtitle,
-        onTap: openProfile,
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-              tooltip: Tr.t('delete'),
-              onPressed: () => _showDeleteDialog(context, athlete),
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
-              icon: Icon(
+      child: Dismissible(
+        key: ValueKey(athlete.id),
+        direction: DismissDirection.endToStart,
+        confirmDismiss: (_) => _confirmDelete(context, athlete),
+        background: Container(
+          alignment: AlignmentDirectional.centerEnd,
+          padding: EdgeInsetsDirectional.only(end: AppSpacing.xl.w),
+          decoration: BoxDecoration(
+            color: palette.error.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(AppRadius.card.r),
+            border: Border.all(color: palette.error.withValues(alpha: 0.25)),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
                 Icons.delete_outline_rounded,
                 color: palette.error,
                 size: 20.w,
               ),
-            ),
-            SizedBox(width: AppSpacing.sm.w),
-            _ViewPill(onTap: openProfile),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showDeleteDialog(BuildContext context, Athlete athlete) {
-    showDialog<void>(
-      context: context,
-      builder: (dialogContext) {
-        final palette = dialogContext.palette;
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppRadius.panel.r),
-          ),
-          title: Text(
-            Tr.t('deleteAthleteTitle'),
-            style: AppTextStyles.sectionTitle.copyWith(color: palette.textPrimary),
-          ),
-          content: Text(
-            Tr.t('deleteAthleteConfirm', {'name': athlete.fullName}),
-            style: AppTextStyles.body.copyWith(color: palette.textSecondary),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: Text(Tr.t('cancel')),
-            ),
-            TextButton(
-              onPressed: () {
-                context.read<AthleteBloc>().add(DeleteAthlete(athlete.id));
-                Navigator.of(dialogContext).pop();
-              },
-              child: Text(
+              SizedBox(width: AppSpacing.sm.w),
+              Text(
                 Tr.t('delete'),
-                style: AppTextStyles.label.copyWith(color: palette.error),
+                style: AppTextStyles.button.copyWith(color: palette.error),
               ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-}
-
-/// Kartadagi "Ko'rish" amali — brend tusli pill.
-class _ViewPill extends StatelessWidget {
-  final VoidCallback onTap;
-
-  const _ViewPill({required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: AppColors.primaryBlue.withValues(alpha: 0.1),
-      borderRadius: BorderRadius.circular(AppRadius.pill.r),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AppRadius.pill.r),
-        child: Container(
-          height: 44.h,
-          alignment: Alignment.center,
-          padding: EdgeInsets.symmetric(horizontal: AppSpacing.md.w),
-          child: Text(
-            'Ko\'rish',
-            style: AppTextStyles.label.copyWith(color: AppColors.primaryBlue),
+            ],
           ),
+        ),
+        child: AppListTile(
+          leading: AvatarImage(
+            url: athlete.avatar,
+            name: athlete.fullName,
+            size: 48,
+          ),
+          title: athlete.fullName,
+          subtitle: subtitle,
+          showChevron: true,
+          onTap: openProfile,
         ),
       ),
     );
+  }
+
+  /// O'chirishni tasdiqlash. `true` qaytsa — `Dismissible` elementni olib tashlaydi.
+  Future<bool> _confirmDelete(BuildContext context, Athlete athlete) async {
+    final bloc = context.read<AthleteBloc>();
+    final palette = context.palette;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.panel.r),
+        ),
+        title: Text(
+          Tr.t('deleteAthleteTitle'),
+          style:
+              AppTextStyles.sectionTitle.copyWith(color: palette.textPrimary),
+        ),
+        content: Text(
+          Tr.t('deleteAthleteConfirm', {'name': athlete.fullName}),
+          style: AppTextStyles.body.copyWith(color: palette.textSecondary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(Tr.t('cancel')),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(
+              Tr.t('delete'),
+              style: AppTextStyles.label.copyWith(color: palette.error),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      bloc.add(DeleteAthlete(athlete.id));
+      return true;
+    }
+    return false;
   }
 }

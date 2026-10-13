@@ -171,7 +171,7 @@ class _ProfileHeader extends StatelessWidget {
                   ? Icons.sports_rounded
                   : Icons.sports_martial_arts_rounded,
             ),
-            if ((profile?.phone ?? '').isNotEmpty) ...[
+            if (!isCoach && (profile?.phone ?? '').isNotEmpty) ...[
               SizedBox(width: AppSpacing.sm.w),
               AppBadge(
                 label: profile!.phone,

@@ -14,6 +14,7 @@ import '../../../../core/widgets/app_badge.dart';
 import '../../../../core/widgets/app_fab.dart';
 import '../../../../core/widgets/app_filter_chips.dart';
 import '../../../../core/widgets/app_list_tile.dart';
+import '../../../../core/widgets/app_search_field.dart';
 import '../../../../core/widgets/app_state_views.dart';
 import '../../../../core/widgets/karate_app_bar.dart';
 import '../../../../core/widgets/shimmer_placeholder.dart';
@@ -32,25 +33,36 @@ class TestsLibraryView extends StatefulWidget {
   State<TestsLibraryView> createState() => _TestsLibraryViewState();
 }
 
-enum _TestFilter { all, pending, inProgress, completed, active, inactive }
+enum _TestFilter { all, pending, inProgress, completed }
 
 class _TestsLibraryViewState extends State<TestsLibraryView> {
   bool get _isCoach => widget.userRole == AppConstants.roleCoach;
 
-  _TestFilter _filter = _TestFilter.all;
+  final _searchController = TextEditingController();
+  String _query = '';
 
-  List<AppChipItem<_TestFilter>> get _filters => _isCoach
-      ? const [
-          AppChipItem(value: _TestFilter.all, label: 'Barchasi'),
-          AppChipItem(value: _TestFilter.active, label: 'Faol'),
-          AppChipItem(value: _TestFilter.inactive, label: 'Nofaol'),
-        ]
-      : const [
-          AppChipItem(value: _TestFilter.all, label: 'Barchasi'),
-          AppChipItem(value: _TestFilter.pending, label: 'Boshlanmagan'),
-          AppChipItem(value: _TestFilter.inProgress, label: 'Jarayonda'),
-          AppChipItem(value: _TestFilter.completed, label: 'Bajarilgan'),
-        ];
+  _TestFilter _filter = _TestFilter.all;
+  String _category = 'all';
+
+  static const _coachCategories = <AppChipItem<String>>[
+    AppChipItem(value: 'all', label: 'Barchasi'),
+    AppChipItem(value: 'Texnik', label: 'Texnik'),
+    AppChipItem(value: 'UJT', label: 'UJT'),
+    AppChipItem(value: 'MJT', label: 'MJT'),
+  ];
+
+  static const _statusFilters = <AppChipItem<_TestFilter>>[
+    AppChipItem(value: _TestFilter.all, label: 'Barchasi'),
+    AppChipItem(value: _TestFilter.pending, label: 'Boshlanmagan'),
+    AppChipItem(value: _TestFilter.inProgress, label: 'Jarayonda'),
+    AppChipItem(value: _TestFilter.completed, label: 'Bajarilgan'),
+  ];
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   void _reload() => context.read<TestBloc>().add(
         _isCoach ? const LoadCoachTests() : const LoadMyTests(),
@@ -70,7 +82,36 @@ class _TestsLibraryViewState extends State<TestsLibraryView> {
         builder: (context, state) => Scaffold(
           backgroundColor: palette.background,
           appBar: KarateAppBar(title: Tr.t('navTests'), showLogo: true),
-          body: _buildBody(context, state),
+          body: Column(
+            children: [
+              Padding(
+                padding: EdgeInsets.fromLTRB(
+                  AppSpacing.screenH.w,
+                  AppSpacing.screenTop.h,
+                  AppSpacing.screenH.w,
+                  AppSpacing.md.h,
+                ),
+                child: AppSearchField(
+                  hint: Tr.t('searchTestHint'),
+                  controller: _searchController,
+                  onChanged: (v) => setState(() => _query = v.trim()),
+                ),
+              ),
+              if (_isCoach)
+                AppFilterChips<String>(
+                  items: _coachCategories,
+                  selected: _category,
+                  onSelected: (v) => setState(() => _category = v),
+                )
+              else
+                AppFilterChips<_TestFilter>(
+                  items: _statusFilters,
+                  selected: _filter,
+                  onSelected: (v) => setState(() => _filter = v),
+                ),
+              Expanded(child: _buildBody(context, state)),
+            ],
+          ),
           floatingActionButton: _isCoach
               ? AppFab(
                   label: 'Test',
@@ -89,7 +130,7 @@ class _TestsLibraryViewState extends State<TestsLibraryView> {
 
   EdgeInsets get _listPadding => EdgeInsets.fromLTRB(
         AppSpacing.screenH.w,
-        AppSpacing.screenTop.h,
+        AppSpacing.md.h,
         AppSpacing.screenH.w,
         _isCoach ? 96.h : AppSpacing.screenBottom.h,
       );
@@ -100,16 +141,12 @@ class _TestsLibraryViewState extends State<TestsLibraryView> {
         onRefresh: () async => _reload(),
         child: ListView(
           padding: _listPadding,
-          children: [
-            _filterBar(),
-            SizedBox(height: AppSpacing.lg.h),
-            ...List.generate(
-              5,
-              (_) => _isCoach
-                  ? const ShimmerCoachTestCard()
-                  : const ShimmerTestResultCard(),
-            ),
-          ],
+          children: List.generate(
+            5,
+            (_) => _isCoach
+                ? const ShimmerCoachTestCard()
+                : const ShimmerTestResultCard(),
+          ),
         ),
       );
     }
@@ -123,14 +160,12 @@ class _TestsLibraryViewState extends State<TestsLibraryView> {
     }
 
     if (state is CoachTestsLoaded) {
-      final tests = state.tests.where(_matchesCoachFilter).toList();
+      final tests = state.tests.where(_matchesCoach).toList();
       return RefreshIndicator(
         onRefresh: () async => _reload(),
         child: ListView(
           padding: _listPadding,
           children: [
-            _filterBar(),
-            SizedBox(height: AppSpacing.lg.h),
             if (tests.isEmpty)
               _emptyState('Testlar yo\'q')
             else
@@ -144,14 +179,12 @@ class _TestsLibraryViewState extends State<TestsLibraryView> {
     }
 
     if (state is MyTestsLoaded) {
-      final tests = state.tests.where(_matchesAthleteFilter).toList();
+      final tests = state.tests.where(_matchesAthlete).toList();
       return RefreshIndicator(
         onRefresh: () async => _reload(),
         child: ListView(
           padding: _listPadding,
           children: [
-            _filterBar(),
-            SizedBox(height: AppSpacing.lg.h),
             if (tests.isEmpty)
               _emptyState(Tr.t('noSearchResult'))
             else
@@ -173,43 +206,33 @@ class _TestsLibraryViewState extends State<TestsLibraryView> {
     return const AppLoadingView();
   }
 
-  bool _matchesCoachFilter(TestEntity test) {
-    switch (_filter) {
-      case _TestFilter.active:
-        return test.isActive;
-      case _TestFilter.inactive:
-        return !test.isActive;
-      default:
-        return true;
+  bool _matchesCoach(TestEntity test) {
+    if (_category != 'all' &&
+        test.category.toLowerCase() != _category.toLowerCase()) {
+      return false;
     }
+    return _matchesQuery(test.name);
   }
 
-  bool _matchesAthleteFilter(TestResult test) {
-    switch (_filter) {
-      case _TestFilter.pending:
-        return test.status == TestStatus.pending;
-      case _TestFilter.inProgress:
-        return test.status == TestStatus.inProgress;
-      case _TestFilter.completed:
-        return test.status == TestStatus.completed;
-      default:
-        return true;
-    }
+  bool _matchesAthlete(TestResult test) {
+    final statusOk = switch (_filter) {
+      _TestFilter.all => true,
+      _TestFilter.pending => test.status == TestStatus.pending,
+      _TestFilter.inProgress => test.status == TestStatus.inProgress,
+      _TestFilter.completed => test.status == TestStatus.completed,
+    };
+    return statusOk && _matchesQuery(test.name);
   }
 
-  Widget _filterBar() => AppFilterChips<_TestFilter>(
-        items: _filters,
-        selected: _filter,
-        onSelected: (v) => setState(() => _filter = v),
-        padding: EdgeInsets.zero,
-      );
+  bool _matchesQuery(String name) =>
+      _query.isEmpty || name.toLowerCase().contains(_query.toLowerCase());
 
   Widget _emptyState(String title) => AppEmptyView(
         icon: Icons.assignment_outlined,
         title: title,
-        message: _filter == _TestFilter.all
-            ? null
-            : 'Bu bo\'limda hozircha test yo\'q.',
+        message: _query.isNotEmpty || _category != 'all'
+            ? 'Bu shartlarga mos test topilmadi.'
+            : null,
       );
 }
 
