@@ -94,12 +94,18 @@ class AppRouter {
       GoRoute(
         path: '/test-detail',
         builder: (context, state) {
-          return TestDetailView(result: state.extra as TestResult?);
+          final extra = state.extra;
+          if (extra is TestEntity) {
+            return TestDetailView(coachTest: extra);
+          }
+          return TestDetailView(result: extra as TestResult?);
         },
       ),
       GoRoute(
         path: '/create-test',
-        builder: (context, state) => const CreateTestView(),
+        builder: (context, state) => CreateTestView(
+          test: state.extra as TestEntity?,
+        ),
       ),
       GoRoute(
         path: '/test-run',

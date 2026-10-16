@@ -64,7 +64,7 @@ class _TestsLibraryViewState extends State<TestsLibraryView> {
     super.dispose();
   }
 
-  void _reload() => context.read<TestBloc>().add(
+  void _reload(BuildContext context) => context.read<TestBloc>().add(
         _isCoach ? const LoadCoachTests() : const LoadMyTests(),
       );
 
@@ -138,7 +138,7 @@ class _TestsLibraryViewState extends State<TestsLibraryView> {
   Widget _buildBody(BuildContext context, TestState state) {
     if (state is TestLoading) {
       return RefreshIndicator(
-        onRefresh: () async => _reload(),
+        onRefresh: () async => _reload(context),
         child: ListView(
           padding: _listPadding,
           children: List.generate(
@@ -155,14 +155,14 @@ class _TestsLibraryViewState extends State<TestsLibraryView> {
       return AppErrorView(
         message: state.message,
         retryLabel: Tr.t('retry'),
-        onRetry: _reload,
+        onRetry: () => _reload(context),
       );
     }
 
     if (state is CoachTestsLoaded) {
       final tests = state.tests.where(_matchesCoach).toList();
       return RefreshIndicator(
-        onRefresh: () async => _reload(),
+        onRefresh: () async => _reload(context),
         child: ListView(
           padding: _listPadding,
           children: [
@@ -170,7 +170,13 @@ class _TestsLibraryViewState extends State<TestsLibraryView> {
               _emptyState('Testlar yo\'q')
             else
               for (final test in tests) ...[
-                _CoachTestCard(test: test),
+                _CoachTestCard(
+                  test: test,
+                  onTap: () async {
+                    await context.push('/test-detail', extra: test);
+                    if (context.mounted) _reload(context);
+                  },
+                ),
                 SizedBox(height: AppSpacing.md.h),
               ],
           ],
@@ -181,7 +187,7 @@ class _TestsLibraryViewState extends State<TestsLibraryView> {
     if (state is MyTestsLoaded) {
       final tests = state.tests.where(_matchesAthlete).toList();
       return RefreshIndicator(
-        onRefresh: () async => _reload(),
+        onRefresh: () async => _reload(context),
         child: ListView(
           padding: _listPadding,
           children: [
@@ -193,7 +199,7 @@ class _TestsLibraryViewState extends State<TestsLibraryView> {
                   test: test,
                   onTap: () async {
                     await context.push('/test-detail', extra: test);
-                    if (context.mounted) _reload();
+                    if (context.mounted) _reload(context);
                   },
                 ),
                 SizedBox(height: AppSpacing.md.h),
@@ -293,21 +299,22 @@ class _AthleteTestCard extends StatelessWidget {
   }
 }
 
-/// Murabbiy uchun test kartasi: faol/nofaol nishoni.
+/// Murabbiy uchun test kartasi; bosilganda test tafsilotlarini ochadi.
 class _CoachTestCard extends StatelessWidget {
   final TestEntity test;
+  final VoidCallback onTap;
 
-  const _CoachTestCard({required this.test});
+  const _CoachTestCard({required this.test, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    final palette = context.palette;
-
     return AppListTile(
       icon: Icons.assignment_rounded,
       iconColor: AppColors.primaryBlue,
       title: test.name,
       subtitle: test.description.isEmpty ? null : test.description,
+      onTap: onTap,
+      showChevron: true,
       footer: AppMetaRow(
         items: [
           AppMeta(
@@ -322,13 +329,6 @@ class _CoachTestCard extends StatelessWidget {
           if (test.category.isNotEmpty)
             AppMeta(icon: Icons.category_outlined, text: test.category),
         ],
-      ),
-      trailing: AppBadge(
-        label: test.isActive ? Tr.t('active') : Tr.t('inactive'),
-        color: test.isActive ? palette.success : palette.textSecondary,
-        icon: test.isActive
-            ? Icons.check_circle_rounded
-            : Icons.pause_circle_rounded,
       ),
     );
   }

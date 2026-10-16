@@ -27,16 +27,81 @@ import '../../../../core/widgets/shimmer_placeholder.dart';
 /// Testni boshlash orqali taymerli bajarish sahifasiga o'tiladi.
 class TestDetailView extends StatefulWidget {
   final TestResult? result;
+  final TestEntity? coachTest;
 
-  const TestDetailView({super.key, this.result});
+  const TestDetailView({super.key, this.result, this.coachTest});
 
   @override
   State<TestDetailView> createState() => _TestDetailViewState();
 }
 
 class _TestDetailViewState extends State<TestDetailView> {
-  late TestResult? _result = widget.result;
+  late TestEntity? _coachTest = widget.coachTest;
+  late TestResult? _result = widget.result ?? _toResult(widget.coachTest);
   bool _busy = false;
+  bool _loadingCoachTest = false;
+  String? _coachTestLoadError;
+
+  bool get _isCoach => _coachTest != null;
+
+  @override
+  void initState() {
+    super.initState();
+    final test = _coachTest;
+    if (test != null) _loadCoachTest(test.id);
+  }
+
+  Future<void> _loadCoachTest(int id) async {
+    setState(() {
+      _loadingCoachTest = true;
+      _coachTestLoadError = null;
+    });
+    final response = await getIt<TestRepository>().getCoachTestDetail(id);
+    if (!mounted) return;
+    response.fold(
+      (error) => setState(() {
+        _loadingCoachTest = false;
+        _coachTestLoadError = error.message;
+      }),
+      (test) => setState(() {
+        _loadingCoachTest = false;
+        _coachTest = test;
+        _result = _toResult(test);
+      }),
+    );
+  }
+
+  static TestResult? _toResult(TestEntity? test) {
+    if (test == null) return null;
+    return TestResult(
+      id: test.id,
+      testId: test.id,
+      name: test.name,
+      description: test.description,
+      category: test.category,
+      age: test.age,
+      goal: test.goal,
+      qualities: test.qualities,
+      coverUrl: test.coverUrl,
+      steps: test.steps,
+      status: TestStatus.unknown,
+    );
+  }
+
+  Future<void> _editTest() async {
+    final test = _coachTest;
+    if (test == null || _busy) return;
+    final updated = await context.push<TestEntity>(
+      '/create-test',
+      extra: test,
+    );
+    if (updated != null && mounted) {
+      setState(() {
+        _coachTest = updated;
+        _result = _toResult(updated);
+      });
+    }
+  }
 
   String _formatDate(DateTime? date) {
     if (date == null) return '—';
@@ -73,6 +138,29 @@ class _TestDetailViewState extends State<TestDetailView> {
     final palette = context.palette;
     final test = _result;
 
+    if (_loadingCoachTest) {
+      return Scaffold(
+        backgroundColor: palette.background,
+        appBar: const KarateAppBar(title: 'Test tafsilotlari'),
+        body: const AppLoadingView(),
+      );
+    }
+
+    if (_coachTestLoadError != null) {
+      return Scaffold(
+        backgroundColor: palette.background,
+        appBar: const KarateAppBar(title: 'Test tafsilotlari'),
+        body: AppErrorView(
+          message: _coachTestLoadError!,
+          retryLabel: 'Qayta urinish',
+          onRetry: () {
+            final coachTest = _coachTest;
+            if (coachTest != null) _loadCoachTest(coachTest.id);
+          },
+        ),
+      );
+    }
+
     if (test == null) {
       return Scaffold(
         backgroundColor: palette.background,
@@ -90,13 +178,16 @@ class _TestDetailViewState extends State<TestDetailView> {
         test.score == null ? '—' : test.score!.toStringAsFixed(1);
     final paragraph =
         test.description.isNotEmpty ? test.description : test.goal;
-    final dateValue = test.finishedAt != null
+    final dateValue = _isCoach
+        ? null
+        : test.finishedAt != null
         ? _formatDate(test.finishedAt)
         : test.startedAt != null
             ? _formatDate(test.startedAt)
             : null;
-    final isFinished = test.status == TestStatus.completed ||
-        test.status == TestStatus.unknown;
+    final isFinished = !_isCoach &&
+        (test.status == TestStatus.completed ||
+            test.status == TestStatus.unknown);
     final statusColor = _statusColor(palette, test.status);
 
     return Scaffold(
@@ -136,11 +227,12 @@ class _TestDetailViewState extends State<TestDetailView> {
                       color: AppColors.primaryBlue,
                       icon: Icons.cake_outlined,
                     ),
-                  AppBadge(
-                    label: test.status.label,
-                    color: statusColor,
-                    icon: Icons.flag_rounded,
-                  ),
+                  if (!_isCoach)
+                    AppBadge(
+                      label: test.status.label,
+                      color: statusColor,
+                      icon: Icons.flag_rounded,
+                    ),
                   if (dateValue != null)
                     AppBadge(
                       label: dateValue,
@@ -184,14 +276,15 @@ class _TestDetailViewState extends State<TestDetailView> {
                       ),
                     ),
                     SizedBox(width: AppSpacing.md.w),
-                    Expanded(
-                      child: AppStatCard(
-                        icon: Icons.stars_rounded,
-                        color: palette.warning,
-                        value: scoreLabel,
-                        label: 'Ball',
+                    if (!_isCoach)
+                      Expanded(
+                        child: AppStatCard(
+                          icon: Icons.stars_rounded,
+                          color: palette.warning,
+                          value: scoreLabel,
+                          label: 'Ball',
+                        ),
                       ),
-                    ),
                   ],
                 ),
               ),
@@ -318,6 +411,14 @@ class _TestDetailViewState extends State<TestDetailView> {
   }
 
   Widget _buildActionButton(TestResult test) {
+    if (_isCoach) {
+      return CustomButton(
+        text: 'Tahrirlash',
+        onPressed: _busy ? null : _editTest,
+        trailingIcon: Icons.edit_outlined,
+      );
+    }
+
     final String label;
     final VoidCallback? onTap;
     switch (test.status) {

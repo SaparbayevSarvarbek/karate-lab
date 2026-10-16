@@ -1,4 +1,4 @@
-package com.example.krate_lab
+package uz.ardentsoft.karatefit
 
 import io.flutter.embedding.android.FlutterActivity
 

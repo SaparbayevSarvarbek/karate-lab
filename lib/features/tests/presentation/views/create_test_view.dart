@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../../core/api/api_constants.dart';
 import '../../../../core/api/models/test_models.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/di/injection.dart';
@@ -28,7 +29,9 @@ import '../../../../core/widgets/karate_app_bar.dart';
 /// Yangi test yaratish: nom, umumiy rasm, yoshlar, kategoriya va
 /// har biri nom/tavsif/rasm/takrorlash/vaqtdan iborat qadamlar.
 class CreateTestView extends StatefulWidget {
-  const CreateTestView({super.key});
+  final TestEntity? test;
+
+  const CreateTestView({super.key, this.test});
 
   @override
   State<CreateTestView> createState() => _CreateTestViewState();
@@ -50,10 +53,24 @@ class _CreateTestViewState extends State<CreateTestView> {
   final ImagePicker _picker = ImagePicker();
   bool _saving = false;
   bool _pickingCover = false;
+  String? _coverUrl;
+
+  bool get _isEditing => widget.test != null;
 
   @override
   void initState() {
     super.initState();
+    final test = widget.test;
+    if (test != null) {
+      _nameController.text = test.name;
+      _ageController.text = test.age;
+      _goalController.text = test.goal;
+      _qualitiesController.text = test.qualities.join(', ');
+      _descriptionController.text = test.description;
+      if (test.category.isNotEmpty) _selectedCategory = test.category;
+      _coverUrl = test.coverUrl;
+      _steps.addAll(test.steps.map(_StepDraft.fromTestStep));
+    }
     _loadCategories();
   }
 
@@ -64,6 +81,12 @@ class _CreateTestViewState extends State<CreateTestView> {
       if (categories.isNotEmpty) {
         setState(() {
           _categories = categories.map((c) => c.name).toList();
+          final currentCategory = widget.test?.category;
+          if (currentCategory != null &&
+              currentCategory.isNotEmpty &&
+              !_categories.contains(currentCategory)) {
+            _categories.add(currentCategory);
+          }
           if (!_categories.contains(_selectedCategory)) {
             _selectedCategory = _categories.first;
           }
@@ -98,7 +121,10 @@ class _CreateTestViewState extends State<CreateTestView> {
       final picked =
           await _picker.pickImage(source: ImageSource.gallery, maxWidth: 1600);
       if (picked != null && mounted) {
-        setState(() => _cover = File(picked.path));
+        setState(() {
+          _cover = File(picked.path);
+          _coverUrl = null;
+        });
       }
     } catch (_) {
       _toast(Tr.t('imagePickError'));
@@ -112,7 +138,10 @@ class _CreateTestViewState extends State<CreateTestView> {
       final picked =
           await _picker.pickImage(source: ImageSource.gallery, maxWidth: 1600);
       if (picked != null && mounted) {
-        setState(() => _steps[index].image = File(picked.path));
+        setState(() {
+          _steps[index].image = File(picked.path);
+          _steps[index].imageUrl = null;
+        });
       }
     } catch (_) {
       _toast(Tr.t('imagePickError'));
@@ -152,6 +181,7 @@ class _CreateTestViewState extends State<CreateTestView> {
     final stepFiles = <File?>[];
     for (final s in _steps) {
       stepInputs.add(TestStepInput(
+        id: s.id,
         title: s.title.text.trim(),
         description: s.description.text.trim(),
         repetitions: s.repetitions.text.trim(),
@@ -160,12 +190,21 @@ class _CreateTestViewState extends State<CreateTestView> {
       stepFiles.add(s.image);
     }
 
-    final result = await getIt<TestRepository>().createTest(
-      request,
-      cover: _cover,
-      steps: stepInputs,
-      stepImages: stepFiles,
-    );
+    final repository = getIt<TestRepository>();
+    final result = _isEditing
+        ? await repository.updateTest(
+            widget.test!.id,
+            request,
+            cover: _cover,
+            steps: stepInputs,
+            stepImages: stepFiles,
+          )
+        : await repository.createTest(
+            request,
+            cover: _cover,
+            steps: stepInputs,
+            stepImages: stepFiles,
+          );
 
     if (!mounted) return;
 
@@ -174,9 +213,16 @@ class _CreateTestViewState extends State<CreateTestView> {
         setState(() => _saving = false);
         _toast(error.message);
       },
-      (_) {
-        AppSnackbar.success(context, Tr.t('testCreatedSuccess'));
-        context.pop<bool>(true);
+      (savedTest) {
+        AppSnackbar.success(
+          context,
+          _isEditing ? 'Test yangilandi.' : Tr.t('testCreatedSuccess'),
+        );
+        if (_isEditing) {
+          context.pop<TestEntity>(savedTest);
+        } else {
+          context.pop<bool>(true);
+        }
       },
     );
   }
@@ -185,12 +231,14 @@ class _CreateTestViewState extends State<CreateTestView> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: context.palette.background,
-      appBar: KarateAppBar(title: Tr.t('createTestTitle')),
+      appBar: KarateAppBar(
+        title: _isEditing ? 'Testni tahrirlash' : Tr.t('createTestTitle'),
+      ),
       bottomNavigationBar: _saving
           ? null
           : AppBottomBar(
               child: CustomButton(
-                text: Tr.t('saveTest'),
+                text: _isEditing ? 'O‘zgarishlarni saqlash' : Tr.t('saveTest'),
                 trailingIcon: Icons.arrow_forward_rounded,
                 onPressed: _save,
               ),
@@ -212,6 +260,7 @@ class _CreateTestViewState extends State<CreateTestView> {
                     children: [
                       _CoverPicker(
                         cover: _cover,
+                        coverUrl: _coverUrl,
                         busy: _pickingCover,
                         onTap: _pickCover,
                       ),
@@ -293,11 +342,13 @@ class _CreateTestViewState extends State<CreateTestView> {
 
 class _CoverPicker extends StatelessWidget {
   final File? cover;
+  final String? coverUrl;
   final bool busy;
   final VoidCallback onTap;
 
   const _CoverPicker({
     required this.cover,
+    required this.coverUrl,
     required this.busy,
     required this.onTap,
   });
@@ -318,9 +369,16 @@ class _CoverPicker extends StatelessWidget {
           ),
           image: cover != null
               ? DecorationImage(image: FileImage(cover!), fit: BoxFit.cover)
-              : null,
+              : coverUrl != null && coverUrl!.isNotEmpty
+                  ? DecorationImage(
+                      image: NetworkImage(
+                        ApiConstants.resolveMediaUrl(coverUrl!),
+                      ),
+                      fit: BoxFit.cover,
+                    )
+                  : null,
         ),
-        child: cover == null
+        child: cover == null && (coverUrl == null || coverUrl!.isEmpty)
             ? Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -401,11 +459,25 @@ class _Dropdown extends StatelessWidget {
 }
 
 class _StepDraft {
+  final int? id;
   final TextEditingController title = TextEditingController();
   final TextEditingController description = TextEditingController();
   final TextEditingController repetitions = TextEditingController();
   final TextEditingController duration = TextEditingController();
   File? image;
+  String? imageUrl;
+
+  _StepDraft({this.id});
+
+  factory _StepDraft.fromTestStep(TestStep step) {
+    final draft = _StepDraft(id: step.id);
+    draft.title.text = step.title;
+    draft.description.text = step.description;
+    draft.repetitions.text = step.repetitions;
+    draft.duration.text = '${step.duration}';
+    draft.imageUrl = step.imageUrl;
+    return draft;
+  }
 
   void dispose() {
     title.dispose();
@@ -518,9 +590,17 @@ class _StepCard extends StatelessWidget {
                         image: FileImage(draft.image!),
                         fit: BoxFit.cover,
                       )
-                    : null,
+                    : draft.imageUrl != null && draft.imageUrl!.isNotEmpty
+                        ? DecorationImage(
+                            image: NetworkImage(
+                              ApiConstants.resolveMediaUrl(draft.imageUrl!),
+                            ),
+                            fit: BoxFit.cover,
+                          )
+                        : null,
               ),
-              child: draft.image == null
+              child: draft.image == null &&
+                      (draft.imageUrl == null || draft.imageUrl!.isEmpty)
                   ? Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,

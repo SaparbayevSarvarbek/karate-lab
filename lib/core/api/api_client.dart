@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 
@@ -6,27 +8,16 @@ import 'api_constants.dart';
 import 'api_exception.dart';
 import 'api_payload.dart';
 
-/// HTTP so'rovlarini boshqaruvchi asosiy mijoz.
-///
-/// - JWT tokenni har bir so'rov boshiga avtomatik qo'shadi;
-/// - 401 kelganda refresh token orqali tokenni yangilab, so'rovni takrorlaydi;
-/// - refresh ham muvaffaqiyatsiz bo'lsa tokenlarni tozalab `/login` ga o'tkazadi;
-/// - `{success:false, error:{...}}` envelope formatidan xato xabarini ajratadi;
-/// - `{success:true, data:{...}}` wrapper ini yechib, faqat ma'lumotni qaytaradi.
 class ApiClient {
   final Dio _dio;
   final SharedPrefsService _prefs;
 
-  /// Token butunlay yaroqsiz bo'lganda chaqiriladi (login'ga o'tish uchun).
   static void Function()? onUnauthorized;
 
-  Future<String?>? _refreshing;
+  static const _retryKey = '_authRetry';
 
-  static const _publicPaths = <String>{
-    ApiConstants.login,
-    ApiConstants.register,
-    ApiConstants.refresh,
-  };
+  bool _isRefreshing = false;
+  final List<Completer<String?>> _refreshWaiters = [];
 
   ApiClient(this._prefs)
       : _dio = Dio(
@@ -50,10 +41,14 @@ class ApiClient {
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
-          if (!_publicPaths.contains(options.path)) {
-            final token = _prefs.getAccessToken();
-            if (token != null && token.isNotEmpty) {
-              options.headers['Authorization'] = 'Bearer $token';
+          if (!_isPublicPath(options.path)) {
+            final extra = options.extra;
+            final alreadyRetried = extra[_retryKey] == true;
+            if (!alreadyRetried) {
+              final token = _prefs.getAccessToken();
+              if (token != null && token.isNotEmpty) {
+                options.headers['Authorization'] = 'Bearer $token';
+              }
             }
           }
           return handler.next(options);
@@ -65,17 +60,32 @@ class ApiClient {
                 error.requestOptions.headers['Authorization'] as String? ?? '';
             final hadBearer = authHeader.startsWith('Bearer ') &&
                 authHeader.length > 'Bearer '.length;
+            final alreadyRetried = error.requestOptions.extra[_retryKey] == true;
 
-            if (!_publicPaths.contains(path) && hadBearer) {
-              final newToken = await _refreshAccessToken();
-              if (newToken != null) {
-                error.requestOptions.headers['Authorization'] =
-                    'Bearer $newToken';
-                return handler.resolve(await _dio.fetch(error.requestOptions));
-              }
+            if (_isPublicPath(path)) {
+              return handler.next(error);
+            }
+
+            if (!hadBearer || alreadyRetried) {
               await _prefs.clearTokens();
               onUnauthorized?.call();
+              return handler.next(error);
             }
+
+            final newToken = await _getRefreshedToken();
+            if (newToken != null) {
+              final opts = error.requestOptions;
+              opts.headers['Authorization'] = 'Bearer $newToken';
+              opts.extra[_retryKey] = true;
+              try {
+                final response = await _dio.fetch<dynamic>(opts);
+                return handler.resolve(response);
+              } on DioException catch (e) {
+                return handler.next(e);
+              }
+            }
+            await _prefs.clearTokens();
+            onUnauthorized?.call();
           }
           return handler.next(error);
         },
@@ -95,12 +105,29 @@ class ApiClient {
     );
   }
 
-  /// Refresh token bilan yangi access token oladi. Bir vaqtda bir nechta
-  /// 401 kelsa ham bitta refresh so'rovi yuboriladi. Muvaffaqiyatda yangi
-  /// token SharedPrefs ga saqlanadi.
-  Future<String?> _refreshAccessToken() {
-    _refreshing ??= _doRefresh().whenComplete(() => _refreshing = null);
-    return _refreshing!;
+  bool _isPublicPath(String path) {
+    return path.contains(ApiConstants.login) ||
+        path.contains(ApiConstants.register) ||
+        path.contains(ApiConstants.refresh);
+  }
+
+  Future<String?> _getRefreshedToken() async {
+    if (_isRefreshing) {
+      final completer = Completer<String?>();
+      _refreshWaiters.add(completer);
+      return completer.future;
+    }
+
+    _isRefreshing = true;
+    final newToken = await _doRefresh();
+    _isRefreshing = false;
+
+    for (final waiter in _refreshWaiters) {
+      waiter.complete(newToken);
+    }
+    _refreshWaiters.clear();
+
+    return newToken;
   }
 
   Future<String?> _doRefresh() async {
@@ -123,7 +150,6 @@ class ApiClient {
     }
   }
 
-  /// `GET` ro'yxat so'rovi. Natija normalizatsiya qilingan Map lar ro'yxati.
   Future<List<Map<String, dynamic>>> getList(
     String path, {
     Map<String, dynamic>? queryParameters,
@@ -134,7 +160,6 @@ class ApiClient {
     return ApiPayload.asList(response.data);
   }
 
-  /// `GET` bitta obyekt so'rovi.
   Future<Map<String, dynamic>?> getObject(
     String path, {
     Map<String, dynamic>? queryParameters,
@@ -145,7 +170,6 @@ class ApiClient {
     return ApiPayload.asObject(response.data);
   }
 
-  /// `POST` so'rovi. Multipart fayl yuklash uchun [formData] bering.
   Future<Map<String, dynamic>?> postObject(
     String path, {
     dynamic data,
@@ -157,20 +181,17 @@ class ApiClient {
     return ApiPayload.asObject(response.data);
   }
 
-  /// `PUT` so'rovi.
   Future<Map<String, dynamic>?> putObject(String path, {dynamic data}) async {
     final response = await _request(() => _dio.put<dynamic>(path, data: data));
     return ApiPayload.asObject(response.data);
   }
 
-  /// `PATCH` so'rovi.
   Future<Map<String, dynamic>?> patchObject(String path, {dynamic data}) async {
     final response =
         await _request(() => _dio.patch<dynamic>(path, data: data));
     return ApiPayload.asObject(response.data);
   }
 
-  /// `DELETE` so'rovi. Server odatda 204 qaytaradi.
   Future<void> deleteItem(String path, {dynamic data}) async {
     await _request(() => _dio.delete<dynamic>(path, data: data));
   }
@@ -187,7 +208,6 @@ class ApiClient {
     }
   }
 
-  /// 2xx qaytsa ham, envelope ichida `success:false` bo'lishi mumkin.
   void _throwIfEnvelopeError(Response<dynamic> response) {
     final data = response.data;
     if (data is Map && data['success'] == false) {

@@ -74,8 +74,9 @@ class TestResultView extends StatelessWidget {
                   Expanded(
                     child: Text(
                       'Qadamlar bo\'yicha batafsil natija mavjud emas.',
-                      style: AppTextStyles.body
-                          .copyWith(color: palette.textSecondary),
+                      style: AppTextStyles.body.copyWith(
+                        color: palette.textSecondary,
+                      ),
                     ),
                   ),
                 ],
@@ -84,15 +85,15 @@ class TestResultView extends StatelessWidget {
           else ...[
             const AppSectionHeader(title: 'Ko\'nikmalar bo\'yicha natija'),
             SizedBox(height: AppSpacing.md.h),
-            AppCard(
-              child: _StepBars(steps: evaluation.steps),
-            ),
+            AppCard(child: _StepBars(steps: evaluation.steps)),
           ],
         ],
       ),
       bottomNavigationBar: AppBottomBar(
         child: CustomButton(
-          text: hasSteps ? 'Natijani ko\'rib chiqish' : 'Testni qayta topshirish',
+          text: hasSteps
+              ? 'Natijani ko\'rib chiqish'
+              : 'Testni qayta topshirish',
           trailingIcon: Icons.arrow_forward_rounded,
           onPressed: () {
             if (context.canPop()) context.pop();
@@ -159,78 +160,82 @@ class _OverallCard extends StatelessWidget {
 
     return AppHeroPanel(
       watermark: Icons.emoji_events_rounded,
-      child: Column(
-        children: [
-          Text(
-            test.name,
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: AppTextStyles.cardTitle.copyWith(color: Colors.white),
-          ),
-          SizedBox(height: AppSpacing.xl.h),
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              SizedBox(
-                width: 128.w,
-                height: 128.w,
-                child: CircularProgressIndicator(
-                  value: (score / 100).clamp(0.0, 1.0),
-                  strokeWidth: 9.w,
-                  strokeCap: StrokeCap.round,
-                  backgroundColor: Colors.white.withValues(alpha: 0.18),
-                  valueColor: AlwaysStoppedAnimation<Color>(ringColor),
+      child: SizedBox(
+        width: double.infinity,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(
+              test.name,
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: AppTextStyles.cardTitle.copyWith(color: Colors.white),
+            ),
+            SizedBox(height: AppSpacing.xl.h),
+            Stack(
+              alignment: Alignment.center,
+              children: [
+                SizedBox(
+                  width: 128.w,
+                  height: 128.w,
+                  child: CircularProgressIndicator(
+                    value: (score / 100).clamp(0.0, 1.0),
+                    strokeWidth: 9.w,
+                    strokeCap: StrokeCap.round,
+                    backgroundColor: Colors.white.withValues(alpha: 0.18),
+                    valueColor: AlwaysStoppedAnimation<Color>(ringColor),
+                  ),
+                ),
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      score.toStringAsFixed(1),
+                      style: AppTextStyles.stat.copyWith(
+                        fontSize: 32.sp,
+                        color: Colors.white,
+                      ),
+                    ),
+                    Text(
+                      '/ 100',
+                      style: AppTextStyles.caption.copyWith(
+                        color: Colors.white.withValues(alpha: 0.7),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            SizedBox(height: AppSpacing.lg.h),
+            Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: AppSpacing.lg.w,
+                vertical: 7.h,
+              ),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.16),
+                borderRadius: BorderRadius.circular(AppRadius.pill.r),
+              ),
+              child: Text(
+                grade,
+                style: AppTextStyles.badge.copyWith(
+                  color: Colors.white,
+                  letterSpacing: 0,
                 ),
               ),
-              Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    score.toStringAsFixed(1),
-                    style: AppTextStyles.stat.copyWith(
-                      fontSize: 32.sp,
-                      color: Colors.white,
-                    ),
-                  ),
-                  Text(
-                    '/ 100',
-                    style: AppTextStyles.caption.copyWith(
-                      color: Colors.white.withValues(alpha: 0.7),
-                    ),
-                  ),
-                ],
+            ),
+            if (result?.age != null) ...[
+              SizedBox(height: AppSpacing.md.h),
+              Text(
+                'Yosh: ${result!.age}',
+                style: AppTextStyles.caption.copyWith(
+                  color: Colors.white.withValues(alpha: 0.7),
+                ),
               ),
             ],
-          ),
-          SizedBox(height: AppSpacing.lg.h),
-          Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: AppSpacing.lg.w,
-              vertical: 7.h,
-            ),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.16),
-              borderRadius: BorderRadius.circular(AppRadius.pill.r),
-            ),
-            child: Text(
-              grade,
-              style: AppTextStyles.badge.copyWith(
-                color: Colors.white,
-                letterSpacing: 0,
-              ),
-            ),
-          ),
-          if (result?.age != null) ...[
-            SizedBox(height: AppSpacing.md.h),
-            Text(
-              'Yosh: ${result!.age}',
-              style: AppTextStyles.caption.copyWith(
-                color: Colors.white.withValues(alpha: 0.7),
-              ),
-            ),
           ],
-        ],
+        ),
       ),
     );
   }
@@ -248,39 +253,42 @@ class _ResultStats extends StatelessWidget {
     final score = result?.score ?? test.score ?? 0;
     final steps = result?.steps ?? const <StepResult>[];
     final totalSeconds = steps.fold<double>(0, (sum, s) => sum + s.seconds);
-    final timeValue =
-        steps.isEmpty ? '—' : '${totalSeconds.toStringAsFixed(1)}s';
+    final timeValue = steps.isEmpty
+        ? '—'
+        : '${totalSeconds.toStringAsFixed(1)}s';
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Expanded(
-          child: AppStatCard(
-            icon: Icons.check_circle_outline_rounded,
-            color: palette.success,
-            value: '${score.toStringAsFixed(0)}%',
-            label: 'To\'g\'ri javoblar',
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            child: AppStatCard(
+              icon: Icons.check_circle_outline_rounded,
+              color: palette.success,
+              value: '${score.toStringAsFixed(0)}%',
+              label: 'To\'g\'ri javoblar',
+            ),
           ),
-        ),
-        SizedBox(width: AppSpacing.md.w),
-        Expanded(
-          child: AppStatCard(
-            icon: Icons.timer_outlined,
-            color: AppColors.primaryBlue,
-            value: timeValue,
-            label: 'Sarflangan vaqt',
+          SizedBox(width: AppSpacing.md.w),
+          Expanded(
+            child: AppStatCard(
+              icon: Icons.timer_outlined,
+              color: AppColors.primaryBlue,
+              value: timeValue,
+              label: 'Sarflangan vaqt',
+            ),
           ),
-        ),
-        SizedBox(width: AppSpacing.md.w),
-        Expanded(
-          child: AppStatCard(
-            icon: Icons.replay_rounded,
-            color: palette.warning,
-            value: '—',
-            label: 'Urinishlar',
+          SizedBox(width: AppSpacing.md.w),
+          Expanded(
+            child: AppStatCard(
+              icon: Icons.replay_rounded,
+              color: palette.warning,
+              value: '—',
+              label: 'Urinishlar',
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -328,8 +336,7 @@ class _StepBar extends StatelessWidget {
                 step.title,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: AppTextStyles.label
-                    .copyWith(color: palette.textPrimary),
+                style: AppTextStyles.label.copyWith(color: palette.textPrimary),
               ),
             ),
             SizedBox(width: AppSpacing.sm.w),
@@ -356,15 +363,17 @@ class _StepBar extends StatelessWidget {
               if (step.seconds > 0)
                 Text(
                   '${step.seconds.toStringAsFixed(1)}s',
-                  style: AppTextStyles.caption
-                      .copyWith(color: palette.textSecondary),
+                  style: AppTextStyles.caption.copyWith(
+                    color: palette.textSecondary,
+                  ),
                 ),
               const Spacer(),
               if (step.target.isNotEmpty)
                 Text(
                   'Me\'yor: ${step.target}',
-                  style: AppTextStyles.caption
-                      .copyWith(color: palette.textHint),
+                  style: AppTextStyles.caption.copyWith(
+                    color: palette.textHint,
+                  ),
                 ),
             ],
           ),

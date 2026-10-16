@@ -96,9 +96,9 @@ Barcha asosiy sahifalar real API ga ulandi:
 - ✅ Exercises Library — `GET /exercises/`
 - ✅ Add Exercise — `POST /exercises/`
 - ✅ Exercise Detail — API `Exercise` modeli orqali
-- ✅ Tests Library — `GET /tests/`, `GET /my-tests/` (barcha faol testlar, biriktirish yo'q)
+- ✅ Tests Library — `GET /tests/`, `GET /my-tests/` (murabbiy testni ko'radi, sportchi faol testlarni ko'radi)
 - ✅ Test Detail — `POST /my-tests/{id}/start/`, `POST /my-tests/{id}/finish/`
-- ✅ Create Test — `POST /tests/` (mashqlar tanlab biriktiriladi)
+- ✅ Create/Edit Test — `POST /tests/`, `PUT /tests/{id}/` (murabbiy testni yaratadi va tahrirlaydi)
 - ✅ Profile View — `GET /profile/`
 - ✅ Profile Edit — `GET/PUT /profile/` (bo'y/vazn API da yo'qligi sababli SharedPrefs'da lokal saqlanadi)
 - ✅ Security Settings — `PUT /settings/password/`
@@ -165,7 +165,8 @@ cd C:\Users\sarva\Desktop\Karate\krate_backend
 2. **Error Handling** - Har bir repository `Either<ApiException, T>` qaytaradi (dartz package)
 3. **Logging** - `PrettyDioLogger` yoqilgan, barcha network call lar consoleda ko'rinadi
 4. **Base URL** - `--dart-define=API_BASE_URL=...` bilan beriladi (`api_constants.dart`).
-   Berilmasa: release → `https://carate.uz`, debug (Android) → LAN manzil, boshqa → `127.0.0.1:8000`.
+   Berilmasa, debug va release build'larda `https://karate-backend-tbbc.onrender.com` ishlatiladi.
+   Lokal backend uchun `--dart-define=API_BASE_URL=http://192.168.1.5:8000` kabi qiymat bering.
    Emulator uchun `ApiConstants.emulatorUrl` (`10.0.2.2`), USB (`adb reverse`) uchun `localhostUrl`.
 5. **Android cleartext** - `AndroidManifest.xml` da `usesCleartextTraffic="true"`
    va `INTERNET` ruxsati qo'shilgan (lokal HTTP server uchun)

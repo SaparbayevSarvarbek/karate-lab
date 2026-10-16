@@ -19,6 +19,14 @@ abstract class TestRepository {
     FinishTestRequest request,
   );
   Future<Either<ApiException, List<TestEntity>>> getCoachTests();
+  Future<Either<ApiException, TestEntity>> getCoachTestDetail(int id);
+  Future<Either<ApiException, TestEntity>> updateTest(
+    int id,
+    CreateTestRequest request, {
+    File? cover,
+    List<TestStepInput> steps = const [],
+    List<File?> stepImages = const [],
+  });
   Future<Either<ApiException, TestEntity>> createTest(
     CreateTestRequest request, {
     File? cover,
@@ -95,6 +103,19 @@ class TestRepositoryImpl implements TestRepository {
   }
 
   @override
+  Future<Either<ApiException, TestEntity>> getCoachTestDetail(int id) async {
+    try {
+      final data = await _apiClient.getObject(ApiConstants.testDetail(id));
+      if (data == null) {
+        return const Left(ApiException(message: 'Server javob bermadi'));
+      }
+      return Right(TestEntity.fromJson(data));
+    } on ApiException catch (e) {
+      return Left(e);
+    }
+  }
+
+  @override
   Future<Either<ApiException, TestEntity>> createTest(
     CreateTestRequest request, {
     File? cover,
@@ -146,6 +167,56 @@ class TestRepositoryImpl implements TestRepository {
       final data = await _apiClient.postObject(
         ApiConstants.tests,
         formData: formData,
+      );
+      if (data == null) {
+        return const Left(ApiException(message: 'Server javob bermadi'));
+      }
+      return Right(TestEntity.fromJson(data));
+    } on ApiException catch (e) {
+      return Left(e);
+    }
+  }
+
+  @override
+  Future<Either<ApiException, TestEntity>> updateTest(
+    int id,
+    CreateTestRequest request, {
+    File? cover,
+    List<TestStepInput> steps = const [],
+    List<File?> stepImages = const [],
+  }) async {
+    try {
+      final formData = FormData.fromMap({
+        'name': request.name,
+        'description': request.description,
+        'category': request.category,
+        'age': request.age,
+        'goal': request.goal,
+        'qualities': jsonEncode(request.qualities),
+        'steps': jsonEncode(steps.map((step) => step.toJson()).toList()),
+        if (cover != null)
+          'cover': await MultipartFile.fromFile(
+            cover.path,
+            filename: cover.path.split(Platform.pathSeparator).last,
+          ),
+      });
+
+      for (var i = 0; i < stepImages.length; i++) {
+        final image = stepImages[i];
+        if (image != null) {
+          formData.files.add(MapEntry(
+            'step_image_$i',
+            await MultipartFile.fromFile(
+              image.path,
+              filename: image.path.split(Platform.pathSeparator).last,
+            ),
+          ));
+        }
+      }
+
+      final data = await _apiClient.putObject(
+        ApiConstants.testDetail(id),
+        data: formData,
       );
       if (data == null) {
         return const Left(ApiException(message: 'Server javob bermadi'));

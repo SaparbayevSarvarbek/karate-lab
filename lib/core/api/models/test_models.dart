@@ -166,12 +166,14 @@ abstract class CreateTestRequest with _$CreateTestRequest {
 /// Yaratilayotgan test ichidagi bitta qadam metadatasi.
 /// Rasm fayli repository'ga alohida parallel ro'yxatda beriladi.
 class TestStepInput {
+  final int? id;
   final String title;
   final String description;
   final String repetitions;
   final int duration;
 
   TestStepInput({
+    this.id,
     this.title = '',
     this.description = '',
     this.repetitions = '',
@@ -179,6 +181,7 @@ class TestStepInput {
   });
 
   Map<String, dynamic> toJson() => {
+        if (id != null) 'id': id,
         'title': title,
         'description': description,
         'repetitions': repetitions,

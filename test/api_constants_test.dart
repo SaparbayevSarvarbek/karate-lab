@@ -28,7 +28,15 @@ void main() {
     });
 
     test('release build uchun production domen belgilangan', () {
-      expect(ApiConstants.productionUrl, 'https://carate.uz');
+      expect(
+        ApiConstants.productionUrl,
+        'https://karate-backend-tbbc.onrender.com',
+      );
+    });
+
+    test('dart-define bo\'lmaganda Render backend standart ishlatiladi', () {
+      if (_defined.isNotEmpty) return;
+      expect(ApiConstants.baseUrl, ApiConstants.productionUrl);
     });
   });
 
@@ -41,7 +49,7 @@ void main() {
     });
 
     test('allaqachon to\'liq URL bo\'lsa o\'zgartirmaydi', () {
-      const absolute = 'https://carate.uz/media/x.jpg';
+      const absolute = 'https://karate-backend-tbbc.onrender.com/media/x.jpg';
       expect(ApiConstants.resolveMediaUrl(absolute), absolute);
     });
   });

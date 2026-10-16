@@ -1,4 +1,6 @@
-﻿import 'package:equatable/equatable.dart';
+import 'dart:async';
+
+import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../core/api/models/auth_models.dart';
@@ -34,7 +36,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     LogoutRequested event,
     Emitter<AuthState> emit,
   ) async {
-    await _authRepository.logout();
+    // Chiqish darhol bajariladi: foydalanuvchini kutmasdan login sahifasiga
+    // o'tkazamiz, serverga so'rov esa fonda (fire-and-forget) yuboriladi.
     emit(AuthUnauthenticated());
+    unawaited(_authRepository.logout());
   }
 }

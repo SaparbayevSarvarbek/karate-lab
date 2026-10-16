@@ -1,7 +1,3 @@
-import 'dart:io' show Platform;
-
-import 'package:flutter/foundation.dart' show kIsWeb, kReleaseMode;
-
 class ApiConstants {
   ApiConstants._();
 
@@ -9,14 +5,15 @@ class ApiConstants {
   ///
   /// ```
   /// flutter run --dart-define=API_BASE_URL=http://192.168.1.5:8000
-  /// flutter build apk --release --dart-define=API_BASE_URL=https://carate.uz
+  /// flutter build apk --release --dart-define=API_BASE_URL=https://karate-backend-tbbc.onrender.com
   /// ```
   ///
-  /// Berilmasa: release build → production domen; debug → quyidagi dev manzil.
+  /// Berilmasa, debug va release build'larda Render backend ishlatiladi.
   static const String _override = String.fromEnvironment('API_BASE_URL');
 
   /// Production backend.
-  static const String productionUrl = 'https://carate.uz';
+  static const String productionUrl =
+      'https://karate-backend-tbbc.onrender.com';
 
   /// Android emulator uchun host mashina manzili.
   static const String _emulator = 'http://10.0.2.2:8000';
@@ -31,19 +28,9 @@ class ApiConstants {
   /// Joriy IP: `ipconfig | findstr IPv4`.
   static const String devLanUrl = 'http://192.168.13.116:8000';
 
-  /// Debug build'da standart manzil (fizik qurilma + Wi-Fi).
-  static const String _devDefault = devLanUrl;
-
   static String get baseUrl {
     if (_override.isNotEmpty) return _override;
-    if (kReleaseMode) return productionUrl;
-    if (kIsWeb) return _localhost;
-    try {
-      if (Platform.isAndroid) return _devDefault;
-      return _localhost;
-    } catch (_) {
-      return _localhost;
-    }
+    return productionUrl;
   }
 
   /// Emulator / USB rejimida ishlatish uchun tayyor manzillar.
