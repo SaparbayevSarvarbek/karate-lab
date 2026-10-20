@@ -6,6 +6,7 @@ import '../../../../core/api/api_constants.dart';
 import '../../../../core/api/models/test_models.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/di/injection.dart';
+import '../../../../core/l10n/app_translations.dart';
 import '../../../../core/repositories/test_repository.dart';
 import '../../../../core/theme/app_palette.dart';
 import '../../../../core/theme/app_radius.dart';
@@ -91,10 +92,7 @@ class _TestDetailViewState extends State<TestDetailView> {
   Future<void> _editTest() async {
     final test = _coachTest;
     if (test == null || _busy) return;
-    final updated = await context.push<TestEntity>(
-      '/create-test',
-      extra: test,
-    );
+    final updated = await context.push<TestEntity>('/create-test', extra: test);
     if (updated != null && mounted) {
       setState(() {
         _coachTest = updated;
@@ -109,18 +107,40 @@ class _TestDetailViewState extends State<TestDetailView> {
         '.${date.month.toString().padLeft(2, '0')}.${date.year}';
   }
 
+  String _formatDuration(int seconds) {
+    if (seconds < 60) {
+      return Tr.t('durationSeconds', {'count': '$seconds'});
+    }
+    final minutes = seconds ~/ 60;
+    final remainingSeconds = seconds % 60;
+    if (remainingSeconds == 0) {
+      return Tr.t('durationMinutes', {'count': '$minutes'});
+    }
+    return Tr.t('durationMinutesSeconds', {
+      'minutes': '$minutes',
+      'seconds': '$remainingSeconds',
+    });
+  }
+
   Future<void> _startTest() async {
     final current = _result;
     if (current == null || _busy) return;
+    if (current.steps.isEmpty) {
+      AppSnackbar.warning(context, Tr.t('noQuestionsAdded'));
+      return;
+    }
     setState(() => _busy = true);
     final response = await getIt<TestRepository>().startTest(current.id);
     if (!mounted) return;
-    setState(() => _busy = false);
     response.fold(
-      (error) => AppSnackbar.error(context, error.message),
+      (error) {
+        setState(() => _busy = false);
+        AppSnackbar.error(context, error.message);
+      },
       (updated) async {
         setState(() => _result = updated);
         await _openRun(updated);
+        if (mounted) setState(() => _busy = false);
       },
     );
   }
@@ -141,7 +161,7 @@ class _TestDetailViewState extends State<TestDetailView> {
     if (_loadingCoachTest) {
       return Scaffold(
         backgroundColor: palette.background,
-        appBar: const KarateAppBar(title: 'Test tafsilotlari'),
+        appBar: KarateAppBar(title: Tr.t('testDetailsTitle')),
         body: const AppLoadingView(),
       );
     }
@@ -149,7 +169,7 @@ class _TestDetailViewState extends State<TestDetailView> {
     if (_coachTestLoadError != null) {
       return Scaffold(
         backgroundColor: palette.background,
-        appBar: const KarateAppBar(title: 'Test tafsilotlari'),
+        appBar: KarateAppBar(title: Tr.t('testDetailsTitle')),
         body: AppErrorView(
           message: _coachTestLoadError!,
           retryLabel: 'Qayta urinish',
@@ -164,35 +184,39 @@ class _TestDetailViewState extends State<TestDetailView> {
     if (test == null) {
       return Scaffold(
         backgroundColor: palette.background,
-        appBar: const KarateAppBar(title: 'Test tafsilotlari'),
-        body: const AppEmptyView(
+        appBar: KarateAppBar(title: Tr.t('testDetailsTitle')),
+        body: AppEmptyView(
           icon: Icons.search_off_rounded,
-          title: 'Test topilmadi',
+          title: Tr.t('testNotFound'),
         ),
       );
     }
 
     final stepCount = test.steps.length;
     final duration = test.steps.fold<int>(0, (sum, s) => sum + s.duration);
-    final scoreLabel =
-        test.score == null ? '—' : test.score!.toStringAsFixed(1);
-    final paragraph =
-        test.description.isNotEmpty ? test.description : test.goal;
+    final durationLabel = _formatDuration(duration);
+    final scoreLabel = test.score == null
+        ? '—'
+        : test.score!.toStringAsFixed(1);
+    final paragraph = test.description.isNotEmpty
+        ? test.description
+        : test.goal;
     final dateValue = _isCoach
         ? null
         : test.finishedAt != null
         ? _formatDate(test.finishedAt)
         : test.startedAt != null
-            ? _formatDate(test.startedAt)
-            : null;
-    final isFinished = !_isCoach &&
+        ? _formatDate(test.startedAt)
+        : null;
+    final isFinished =
+        !_isCoach &&
         (test.status == TestStatus.completed ||
             test.status == TestStatus.unknown);
     final statusColor = _statusColor(palette, test.status);
 
     return Scaffold(
       backgroundColor: palette.background,
-      appBar: const KarateAppBar(title: 'Test tafsilotlari'),
+      appBar: KarateAppBar(title: Tr.t('testDetailsTitle')),
       body: Stack(
         children: [
           ListView(
@@ -203,12 +227,17 @@ class _TestDetailViewState extends State<TestDetailView> {
               AppSpacing.screenBottom.h,
             ),
             children: [
-              _TestHero(test: test),
+              _TestHero(
+                test: test,
+                statusLabel: _isCoach ? null : test.status.label,
+                statusColor: statusColor,
+              ),
               SizedBox(height: AppSpacing.xl.h),
               Text(
                 test.name,
-                style: AppTextStyles.screenTitle
-                    .copyWith(color: palette.textPrimary),
+                style: AppTextStyles.screenTitle.copyWith(
+                  color: palette.textPrimary,
+                ),
               ),
               SizedBox(height: AppSpacing.md.h),
               Wrap(
@@ -217,7 +246,7 @@ class _TestDetailViewState extends State<TestDetailView> {
                 children: [
                   if (test.category.isNotEmpty)
                     AppBadge(
-                      label: test.category,
+                      label: Tr.categoryName(test.category),
                       color: AppColors.primaryBlue,
                       icon: Icons.category_outlined,
                     ),
@@ -226,12 +255,6 @@ class _TestDetailViewState extends State<TestDetailView> {
                       label: test.age,
                       color: AppColors.primaryBlue,
                       icon: Icons.cake_outlined,
-                    ),
-                  if (!_isCoach)
-                    AppBadge(
-                      label: test.status.label,
-                      color: statusColor,
-                      icon: Icons.flag_rounded,
                     ),
                   if (dateValue != null)
                     AppBadge(
@@ -252,7 +275,7 @@ class _TestDetailViewState extends State<TestDetailView> {
                 ),
               ],
               SizedBox(height: AppSpacing.sectionGap.h),
-              const AppSectionHeader(title: 'Test ma\'lumotlari'),
+              AppSectionHeader(title: Tr.t('testInformation')),
               SizedBox(height: AppSpacing.md.h),
               IntrinsicHeight(
                 child: Row(
@@ -263,7 +286,7 @@ class _TestDetailViewState extends State<TestDetailView> {
                         icon: Icons.list_alt_rounded,
                         color: AppColors.primaryBlue,
                         value: '$stepCount',
-                        label: 'Savollar',
+                        label: Tr.t('questions'),
                       ),
                     ),
                     SizedBox(width: AppSpacing.md.w),
@@ -271,8 +294,8 @@ class _TestDetailViewState extends State<TestDetailView> {
                       child: AppStatCard(
                         icon: Icons.timer_outlined,
                         color: palette.info,
-                        value: '${duration}s',
-                        label: 'Davomiylik',
+                        value: durationLabel,
+                        label: Tr.t('duration'),
                       ),
                     ),
                     SizedBox(width: AppSpacing.md.w),
@@ -282,7 +305,7 @@ class _TestDetailViewState extends State<TestDetailView> {
                           icon: Icons.stars_rounded,
                           color: palette.warning,
                           value: scoreLabel,
-                          label: 'Ball',
+                          label: Tr.t('score'),
                         ),
                       ),
                   ],
@@ -290,7 +313,7 @@ class _TestDetailViewState extends State<TestDetailView> {
               ),
               if (test.description.isNotEmpty && test.goal.isNotEmpty) ...[
                 SizedBox(height: AppSpacing.sectionGap.h),
-                const AppSectionHeader(title: 'Maqsad'),
+                AppSectionHeader(title: Tr.t('goal')),
                 SizedBox(height: AppSpacing.sm.h),
                 Text(
                   test.goal,
@@ -302,7 +325,7 @@ class _TestDetailViewState extends State<TestDetailView> {
               ],
               if (test.qualities.isNotEmpty) ...[
                 SizedBox(height: AppSpacing.sectionGap.h),
-                const AppSectionHeader(title: 'Rivojlanadigan sifatlar'),
+                AppSectionHeader(title: Tr.t('developedQualities')),
                 SizedBox(height: AppSpacing.md.h),
                 Wrap(
                   spacing: AppSpacing.sm.w,
@@ -318,12 +341,12 @@ class _TestDetailViewState extends State<TestDetailView> {
                 ),
               ],
               SizedBox(height: AppSpacing.sectionGap.h),
-              const AppSectionHeader(title: 'Savollar'),
+              AppSectionHeader(title: Tr.t('questions')),
               SizedBox(height: AppSpacing.md.h),
               if (test.steps.isEmpty)
-                const AppEmptyView(
+                AppEmptyView(
                   icon: Icons.list_alt_rounded,
-                  title: 'Savollar qo\'shilmagan',
+                  title: Tr.t('noQuestionsAdded'),
                   compact: true,
                 )
               else
@@ -340,7 +363,7 @@ class _TestDetailViewState extends State<TestDetailView> {
                 ),
               if (test.notes.isNotEmpty) ...[
                 SizedBox(height: AppSpacing.sectionGap.h),
-                const AppSectionHeader(title: 'Murabbiy izohi'),
+                AppSectionHeader(title: Tr.t('coachNote')),
                 SizedBox(height: AppSpacing.md.h),
                 AppCard(
                   tone: palette.warning.withValues(alpha: 0.07),
@@ -383,11 +406,13 @@ class _TestDetailViewState extends State<TestDetailView> {
                       Expanded(
                         child: Text(
                           test.score == null
-                              ? 'Test yakunlangan'
-                              : 'Test yakunlangan. Ball: '
-                                  '${test.score!.toStringAsFixed(1)}',
-                          style: AppTextStyles.label
-                              .copyWith(color: palette.success),
+                              ? Tr.t('testFinished')
+                              : Tr.t('testFinishedWithScore', {
+                                  'score': test.score!.toStringAsFixed(1),
+                                }),
+                          style: AppTextStyles.label.copyWith(
+                            color: palette.success,
+                          ),
                         ),
                       ),
                     ],
@@ -413,7 +438,7 @@ class _TestDetailViewState extends State<TestDetailView> {
   Widget _buildActionButton(TestResult test) {
     if (_isCoach) {
       return CustomButton(
-        text: 'Tahrirlash',
+        text: Tr.t('edit'),
         onPressed: _busy ? null : _editTest,
         trailingIcon: Icons.edit_outlined,
       );
@@ -423,19 +448,20 @@ class _TestDetailViewState extends State<TestDetailView> {
     final VoidCallback? onTap;
     switch (test.status) {
       case TestStatus.pending:
-        label = 'Testni boshlash';
+        label = Tr.t('startTest');
         onTap = _busy ? null : _startTest;
       case TestStatus.inProgress:
-        label = 'Davom etish';
+        label = Tr.t('continueTest');
         onTap = _busy ? null : () => _openRun(test);
       case TestStatus.completed:
       case TestStatus.unknown:
-        label = 'Natijani ko\'rish';
+        label = Tr.t('viewResult');
         onTap = () => context.push('/test-result', extra: test);
     }
     return CustomButton(
       text: label,
       onPressed: onTap,
+      isLoading: _busy,
       trailingIcon: Icons.arrow_forward_rounded,
     );
   }
@@ -459,18 +485,24 @@ class _RowDivider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Divider(
-        height: 1,
-        thickness: 1,
-        indent: AppSpacing.lg.w,
-        endIndent: AppSpacing.lg.w,
-        color: context.palette.divider,
-      );
+    height: 1,
+    thickness: 1,
+    indent: AppSpacing.lg.w,
+    endIndent: AppSpacing.lg.w,
+    color: context.palette.divider,
+  );
 }
 
 class _TestHero extends StatelessWidget {
   final TestResult test;
+  final String? statusLabel;
+  final Color statusColor;
 
-  const _TestHero({required this.test});
+  const _TestHero({
+    required this.test,
+    this.statusLabel,
+    this.statusColor = AppColors.primaryBlue,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -482,50 +514,85 @@ class _TestHero extends StatelessWidget {
           border: Border.all(color: context.palette.border),
         ),
         clipBehavior: Clip.antiAlias,
-        child: test.hasCover
-            ? RemoteImage(
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            if (test.hasCover)
+              RemoteImage(
                 url: ApiConstants.resolveMediaUrl(test.coverUrl!),
                 borderRadius: BorderRadius.zero,
                 fit: BoxFit.cover,
               )
-            : Stack(
-                fit: StackFit.expand,
-                children: [
-                  const DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          AppColors.primaryNavy,
-                          AppColors.gradientDeepBlue,
-                        ],
-                        begin: AlignmentDirectional.topStart,
-                        end: AlignmentDirectional.bottomEnd,
-                      ),
+            else ...[
+              const DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [AppColors.primaryNavy, AppColors.gradientDeepBlue],
+                    begin: AlignmentDirectional.topStart,
+                    end: AlignmentDirectional.bottomEnd,
+                  ),
+                ),
+              ),
+              PositionedDirectional(
+                end: -24.w,
+                bottom: -24.h,
+                child: Icon(
+                  Icons.sports_martial_arts,
+                  size: 170.w,
+                  color: Colors.white.withValues(alpha: 0.10),
+                ),
+              ),
+              Align(
+                alignment: AlignmentDirectional.bottomStart,
+                child: Padding(
+                  padding: EdgeInsets.all(AppSpacing.lg.w),
+                  child: Text(
+                    'Rasm qo\'shilmagan',
+                    style: AppTextStyles.caption.copyWith(
+                      color: Colors.white.withValues(alpha: 0.75),
                     ),
                   ),
-                  PositionedDirectional(
-                    end: -24.w,
-                    bottom: -24.h,
-                    child: Icon(
-                      Icons.sports_martial_arts,
-                      size: 170.w,
-                      color: Colors.white.withValues(alpha: 0.10),
-                    ),
+                ),
+              ),
+            ],
+            if (statusLabel != null)
+              PositionedDirectional(
+                start: AppSpacing.md.w,
+                top: AppSpacing.md.h,
+                child: Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: AppSpacing.md.w,
+                    vertical: AppSpacing.xs.h,
                   ),
-                  Align(
-                    alignment: AlignmentDirectional.bottomStart,
-                    child: Padding(
-                      padding: EdgeInsets.all(AppSpacing.lg.w),
-                      child: Text(
-                        'Rasm qo\'shilmagan',
-                        style: AppTextStyles.caption.copyWith(
-                          color: Colors.white.withValues(alpha: 0.75),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.48),
+                    borderRadius: BorderRadius.circular(AppRadius.pill.r),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 7.w,
+                        height: 7.w,
+                        decoration: BoxDecoration(
+                          color: statusColor,
+                          shape: BoxShape.circle,
                         ),
                       ),
-                    ),
+                      SizedBox(width: AppSpacing.xs.w),
+                      Text(
+                        statusLabel!,
+                        style: AppTextStyles.badge.copyWith(
+                          color: Colors.white,
+                          letterSpacing: 0,
+                        ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
+          ],
+        ),
       ),
     );
   }
@@ -570,8 +637,9 @@ class _QuestionRow extends StatelessWidget {
                   step.title.isEmpty ? 'Qadam $index' : step.title,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.cardTitle
-                      .copyWith(color: palette.textPrimary),
+                  style: AppTextStyles.cardTitle.copyWith(
+                    color: palette.textPrimary,
+                  ),
                 ),
                 if (hasMeta) ...[
                   SizedBox(height: AppSpacing.sm.h),

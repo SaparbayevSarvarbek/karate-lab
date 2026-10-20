@@ -29,37 +29,37 @@ class MashqlarLoaded extends MashqlarState {
   });
 
   List<MashqItem> get items => [
-        ...texnik.map(
-          (e) => MashqItem(
-            kind: 'texnik',
-            id: e.id,
-            title: e.title,
-            subtitle: e.category,
-            imageUrl: e.image,
-            exercise: e,
-          ),
-        ),
-        ...ujt.map(
-          (t) => MashqItem(
-            kind: 'ujt',
-            id: t.id,
-            title: t.title,
-            subtitle: t.ageGroup,
-            imageUrl: t.coverUrl,
-            ujtTest: t,
-          ),
-        ),
-        ...mjt.map(
-          (t) => MashqItem(
-            kind: 'mjt',
-            id: t.id,
-            title: t.title,
-            subtitle: t.ageGroup,
-            imageUrl: t.coverUrl,
-            mjtTest: t,
-          ),
-        ),
-      ];
+    ...texnik.map(
+      (e) => MashqItem(
+        kind: 'texnik',
+        id: e.id,
+        title: e.title,
+        subtitle: e.category,
+        imageUrl: e.image,
+        exercise: e,
+      ),
+    ),
+    ...ujt.map(
+      (t) => MashqItem(
+        kind: 'ujt',
+        id: t.id,
+        title: t.title,
+        subtitle: t.ageGroup,
+        imageUrl: t.coverUrl,
+        ujtTest: t,
+      ),
+    ),
+    ...mjt.map(
+      (t) => MashqItem(
+        kind: 'mjt',
+        id: t.id,
+        title: t.title,
+        subtitle: t.ageGroup,
+        imageUrl: t.coverUrl,
+        mjtTest: t,
+      ),
+    ),
+  ];
 
   @override
   List<Object?> get props => [texnik, ujt, mjt, warning];

@@ -5,6 +5,7 @@ import '../api/api_client.dart';
 import '../api/api_constants.dart';
 import '../api/api_exception.dart';
 import '../api/models/profile_models.dart';
+import '../l10n/app_translations.dart';
 
 /// Profil repository (Swagger: Profile).
 abstract class ProfileRepository {
@@ -25,7 +26,7 @@ class ProfileRepositoryImpl implements ProfileRepository {
     try {
       final data = await _apiClient.getObject(ApiConstants.profile);
       if (data == null) {
-        return const Left(ApiException(message: 'Server javob bermadi'));
+        return Left(ApiException(message: Tr.t('serverNoResponse')));
       }
       return Right(Profile.fromJson(data));
     } on ApiException catch (e) {
@@ -43,7 +44,7 @@ class ProfileRepositoryImpl implements ProfileRepository {
         data: request.toJson(),
       );
       if (data == null) {
-        return const Left(ApiException(message: 'Server javob bermadi'));
+        return Left(ApiException(message: Tr.t('serverNoResponse')));
       }
       return Right(Profile.fromJson(data));
     } on ApiException catch (e) {

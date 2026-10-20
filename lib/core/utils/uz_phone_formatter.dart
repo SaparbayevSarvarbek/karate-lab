@@ -40,7 +40,9 @@ class UzPhoneFormatter {
   static String? validateField(String input) {
     final d = _digits(input);
     if (d.isEmpty) return 'Telefon raqamni kiriting';
-    if (d.length < _localDigits) return 'Raqam to\'liq emas (+998 XX XXX XX XX)';
+    if (d.length < _localDigits) {
+      return 'Raqam to\'liq emas (+998 XX XXX XX XX)';
+    }
     return null;
   }
 }

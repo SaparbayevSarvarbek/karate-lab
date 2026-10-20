@@ -54,7 +54,8 @@ class RemoteImage extends StatelessWidget {
           if (wasSynchronouslyLoaded || frame != null) return child;
           return _loading(context, effectiveWidth, effectiveHeight);
         },
-        errorBuilder: (context, error, stackTrace) => _placeholder(context, effectiveWidth, effectiveHeight),
+        errorBuilder: (context, error, stackTrace) =>
+            _placeholder(context, effectiveWidth, effectiveHeight),
       );
     } else {
       child = Image.network(
@@ -70,7 +71,8 @@ class RemoteImage extends StatelessWidget {
           if (progress == null) return child;
           return _loading(context, effectiveWidth, effectiveHeight);
         },
-        errorBuilder: (context, error, stackTrace) => _placeholder(context, effectiveWidth, effectiveHeight),
+        errorBuilder: (context, error, stackTrace) =>
+            _placeholder(context, effectiveWidth, effectiveHeight),
       );
     }
 
@@ -174,7 +176,9 @@ class AvatarImage extends StatelessWidget {
     final parts = name.trim().split(RegExp(r'\s+'));
     if (parts.isEmpty || parts.first.isEmpty) return '?';
     final first = parts.first.characters.take(1).toString();
-    final last = parts.length > 1 ? parts.last.characters.take(1).toString() : '';
+    final last = parts.length > 1
+        ? parts.last.characters.take(1).toString()
+        : '';
     return (first + last).toUpperCase();
   }
 
@@ -222,11 +226,8 @@ class AvatarImage extends StatelessWidget {
         fit: BoxFit.cover,
         cacheWidth: (size * 2).round(),
         cacheHeight: (size * 2).round(),
-        errorBuilder: (context, error, stackTrace) => AvatarImage(
-          url: null,
-          size: size,
-          name: name,
-        ),
+        errorBuilder: (context, error, stackTrace) =>
+            AvatarImage(url: null, size: size, name: name),
         loadingBuilder: (context, child, progress) {
           if (progress == null) return child;
           return Container(

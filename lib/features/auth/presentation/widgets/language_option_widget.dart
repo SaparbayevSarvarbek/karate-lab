@@ -88,8 +88,9 @@ class LanguageOptionWidget extends StatelessWidget {
                         subtitle,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: AppTextStyles.caption
-                            .copyWith(color: palette.textSecondary),
+                        style: AppTextStyles.caption.copyWith(
+                          color: palette.textSecondary,
+                        ),
                       ),
                     ],
                   ),

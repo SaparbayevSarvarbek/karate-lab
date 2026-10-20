@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/api/models/test_models.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/l10n/app_translations.dart';
 import '../../../../core/theme/app_palette.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -33,10 +34,10 @@ class TestResultView extends StatelessWidget {
     if (test == null) {
       return Scaffold(
         backgroundColor: palette.background,
-        appBar: const KarateAppBar(title: 'Test natijasi'),
-        body: const AppEmptyView(
+        appBar: KarateAppBar(title: Tr.t('testResultTitle')),
+        body: AppEmptyView(
           icon: Icons.bar_chart_rounded,
-          title: 'Natija topilmadi',
+          title: Tr.t('resultNotFound'),
         ),
       );
     }
@@ -45,7 +46,7 @@ class TestResultView extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: palette.background,
-      appBar: const KarateAppBar(title: 'Test natijasi'),
+      appBar: KarateAppBar(title: Tr.t('testResultTitle')),
       body: ListView(
         padding: EdgeInsets.fromLTRB(
           AppSpacing.screenH.w,
@@ -73,7 +74,7 @@ class TestResultView extends StatelessWidget {
                   SizedBox(width: AppSpacing.sm.w),
                   Expanded(
                     child: Text(
-                      'Qadamlar bo\'yicha batafsil natija mavjud emas.',
+                      Tr.t('noDetailedStepResults'),
                       style: AppTextStyles.body.copyWith(
                         color: palette.textSecondary,
                       ),
@@ -83,7 +84,7 @@ class TestResultView extends StatelessWidget {
               ),
             )
           else ...[
-            const AppSectionHeader(title: 'Ko\'nikmalar bo\'yicha natija'),
+            AppSectionHeader(title: Tr.t('skillsResults')),
             SizedBox(height: AppSpacing.md.h),
             AppCard(child: _StepBars(steps: evaluation.steps)),
           ],
@@ -91,9 +92,7 @@ class TestResultView extends StatelessWidget {
       ),
       bottomNavigationBar: AppBottomBar(
         child: CustomButton(
-          text: hasSteps
-              ? 'Natijani ko\'rib chiqish'
-              : 'Testni qayta topshirish',
+          text: hasSteps ? Tr.t('reviewResult') : Tr.t('retakeTest'),
           trailingIcon: Icons.arrow_forward_rounded,
           onPressed: () {
             if (context.canPop()) context.pop();
@@ -228,7 +227,7 @@ class _OverallCard extends StatelessWidget {
             if (result?.age != null) ...[
               SizedBox(height: AppSpacing.md.h),
               Text(
-                'Yosh: ${result!.age}',
+                Tr.t('ageValue', {'age': '${result!.age}'}),
                 style: AppTextStyles.caption.copyWith(
                   color: Colors.white.withValues(alpha: 0.7),
                 ),
@@ -266,7 +265,7 @@ class _ResultStats extends StatelessWidget {
               icon: Icons.check_circle_outline_rounded,
               color: palette.success,
               value: '${score.toStringAsFixed(0)}%',
-              label: 'To\'g\'ri javoblar',
+              label: Tr.t('correctAnswers'),
             ),
           ),
           SizedBox(width: AppSpacing.md.w),
@@ -275,7 +274,7 @@ class _ResultStats extends StatelessWidget {
               icon: Icons.timer_outlined,
               color: AppColors.primaryBlue,
               value: timeValue,
-              label: 'Sarflangan vaqt',
+              label: Tr.t('timeSpent'),
             ),
           ),
           SizedBox(width: AppSpacing.md.w),
@@ -284,7 +283,7 @@ class _ResultStats extends StatelessWidget {
               icon: Icons.replay_rounded,
               color: palette.warning,
               value: '—',
-              label: 'Urinishlar',
+              label: Tr.t('attempts'),
             ),
           ),
         ],
@@ -370,7 +369,7 @@ class _StepBar extends StatelessWidget {
               const Spacer(),
               if (step.target.isNotEmpty)
                 Text(
-                  'Me\'yor: ${step.target}',
+                  Tr.t('normativeValue', {'value': step.target}),
                   style: AppTextStyles.caption.copyWith(
                     color: palette.textHint,
                   ),

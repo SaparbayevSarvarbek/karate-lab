@@ -120,16 +120,6 @@ class _TestRunViewState extends State<TestRunView> {
     });
   }
 
-  void _jumpToStep(int index) {
-    if (index == _current) return;
-    _pauseTimer();
-    _times[_current] = _milliseconds.value / 1000.0;
-    setState(() {
-      _current = index;
-      _restoreCurrent();
-    });
-  }
-
   Future<bool?> _showExitConfirmation() async {
     return showDialog<bool>(
       context: context,
@@ -152,26 +142,17 @@ class _TestRunViewState extends State<TestRunView> {
   }
 
   Future<void> _showFinishConfirmation() async {
-    // Vaqt qayd etilmagan qadamlar bo'lsa ogohlantiramiz — aks holda natija
-    // 0 ball chiqib, foydalanuvchi sababini tushunmay qoladi.
     final missing = _times.where((t) => t <= 0).length;
-    final allMissing = missing == _times.length;
-
-    final title = allMissing
-        ? Tr.t('testRunNoTimesTitle')
-        : Tr.t('testRunFinishTitle');
-    final message = allMissing
-        ? Tr.t('testRunNoTimesMessage')
-        : missing > 0
-            ? '${Tr.t('testRunFinishMessage')}\n\n'
-                '${Tr.t('testRunPartialTimes', {'count': '$missing'})}'
-            : Tr.t('testRunFinishMessage');
+    if (missing > 0) {
+      AppSnackbar.warning(context, Tr.t('testRunTimerRequired'));
+      return;
+    }
 
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(title),
-        content: Text(message),
+        title: Text(Tr.t('testRunFinishTitle')),
+        content: Text(Tr.t('testRunFinishMessage')),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -179,9 +160,7 @@ class _TestRunViewState extends State<TestRunView> {
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            style: FilledButton.styleFrom(
-              backgroundColor: allMissing ? AppColors.warning : AppColors.success,
-            ),
+            style: FilledButton.styleFrom(backgroundColor: AppColors.success),
             child: Text(Tr.t('testRunFinish')),
           ),
         ],
@@ -301,43 +280,44 @@ class _TestRunViewState extends State<TestRunView> {
                   child: Column(
                     children: [
                       _TopBar(
-                        steps: _steps,
                         current: _current,
-                        times: _times,
+                        total: _steps.length,
                         progress: progress,
-                        milliseconds: _milliseconds,
-                        running: _running,
-                        onToggleTimer: _submitting ? null : _toggleTimer,
-                        onTapStep: _submitting ? null : _jumpToStep,
                       ),
                       Expanded(
                         child: AnimatedSwitcher(
                           duration: const Duration(milliseconds: 260),
-                          layoutBuilder:
-                              (currentChild, previousChildren) => Stack(
-                            alignment: Alignment.topCenter,
-                            children: [
-                              ...previousChildren,
-                              ?currentChild,
-                            ],
-                          ),
-                          transitionBuilder: (child, animation) => FadeTransition(
-                            opacity: animation,
-                            child: SlideTransition(
-                              position: Tween<Offset>(
-                                begin: const Offset(0.04, 0),
-                                end: Offset.zero,
-                              ).animate(animation),
-                              child: child,
-                            ),
-                          ),
+                          layoutBuilder: (currentChild, previousChildren) =>
+                              Stack(
+                                alignment: Alignment.topCenter,
+                                children: [...previousChildren, ?currentChild],
+                              ),
+                          transitionBuilder: (child, animation) =>
+                              FadeTransition(
+                                opacity: animation,
+                                child: SlideTransition(
+                                  position: Tween<Offset>(
+                                    begin: const Offset(0.04, 0),
+                                    end: Offset.zero,
+                                  ).animate(animation),
+                                  child: child,
+                                ),
+                              ),
                           child: SingleChildScrollView(
                             key: ValueKey<int>(_current),
-                            padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 20.h),
+                            padding: EdgeInsets.fromLTRB(
+                              16.w,
+                              16.h,
+                              16.w,
+                              20.h,
+                            ),
                             child: _StepBody(
                               step: step,
                               index: _current,
                               recordedSeconds: _times[_current],
+                              milliseconds: _milliseconds,
+                              running: _running,
+                              onToggleTimer: _submitting ? null : _toggleTimer,
                             ),
                           ),
                         ),
@@ -361,54 +341,48 @@ class _TestRunViewState extends State<TestRunView> {
   }
 }
 
-/// Yuqori panel: taymer + qadamlar yo'lagi (yagona indikator) + progress.
 class _TopBar extends StatelessWidget {
-  final List<TestStep> steps;
   final int current;
-  final List<double> times;
+  final int total;
   final double progress;
-  final ValueListenable<int> milliseconds;
-  final bool running;
-  final VoidCallback? onToggleTimer;
-  final void Function(int)? onTapStep;
 
   const _TopBar({
-    required this.steps,
     required this.current,
-    required this.times,
+    required this.total,
     required this.progress,
-    required this.milliseconds,
-    required this.running,
-    required this.onToggleTimer,
-    required this.onTapStep,
   });
 
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
+    final remaining = total - current - 1;
 
     return Container(
-      padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 12.h),
+      padding: EdgeInsets.fromLTRB(20.w, 14.h, 20.w, 14.h),
       decoration: BoxDecoration(
         color: palette.surface,
         border: Border(bottom: BorderSide(color: palette.border)),
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              _TimerPill(
-                milliseconds: milliseconds,
-                running: running,
-                onTap: onToggleTimer,
+              Text(
+                Tr.t('testRunCurrent', {
+                  'current': '${current + 1}',
+                  'total': '$total',
+                }),
+                style: AppTextStyles.body.copyWith(
+                  color: palette.textPrimary,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
-              SizedBox(width: 12.w),
-              Expanded(
-                child: _StepRail(
-                  steps: steps,
-                  current: current,
-                  times: times,
-                  onTap: onTapStep,
+              const Spacer(),
+              Text(
+                Tr.t('testRunRemaining', {'count': '$remaining'}),
+                style: AppTextStyles.caption.copyWith(
+                  color: palette.textSecondary,
                 ),
               ),
             ],
@@ -418,14 +392,14 @@ class _TopBar extends StatelessWidget {
             borderRadius: BorderRadius.circular(AppRadius.pill.r),
             child: Stack(
               children: [
-                Container(height: 6.h, color: palette.border),
+                Container(height: 7.h, color: palette.border),
                 AnimatedFractionallySizedBox(
                   duration: const Duration(milliseconds: 300),
                   curve: Curves.easeOut,
                   widthFactor: progress.clamp(0.0, 1.0),
                   alignment: AlignmentDirectional.centerStart,
                   child: Container(
-                    height: 6.h,
+                    height: 7.h,
                     decoration: BoxDecoration(
                       color: AppColors.primaryBlue,
                       borderRadius: BorderRadius.circular(AppRadius.pill.r),
@@ -441,100 +415,21 @@ class _TopBar extends StatelessWidget {
   }
 }
 
-/// Qadamlar yo'lagi — yagona holat indikatori (bajarilgan / joriy / kutilmoqda).
-class _StepRail extends StatelessWidget {
-  final List<TestStep> steps;
-  final int current;
-  final List<double> times;
-  final void Function(int)? onTap;
-
-  const _StepRail({
-    required this.steps,
-    required this.current,
-    required this.times,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = context.palette;
-
-    return SizedBox(
-      height: 44.h,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: steps.length,
-        separatorBuilder: (_, _) => SizedBox(width: AppSpacing.sm.w),
-        itemBuilder: (context, index) {
-          final isCurrent = index == current;
-          final isDone = !isCurrent && times[index] > 0;
-
-          final Color fill;
-          final Color border;
-          final Color content;
-
-          if (isCurrent) {
-            fill = AppColors.primaryBlue;
-            border = AppColors.primaryBlue;
-            content = Colors.white;
-          } else if (isDone) {
-            fill = palette.success.withValues(alpha: 0.14);
-            border = palette.success.withValues(alpha: 0.5);
-            content = palette.success;
-          } else {
-            fill = palette.backgroundLight;
-            border = palette.border;
-            content = palette.textHint;
-          }
-
-          return Semantics(
-            button: onTap != null,
-            selected: isCurrent,
-            label: '${Tr.t('testRunSteps')} ${index + 1}',
-            excludeSemantics: true,
-            child: GestureDetector(
-              onTap: onTap != null ? () => onTap!(index) : null,
-              behavior: HitTestBehavior.opaque,
-              child: Center(
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  width: 32.w,
-                  height: 32.w,
-                  decoration: BoxDecoration(
-                    color: fill,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: border, width: isCurrent ? 0 : 1.2),
-                  ),
-                  child: Center(
-                    child: isDone
-                        ? Icon(Icons.check_rounded, size: 15.w, color: content)
-                        : Text(
-                            '${index + 1}',
-                            style: AppTextStyles.badge.copyWith(
-                              color: content,
-                              letterSpacing: 0,
-                            ),
-                          ),
-                  ),
-                ),
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
-
 class _StepBody extends StatelessWidget {
   final TestStep step;
   final int index;
   final double recordedSeconds;
+  final ValueListenable<int> milliseconds;
+  final bool running;
+  final VoidCallback? onToggleTimer;
 
   const _StepBody({
     required this.step,
     required this.index,
     required this.recordedSeconds,
+    required this.milliseconds,
+    required this.running,
+    required this.onToggleTimer,
   });
 
   @override
@@ -547,7 +442,9 @@ class _StepBody extends StatelessWidget {
         _StepHero(step: step, index: index),
         SizedBox(height: AppSpacing.lg.h),
         Text(
-          step.title.isEmpty ? '${Tr.t('testRunSteps')} ${index + 1}' : step.title,
+          step.title.isEmpty
+              ? '${Tr.t('testRunSteps')} ${index + 1}'
+              : step.title,
           style: AppTextStyles.title.copyWith(color: palette.textPrimary),
         ),
         if (step.description.isNotEmpty) ...[
@@ -577,18 +474,25 @@ class _StepBody extends StatelessWidget {
               if (step.duration > 0)
                 _MetaChip(
                   icon: Icons.timer_outlined,
-                  label: '${step.duration}s',
+                  label: '${step.duration}${Tr.t('seconds')}',
                   color: palette.info,
                 ),
               if (recordedSeconds > 0)
                 _MetaChip(
                   icon: Icons.check_circle_rounded,
-                  label: '${recordedSeconds.toStringAsFixed(1)}s',
+                  label:
+                      '${recordedSeconds.toStringAsFixed(1)}${Tr.t('seconds')}',
                   color: palette.success,
                 ),
             ],
           ),
         ],
+        SizedBox(height: AppSpacing.lg.h),
+        _StopwatchCard(
+          milliseconds: milliseconds,
+          running: running,
+          onToggle: onToggleTimer,
+        ),
       ],
     );
   }
@@ -716,7 +620,7 @@ class _MetaChip extends StatelessWidget {
   }
 }
 
-/// Pastki panel — faqat navigatsiya (taymer yuqorida).
+/// Pastki panel — faqat test qadamlarini boshqarish.
 class _NavBar extends StatelessWidget {
   final bool submitting;
   final bool isFirst;
@@ -749,8 +653,9 @@ class _NavBar extends StatelessWidget {
               height: 48,
               // Yakunlash tugmasi yashil — test tugaganini bildiradi.
               color: isLast ? AppColors.success : null,
-              trailingIcon:
-                  isLast ? Icons.flag_rounded : Icons.arrow_forward_rounded,
+              trailingIcon: isLast
+                  ? Icons.flag_rounded
+                  : Icons.arrow_forward_rounded,
             ),
           ),
         ],
@@ -759,60 +664,110 @@ class _NavBar extends StatelessWidget {
   }
 }
 
-class _TimerPill extends StatelessWidget {
+class _StopwatchCard extends StatelessWidget {
   final ValueListenable<int> milliseconds;
   final bool running;
-  final VoidCallback? onTap;
+  final VoidCallback? onToggle;
 
-  const _TimerPill({
+  const _StopwatchCard({
     required this.milliseconds,
     required this.running,
-    required this.onTap,
+    required this.onToggle,
   });
 
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
-    final accent = running ? AppColors.primaryBlue : palette.textSecondary;
 
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        height: 40.h,
-        padding: EdgeInsets.symmetric(horizontal: 11.w),
-        decoration: BoxDecoration(
-          color: running
-              ? AppColors.primaryBlue.withValues(alpha: 0.1)
-              : palette.backgroundLight,
-          borderRadius: BorderRadius.circular(AppRadius.button.r),
-          border: Border.all(
-            color: running ? AppColors.primaryBlue : palette.border,
-            width: running ? 1.5 : 1,
-          ),
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      padding: EdgeInsets.all(16.w),
+      decoration: BoxDecoration(
+        color: palette.surface,
+        borderRadius: BorderRadius.circular(AppRadius.panel.r),
+        border: Border.all(
+          color: running ? AppColors.primaryBlue : palette.border,
+          width: running ? 1.5 : 1,
         ),
-        child: Row(
-          children: [
-            Icon(
-              running ? Icons.pause_rounded : Icons.play_arrow_rounded,
-              size: 17.w,
-              color: accent,
-            ),
-            SizedBox(width: 4.w),
-            ValueListenableBuilder<int>(
-              valueListenable: milliseconds,
-              builder: (context, value, _) => Text(
-                _TestRunViewState._formatMs(value),
-                style: TextStyle(
-                  fontSize: 14.sp,
-                  fontWeight: FontWeight.w700,
-                  color: running ? AppColors.primaryBlue : palette.textPrimary,
-                  fontFeatures: const [FontFeature.tabularFigures()],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.035),
+            blurRadius: 16.r,
+            offset: Offset(0, 6.h),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 38.w,
+                height: 38.w,
+                decoration: BoxDecoration(
+                  color: AppColors.primaryBlue.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
+                child: Icon(
+                  Icons.timer_outlined,
+                  color: AppColors.primaryBlue,
+                  size: 21.w,
                 ),
               ),
-            ),
-          ],
-        ),
+              SizedBox(width: 12.w),
+              Expanded(
+                child: Text(
+                  Tr.t('testRunElapsed'),
+                  style: AppTextStyles.body.copyWith(
+                    color: palette.textPrimary,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 14.h),
+          Row(
+            children: [
+              Expanded(
+                child: ValueListenableBuilder<int>(
+                  valueListenable: milliseconds,
+                  builder: (context, value, _) => Text(
+                    _TestRunViewState._formatMs(value),
+                    style: TextStyle(
+                      fontSize: 30.sp,
+                      fontWeight: FontWeight.w800,
+                      color: palette.textPrimary,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
+                  ),
+                ),
+              ),
+              FilledButton.icon(
+                onPressed: onToggle,
+                icon: Icon(
+                  running ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                  size: 19.w,
+                ),
+                label: Text(
+                  Tr.t(running ? 'testRunTimerPause' : 'testRunTimerStart'),
+                ),
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.primaryBlue,
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 14.w,
+                    vertical: 12.h,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppRadius.button.r),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

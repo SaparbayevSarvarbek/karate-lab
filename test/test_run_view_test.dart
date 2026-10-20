@@ -13,15 +13,15 @@ import 'package:krate_lab/core/theme/app_theme.dart';
 import 'package:krate_lab/features/tests/presentation/views/test_run_view.dart';
 
 TestResult _result({int steps = 3}) => TestResult(
-      id: 1,
-      testId: 1,
-      name: 'Asosiy texnika testi',
-      status: TestStatus.inProgress,
-      steps: [
-        for (var i = 0; i < steps; i++)
-          TestStep(id: i + 1, title: 'Qadam ${i + 1}', duration: 30),
-      ],
-    );
+  id: 1,
+  testId: 1,
+  name: 'Asosiy texnika testi',
+  status: TestStatus.inProgress,
+  steps: [
+    for (var i = 0; i < steps; i++)
+      TestStep(id: i + 1, title: 'Qadam ${i + 1}', duration: 30),
+  ],
+);
 
 Future<void> _pump(WidgetTester tester, TestResult result) async {
   tester.view.physicalSize = const Size(1080, 2400);
@@ -52,6 +52,24 @@ void main() {
     expect(find.text('Asosiy texnika testi'), findsOneWidget);
     expect(find.text('Qadam 1'), findsOneWidget);
     expect(find.text('Qadam 2'), findsNothing);
+    expect(
+      find.text(Tr.t('testRunCurrent', {'current': '1', 'total': '3'})),
+      findsOneWidget,
+    );
+    expect(find.text(Tr.t('testRunRemaining', {'count': '2'})), findsOneWidget);
+    expect(find.text(Tr.t('testRunElapsed')), findsOneWidget);
+  });
+
+  testWidgets('taymerni boshlab to\'xtatish mumkin', (tester) async {
+    await _pump(tester, _result());
+
+    await tester.tap(find.text(Tr.t('testRunTimerStart')));
+    await tester.pump(const Duration(milliseconds: 250));
+    expect(find.text(Tr.t('testRunTimerPause')), findsWidgets);
+
+    await tester.tap(find.text(Tr.t('testRunTimerPause')).last);
+    await tester.pump();
+    expect(find.text(Tr.t('testRunTimerStart')), findsOneWidget);
   });
 
   testWidgets('"Keyingi" bosilganda keyingi qadamga o\'tadi', (tester) async {
@@ -76,7 +94,9 @@ void main() {
     expect(find.text(Tr.t('testRunNext')), findsNothing);
   });
 
-  testWidgets('vaqt qayd etilmasa yakunlashda ogohlantiradi', (tester) async {
+  testWidgets('taymer ishlatilmagan bosqich bilan test yakunlanmaydi', (
+    tester,
+  ) async {
     await _pump(tester, _result(steps: 2));
 
     await tester.tap(find.text(Tr.t('testRunNext')));
@@ -84,7 +104,7 @@ void main() {
     await tester.tap(find.text(Tr.t('testRunFinish')));
     await tester.pumpAndSettle();
 
-    // Taymer umuman ishlamagan → 0 ball bo'lishi haqida ogohlantirish.
-    expect(find.text(Tr.t('testRunNoTimesTitle')), findsOneWidget);
+    expect(find.text(Tr.t('testRunTimerRequired')), findsOneWidget);
+    expect(find.text(Tr.t('testRunNoTimesTitle')), findsNothing);
   });
 }

@@ -54,9 +54,7 @@ class LoginWelcomeSubtitle extends StatelessWidget {
     return Text(
       'Hisobingizga kirib mashg\'ulotni davom ettiring',
       textAlign: TextAlign.center,
-      style: AppTextStyles.body.copyWith(
-        color: context.palette.textSecondary,
-      ),
+      style: AppTextStyles.body.copyWith(color: context.palette.textSecondary),
     );
   }
 }

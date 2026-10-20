@@ -4,6 +4,7 @@ import '../api/api_client.dart';
 import '../api/api_constants.dart';
 import '../api/api_exception.dart';
 import '../api/models/athlete_models.dart';
+import '../l10n/app_translations.dart';
 
 /// Sportchilar repository (Swagger: Athletes, JWT talab qiladi).
 abstract class AthleteRepository {
@@ -48,7 +49,7 @@ class AthleteRepositoryImpl implements AthleteRepository {
     try {
       final data = await _apiClient.getObject(ApiConstants.athleteDetail(id));
       if (data == null) {
-        return const Left(ApiException(message: 'Sportchi topilmadi'));
+        return Left(ApiException(message: Tr.t('athleteNotFound')));
       }
       return Right(Athlete.fromJson(data));
     } on ApiException catch (e) {
@@ -66,7 +67,7 @@ class AthleteRepositoryImpl implements AthleteRepository {
         data: request.toJson(),
       );
       if (data == null) {
-        return const Left(ApiException(message: 'Server javob bermadi'));
+        return Left(ApiException(message: Tr.t('serverNoResponse')));
       }
       return Right(Athlete.fromJson(data));
     } on ApiException catch (e) {
@@ -85,7 +86,7 @@ class AthleteRepositoryImpl implements AthleteRepository {
         data: request.toJson(),
       );
       if (data == null) {
-        return const Left(ApiException(message: 'Server javob bermadi'));
+        return Left(ApiException(message: Tr.t('serverNoResponse')));
       }
       return Right(Athlete.fromJson(data));
     } on ApiException catch (e) {

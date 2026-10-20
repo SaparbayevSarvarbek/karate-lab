@@ -70,9 +70,10 @@ abstract class AppUserInfo with _$AppUserInfo {
       _$AppUserInfoFromJson(json);
 
   String get displayName {
-    final full = [firstName ?? '', lastName ?? '']
-        .where((s) => s.trim().isNotEmpty)
-        .join(' ');
+    final full = [
+      firstName ?? '',
+      lastName ?? '',
+    ].where((s) => s.trim().isNotEmpty).join(' ');
     return full.isNotEmpty ? full : username;
   }
 }
@@ -91,9 +92,8 @@ abstract class RefreshTokenRequest with _$RefreshTokenRequest {
 /// Token yangilash natijasida qaytadigan javob.
 @freezed
 abstract class RefreshTokenResponse with _$RefreshTokenResponse {
-  const factory RefreshTokenResponse({
-    required String accessToken,
-  }) = _RefreshTokenResponse;
+  const factory RefreshTokenResponse({required String accessToken}) =
+      _RefreshTokenResponse;
 
   factory RefreshTokenResponse.fromJson(Map<String, dynamic> json) =>
       _$RefreshTokenResponseFromJson(json);

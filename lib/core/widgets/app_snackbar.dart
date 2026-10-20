@@ -30,7 +30,8 @@ class AppSnackbar {
       AppSnackTone.warning => palette.warning,
       AppSnackTone.info => palette.info,
     };
-    final resolvedIcon = icon ??
+    final resolvedIcon =
+        icon ??
         switch (tone) {
           AppSnackTone.neutral => Icons.info_outline_rounded,
           AppSnackTone.success => Icons.check_circle_outline_rounded,

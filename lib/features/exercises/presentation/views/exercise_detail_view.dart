@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/api/api_constants.dart';
 import '../../../../core/api/models/exercise_models.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/l10n/app_translations.dart';
 import '../../../../core/theme/app_palette.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -17,14 +19,22 @@ import '../../../../core/widgets/remote_image.dart';
 import '../../../../core/widgets/shimmer_placeholder.dart';
 import '../widgets/exercise_video_player.dart';
 
+class ExerciseDetailArgs {
+  final Exercise exercise;
+  final bool canEdit;
+
+  const ExerciseDetailArgs({required this.exercise, this.canEdit = false});
+}
+
 /// Mashq tafsilotlari sahifasi (Swagger: `Exercise` — `GET /exercises/{id}/`).
 ///
 /// Ko'rinishi UJT/MJT test detali bilan bir xil: hero media kartasi va
 /// chiplar, bo'limlar hamda bosqich kartalari.
 class ExerciseDetailView extends StatefulWidget {
   final Exercise? exercise;
+  final bool canEdit;
 
-  const ExerciseDetailView({super.key, this.exercise});
+  const ExerciseDetailView({super.key, this.exercise, this.canEdit = false});
 
   @override
   State<ExerciseDetailView> createState() => _ExerciseDetailViewState();
@@ -32,6 +42,7 @@ class ExerciseDetailView extends StatefulWidget {
 
 class _ExerciseDetailViewState extends State<ExerciseDetailView> {
   bool _isLoading = true;
+  late Exercise? _exercise = widget.exercise;
 
   @override
   void initState() {
@@ -41,28 +52,57 @@ class _ExerciseDetailViewState extends State<ExerciseDetailView> {
     });
   }
 
+  Future<void> _editExercise() async {
+    final exercise = _exercise;
+    if (exercise == null) return;
+    final updated = await context.push<Exercise>(
+      '/add-exercise',
+      extra: exercise,
+    );
+    if (updated != null && mounted) {
+      setState(() => _exercise = updated);
+      context.pop(true);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
-    final ex = widget.exercise ?? const Exercise(title: 'Mashq topilmadi');
+    final ex = _exercise ?? const Exercise();
 
     return Scaffold(
       backgroundColor: palette.background,
-      appBar: KarateAppBar(title: ex.title),
-      body: ListView(
-        padding: EdgeInsets.fromLTRB(
-          AppSpacing.screenH.w,
-          AppSpacing.screenTop.h,
-          AppSpacing.screenH.w,
-          AppSpacing.screenBottom.h,
-        ),
-        children: [
-          if (_isLoading)
-            const ShimmerExerciseDetail()
-          else
-            _Content(exercise: ex),
-        ],
+      appBar: KarateAppBar(
+        title: ex.title.isEmpty ? Tr.t('exerciseNotFound') : ex.title,
+        actions: widget.canEdit && _exercise != null
+            ? [
+                IconButton(
+                  tooltip: Tr.t('edit'),
+                  onPressed: _editExercise,
+                  icon: const Icon(Icons.edit_outlined),
+                ),
+              ]
+            : null,
       ),
+      body: ex.title.isEmpty
+          ? AppEmptyView(
+              icon: Icons.fitness_center_outlined,
+              title: Tr.t('exerciseNotFound'),
+            )
+          : ListView(
+              padding: EdgeInsets.fromLTRB(
+                AppSpacing.screenH.w,
+                AppSpacing.screenTop.h,
+                AppSpacing.screenH.w,
+                AppSpacing.screenBottom.h,
+              ),
+              children: [
+                if (_isLoading)
+                  const ShimmerExerciseDetail()
+                else
+                  _Content(exercise: ex),
+              ],
+            ),
     );
   }
 }
@@ -108,7 +148,7 @@ class _Content extends StatelessWidget {
             children: [
               if (exercise.category.isNotEmpty)
                 AppBadge(
-                  label: exercise.category,
+                  label: Tr.categoryName(exercise.category),
                   color: accent,
                   icon: Icons.sports_martial_arts_rounded,
                 ),
@@ -129,19 +169,19 @@ class _Content extends StatelessWidget {
         ],
         if (exercise.description.isNotEmpty) ...[
           SizedBox(height: AppSpacing.sectionGap.h),
-          const AppSectionHeader(title: 'Tavsif'),
+          AppSectionHeader(title: Tr.t('description')),
           SizedBox(height: AppSpacing.md.h),
           _TextCard(text: exercise.description),
         ],
         if (exercise.goal.isNotEmpty) ...[
           SizedBox(height: AppSpacing.sectionGap.h),
-          const AppSectionHeader(title: 'Maqsad'),
+          AppSectionHeader(title: Tr.t('goal')),
           SizedBox(height: AppSpacing.md.h),
           _TextCard(text: exercise.goal),
         ],
         if (exercise.qualities.isNotEmpty) ...[
           SizedBox(height: AppSpacing.sectionGap.h),
-          const AppSectionHeader(title: 'Rivojlanadigan sifatlar'),
+          AppSectionHeader(title: Tr.t('developedQualities')),
           SizedBox(height: AppSpacing.md.h),
           Wrap(
             spacing: AppSpacing.sm.w,
@@ -153,12 +193,12 @@ class _Content extends StatelessWidget {
           ),
         ],
         SizedBox(height: AppSpacing.sectionGap.h),
-        const AppSectionHeader(title: 'Bosqichlar'),
+        AppSectionHeader(title: Tr.t('stepsTitle')),
         SizedBox(height: AppSpacing.md.h),
         if (exercise.steps.isEmpty)
-          const AppEmptyView(
+          AppEmptyView(
             icon: Icons.list_alt_rounded,
-            title: 'Bosqichlar kiritilmagan',
+            title: Tr.t('noStepsAdded'),
             compact: true,
           )
         else
@@ -224,26 +264,26 @@ class _HeroCard extends StatelessWidget {
         child: exercise.hasVideo
             ? ExerciseVideoPlayer(url: exercise.videoUrl!)
             : exercise.hasImage
-                ? RemoteImage(
-                    url: ApiConstants.resolveMediaUrl(exercise.image!),
-                    borderRadius: BorderRadius.zero,
-                  )
-                : Container(
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [AppColors.primaryNavy, AppColors.primaryBlue],
-                        begin: AlignmentDirectional.topStart,
-                        end: AlignmentDirectional.bottomEnd,
-                      ),
-                    ),
-                    child: Center(
-                      child: Icon(
-                        Icons.sports_martial_arts_rounded,
-                        size: 90.w,
-                        color: Colors.white.withValues(alpha: 0.2),
-                      ),
-                    ),
+            ? RemoteImage(
+                url: ApiConstants.resolveMediaUrl(exercise.image!),
+                borderRadius: BorderRadius.zero,
+              )
+            : Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [AppColors.primaryNavy, AppColors.primaryBlue],
+                    begin: AlignmentDirectional.topStart,
+                    end: AlignmentDirectional.bottomEnd,
                   ),
+                ),
+                child: Center(
+                  child: Icon(
+                    Icons.sports_martial_arts_rounded,
+                    size: 90.w,
+                    color: Colors.white.withValues(alpha: 0.2),
+                  ),
+                ),
+              ),
       ),
     );
   }
@@ -278,8 +318,9 @@ class _StepCard extends StatelessWidget {
                     ? const SizedBox.shrink()
                     : Text(
                         step.title,
-                        style: AppTextStyles.cardTitle
-                            .copyWith(color: palette.textPrimary),
+                        style: AppTextStyles.cardTitle.copyWith(
+                          color: palette.textPrimary,
+                        ),
                       ),
               ),
             ],
@@ -302,7 +343,7 @@ class _StepCard extends StatelessWidget {
                 aspectRatio: 16 / 9,
                 child: RemoteImage(
                   url: ApiConstants.resolveMediaUrl(step.imageUrl!),
-                  fit: BoxFit.cover,
+                  fit: BoxFit.contain,
                   borderRadius: BorderRadius.zero,
                 ),
               ),
@@ -317,13 +358,13 @@ class _StepCard extends StatelessWidget {
                 if (step.repetitions.isNotEmpty)
                   _StepMeta(
                     icon: Icons.repeat_rounded,
-                    label: 'Takrorlash',
+                    label: Tr.t('repetitions'),
                     value: step.repetitions,
                   ),
                 if (step.rest.isNotEmpty)
                   _StepMeta(
                     icon: Icons.timer_outlined,
-                    label: 'Dam olish',
+                    label: Tr.t('rest'),
                     value: step.rest,
                   ),
               ],
@@ -352,10 +393,7 @@ class _StepBadge extends StatelessWidget {
         color: accent.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(AppRadius.tile.r),
       ),
-      child: Text(
-        '$index',
-        style: AppTextStyles.badge.copyWith(color: accent),
-      ),
+      child: Text('$index', style: AppTextStyles.badge.copyWith(color: accent)),
     );
   }
 }
@@ -375,10 +413,7 @@ class _StepMeta extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = context.palette;
     return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: AppSpacing.md.w,
-        vertical: 6.h,
-      ),
+      padding: EdgeInsets.symmetric(horizontal: AppSpacing.md.w, vertical: 6.h),
       decoration: BoxDecoration(
         color: palette.backgroundLight,
         borderRadius: BorderRadius.circular(AppRadius.pill.r),

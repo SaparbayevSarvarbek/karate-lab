@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/l10n/app_translations.dart';
 import '../../../../core/theme/app_palette.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -92,63 +93,64 @@ class _LoginViewState extends State<LoginView> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                            CustomTextField(
-                              controller: _usernameController,
-                              label: 'Foydalanuvchi nomi',
-                              hintText: 'Loginingizni kiriting',
-                              prefixIcon: const Icon(Icons.person_outline),
-                              validator: (v) =>
-                                  v!.isEmpty ? 'Username kiriting' : null,
-                            ),
-                            SizedBox(height: AppSpacing.lg.h),
-                            CustomTextField(
-                              controller: _passwordController,
-                              label: 'Parol',
-                              hintText: 'Parolingizni kiriting',
-                              obscureText: _obscurePassword,
-                              prefixIcon: const Icon(Icons.lock_outline),
-                              suffixIcon: IconButton(
-                                icon: Icon(
-                                  _obscurePassword
-                                      ? Icons.visibility_off_outlined
-                                      : Icons.visibility_outlined,
-                                  color: palette.textHint,
-                                ),
-                                onPressed: _togglePassword,
+                          CustomTextField(
+                            controller: _usernameController,
+                            label: Tr.t('username'),
+                            hintText: Tr.t('enterUsername'),
+                            prefixIcon: const Icon(Icons.person_outline),
+                            validator: (v) =>
+                                v!.isEmpty ? Tr.t('enterUsername') : null,
+                          ),
+                          SizedBox(height: AppSpacing.lg.h),
+                          CustomTextField(
+                            controller: _passwordController,
+                            label: Tr.t('password'),
+                            hintText: Tr.t('enterPassword'),
+                            obscureText: _obscurePassword,
+                            prefixIcon: const Icon(Icons.lock_outline),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _obscurePassword
+                                    ? Icons.visibility_off_outlined
+                                    : Icons.visibility_outlined,
+                                color: palette.textHint,
                               ),
-                              validator: (v) =>
-                                  v!.isEmpty ? 'Parolni kiriting' : null,
+                              onPressed: _togglePassword,
                             ),
-                            SizedBox(height: AppSpacing.xs.h),
-                            Align(
-                              alignment: AlignmentDirectional.centerEnd,
-                              child: TextButton(
-                                onPressed: _onForgotPassword,
-                                style: TextButton.styleFrom(
-                                  padding: EdgeInsets.symmetric(
-                                      horizontal: 8.w, vertical: 4.h),
-                                  minimumSize: Size.zero,
-                                  tapTargetSize:
-                                      MaterialTapTargetSize.shrinkWrap,
+                            validator: (v) =>
+                                v!.isEmpty ? Tr.t('enterPassword') : null,
+                          ),
+                          SizedBox(height: AppSpacing.xs.h),
+                          Align(
+                            alignment: AlignmentDirectional.centerEnd,
+                            child: TextButton(
+                              onPressed: _onForgotPassword,
+                              style: TextButton.styleFrom(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 8.w,
+                                  vertical: 4.h,
                                 ),
-                                child: Text(
-                                  'Parolni unutdingizmi?',
-                                  style: AppTextStyles.label.copyWith(
-                                    color: AppColors.primaryBlue,
-                                  ),
+                                minimumSize: Size.zero,
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              ),
+                              child: Text(
+                                Tr.t('forgotPassword'),
+                                style: AppTextStyles.label.copyWith(
+                                  color: AppColors.primaryBlue,
                                 ),
                               ),
                             ),
-                            SizedBox(height: AppSpacing.md.h),
-                            CustomButton(
-                              text: 'Kirish',
-                              height: 54,
-                              trailingIcon: Icons.arrow_forward_rounded,
-                              onPressed: isLoading ? null : _onLogin,
-                              isLoading: isLoading,
-                            ),
-                          ],
-                        ),
+                          ),
+                          SizedBox(height: AppSpacing.md.h),
+                          CustomButton(
+                            text: Tr.t('login'),
+                            height: 54,
+                            trailingIcon: Icons.arrow_forward_rounded,
+                            onPressed: isLoading ? null : _onLogin,
+                            isLoading: isLoading,
+                          ),
+                        ],
+                      ),
                       SizedBox(height: AppSpacing.xxl.h),
                       LoginFooterWidget(onRegister: _onRegister),
                     ],

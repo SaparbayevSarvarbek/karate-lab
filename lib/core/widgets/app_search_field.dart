@@ -5,6 +5,7 @@ import '../theme/app_palette.dart';
 import '../theme/app_radius.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_text_styles.dart';
+import '../l10n/app_translations.dart';
 
 /// Ilova bo'ylab yagona qidiruv maydoni.
 ///
@@ -66,6 +67,7 @@ class _AppSearchFieldState extends State<AppSearchField> {
         controller: _controller,
         autofocus: widget.autofocus,
         onChanged: widget.onChanged,
+        onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
         textInputAction: TextInputAction.search,
         style: AppTextStyles.body.copyWith(color: palette.textPrimary),
         decoration: InputDecoration(
@@ -80,11 +82,14 @@ class _AppSearchFieldState extends State<AppSearchField> {
             size: 20.w,
             color: palette.textHint,
           ),
-          prefixIconConstraints: BoxConstraints(minWidth: 44.w, minHeight: 44.w),
+          prefixIconConstraints: BoxConstraints(
+            minWidth: 44.w,
+            minHeight: 44.w,
+          ),
           suffixIcon: hasText
               ? IconButton(
                   onPressed: _clear,
-                  tooltip: 'Tozalash',
+                  tooltip: Tr.t('clear'),
                   icon: Icon(
                     Icons.close_rounded,
                     size: 18.w,

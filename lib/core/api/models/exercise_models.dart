@@ -84,6 +84,7 @@ abstract class CreateExerciseRequest with _$CreateExerciseRequest {
 /// Yaratilayotgan mashq ichidagi bitta bosqich metadatasi.
 /// Rasm fayli repository'ga alohida parallel ro'yxatda beriladi.
 class ExerciseStepInput {
+  final int? id;
   final String title;
   final String description;
   final String repetitions;
@@ -91,6 +92,7 @@ class ExerciseStepInput {
   final int duration;
 
   ExerciseStepInput({
+    this.id,
     this.title = '',
     this.description = '',
     this.repetitions = '',
@@ -99,10 +101,11 @@ class ExerciseStepInput {
   });
 
   Map<String, dynamic> toJson() => {
-        'title': title,
-        'description': description,
-        'repetitions': repetitions,
-        'rest': rest,
-        'duration': duration,
-      };
+    if (id != null) 'id': id,
+    'title': title,
+    'description': description,
+    'repetitions': repetitions,
+    'rest': rest,
+    'duration': duration,
+  };
 }

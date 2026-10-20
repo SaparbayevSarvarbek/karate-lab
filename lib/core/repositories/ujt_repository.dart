@@ -6,6 +6,7 @@ import '../api/api_exception.dart';
 import '../api/models/exercise_models.dart';
 import '../api/models/mjt_models.dart';
 import '../api/models/ujt_models.dart';
+import '../l10n/app_translations.dart';
 
 /// Mashqlar repository: Texnik (/exercises/) + UJT (/ujt-tests/) + MJT (/mjt-tests/).
 abstract class UjtRepository {
@@ -38,8 +39,9 @@ class UjtRepositoryImpl implements UjtRepository {
     try {
       final items = await _apiClient.getList(
         ApiConstants.ujtTests,
-        queryParameters:
-            search.isEmpty ? null : <String, dynamic>{'search': search},
+        queryParameters: search.isEmpty
+            ? null
+            : <String, dynamic>{'search': search},
       );
       return Right(items.map(UjtTest.fromJson).toList());
     } on ApiException catch (e) {
@@ -52,7 +54,7 @@ class UjtRepositoryImpl implements UjtRepository {
     try {
       final data = await _apiClient.getObject(ApiConstants.ujtTestDetail(id));
       if (data == null) {
-        return const Left(ApiException(message: 'UJT testi topilmadi'));
+        return Left(ApiException(message: Tr.t('ujtTestNotFound')));
       }
       return Right(UjtTest.fromJson(data));
     } on ApiException catch (e) {
@@ -67,8 +69,9 @@ class UjtRepositoryImpl implements UjtRepository {
     try {
       final items = await _apiClient.getList(
         ApiConstants.mjtTests,
-        queryParameters:
-            search.isEmpty ? null : <String, dynamic>{'search': search},
+        queryParameters: search.isEmpty
+            ? null
+            : <String, dynamic>{'search': search},
       );
       return Right(items.map(MjtTest.fromJson).toList());
     } on ApiException catch (e) {
@@ -81,7 +84,7 @@ class UjtRepositoryImpl implements UjtRepository {
     try {
       final data = await _apiClient.getObject(ApiConstants.mjtTestDetail(id));
       if (data == null) {
-        return const Left(ApiException(message: 'MJT testi topilmadi'));
+        return Left(ApiException(message: Tr.t('mjtTestNotFound')));
       }
       return Right(MjtTest.fromJson(data));
     } on ApiException catch (e) {

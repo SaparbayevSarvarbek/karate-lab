@@ -40,7 +40,7 @@ class LocaleController extends ChangeNotifier {
 class Tr {
   Tr._();
 
-  static Map<String, Map<String, String>> _translations = {
+  static final Map<String, Map<String, String>> _translations = {
     'uz': {},
     'en': {},
   };
@@ -74,5 +74,37 @@ class Tr {
       args.forEach((k, v) => text = text.replaceAll('{$k}', v));
     }
     return text;
+  }
+
+  static String categoryName(String value) {
+    switch (value.trim().toLowerCase()) {
+      case 'texnik':
+      case 'texnika':
+      case 'technical':
+      case 'technique':
+        return t('categoryTechnical');
+      case 'ujt':
+        return t('categoryUjt');
+      case 'mjt':
+        return t('categoryMjt');
+      default:
+        return value;
+    }
+  }
+
+  static String categoryKey(String value) {
+    switch (value.trim().toLowerCase()) {
+      case 'texnik':
+      case 'texnika':
+      case 'technical':
+      case 'technique':
+        return 'technical';
+      case 'ujt':
+        return 'ujt';
+      case 'mjt':
+        return 'mjt';
+      default:
+        return value.trim().toLowerCase();
+    }
   }
 }

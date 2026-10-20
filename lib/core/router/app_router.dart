@@ -28,15 +28,13 @@ import '../../core/constants/app_constants.dart';
 import '../../core/api/models/athlete_models.dart';
 import '../../core/api/models/exercise_models.dart';
 import '../../core/api/models/test_models.dart';
+import '../../core/l10n/app_translations.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(
     initialLocation: '/',
     routes: [
-      GoRoute(
-        path: '/',
-        builder: (context, state) => const SplashView(),
-      ),
+      GoRoute(path: '/', builder: (context, state) => const SplashView()),
       GoRoute(
         path: '/language',
         builder: (context, state) => const LanguageSelectionView(),
@@ -45,10 +43,7 @@ class AppRouter {
         path: '/onboarding',
         builder: (context, state) => const OnboardingView(),
       ),
-      GoRoute(
-        path: '/login',
-        builder: (context, state) => const LoginView(),
-      ),
+      GoRoute(path: '/login', builder: (context, state) => const LoginView()),
       GoRoute(
         path: '/role-selection',
         builder: (context, state) => const RoleSelectionView(),
@@ -80,12 +75,20 @@ class AppRouter {
       GoRoute(
         path: '/exercise-detail',
         builder: (context, state) {
-          return ExerciseDetailView(exercise: state.extra as Exercise?);
+          final extra = state.extra;
+          if (extra is ExerciseDetailArgs) {
+            return ExerciseDetailView(
+              exercise: extra.exercise,
+              canEdit: extra.canEdit,
+            );
+          }
+          return ExerciseDetailView(exercise: extra as Exercise?);
         },
       ),
       GoRoute(
         path: '/add-exercise',
-        builder: (context, state) => const AddExerciseView(),
+        builder: (context, state) =>
+            AddExerciseView(exercise: state.extra as Exercise?),
       ),
       GoRoute(
         path: '/my-exercises',
@@ -103,18 +106,15 @@ class AppRouter {
       ),
       GoRoute(
         path: '/create-test',
-        builder: (context, state) => CreateTestView(
-          test: state.extra as TestEntity?,
-        ),
+        builder: (context, state) =>
+            CreateTestView(test: state.extra as TestEntity?),
       ),
       GoRoute(
         path: '/test-run',
         builder: (context, state) {
           final result = state.extra as TestResult?;
           if (result == null) {
-            return const Scaffold(
-              body: Center(child: Text('Test topilmadi')),
-            );
+            return Scaffold(body: Center(child: Text(Tr.t('testNotFound'))));
           }
           return TestRunView(result: result);
         },
@@ -151,9 +151,8 @@ class AppRouter {
       ),
       GoRoute(
         path: '/profile-edit',
-        builder: (context, state) => ProfileEditView(
-          role: state.extra as String?,
-        ),
+        builder: (context, state) =>
+            ProfileEditView(role: state.extra as String?),
       ),
       GoRoute(
         path: '/notification-settings',

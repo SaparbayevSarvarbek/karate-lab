@@ -60,11 +60,7 @@ class AppCard extends StatelessWidget {
     );
 
     if (onTap == null) {
-      return Container(
-        margin: margin,
-        decoration: decoration,
-        child: content,
-      );
+      return Container(margin: margin, decoration: decoration, child: content);
     }
 
     return Container(

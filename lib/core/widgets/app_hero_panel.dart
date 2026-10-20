@@ -34,7 +34,8 @@ class AppHeroPanel extends StatelessWidget {
       width: double.infinity,
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: colors ??
+          colors:
+              colors ??
               const [AppColors.primaryNavy, AppColors.gradientDeepBlue],
           begin: AlignmentDirectional.topStart,
           end: AlignmentDirectional.bottomEnd,
@@ -56,7 +57,12 @@ class AppHeroPanel extends StatelessWidget {
                 ),
               ),
             Padding(
-              padding: EdgeInsets.fromLTRB(p.left.w, p.top.h, p.right.w, p.bottom.h),
+              padding: EdgeInsets.fromLTRB(
+                p.left.w,
+                p.top.h,
+                p.right.w,
+                p.bottom.h,
+              ),
               child: child,
             ),
           ],

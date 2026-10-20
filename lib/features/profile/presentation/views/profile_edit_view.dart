@@ -82,16 +82,13 @@ class _ProfileEditViewState extends State<ProfileEditView> {
     // API asosiy manba.
     try {
       final result = await getIt<ProfileRepository>().getProfile();
-      result.fold(
-        (error) {
-          _fillFromLocal(saved);
-          // Lokal zaxira ham bo'lmasa, sahifa sababsiz bo'sh ko'rinmasin.
-          if (saved == null && mounted) {
-            AppSnackbar.error(context, error.message);
-          }
-        },
-        _fillFromApi,
-      );
+      result.fold((error) {
+        _fillFromLocal(saved);
+        // Lokal zaxira ham bo'lmasa, sahifa sababsiz bo'sh ko'rinmasin.
+        if (saved == null && mounted) {
+          AppSnackbar.error(context, error.message);
+        }
+      }, _fillFromApi);
     } catch (_) {
       _fillFromLocal(saved);
     }
@@ -110,8 +107,9 @@ class _ProfileEditViewState extends State<ProfileEditView> {
   void _fillFromApi(Profile profile) {
     final names = profile.fullName.trim().split(RegExp(r'\s+'));
     _firstNameController.text = names.isNotEmpty ? names.first : '';
-    _lastNameController.text =
-        names.length > 1 ? names.sublist(1).join(' ') : '';
+    _lastNameController.text = names.length > 1
+        ? names.sublist(1).join(' ')
+        : '';
     _phoneController.text = UzPhoneFormatter.field(profile.phone);
     _setBirthDate(DateTime.tryParse(profile.birthDate ?? ''));
     if (profile.avatar != null && profile.avatar!.isNotEmpty) {
@@ -166,15 +164,14 @@ class _ProfileEditViewState extends State<ProfileEditView> {
       );
       if (picked == null || !mounted) return;
       setState(() => _avatarBusy = true);
-      final result =
-          await getIt<ProfileRepository>().uploadAvatar(picked.path);
+      final result = await getIt<ProfileRepository>().uploadAvatar(picked.path);
       if (!mounted) return;
       await result.fold(
         (error) async {
           if (mounted) AppSnackbar.error(context, error.message);
         },
         (_) async {
-          AppSnackbar.success(context, 'Foto muvaffaqiyatli yuklandi');
+          AppSnackbar.success(context, Tr.t('profilePhotoUploaded'));
           final updated = await getIt<ProfileRepository>().getProfile();
           if (!mounted) return;
           updated.fold(
@@ -185,7 +182,7 @@ class _ProfileEditViewState extends State<ProfileEditView> {
       );
     } catch (_) {
       if (mounted) {
-        AppSnackbar.error(context, 'Foto yuklashda xatolik yuz berdi');
+        AppSnackbar.error(context, Tr.t('profilePhotoUploadError'));
       }
     } finally {
       if (mounted) setState(() => _avatarBusy = false);
@@ -215,8 +212,8 @@ class _ProfileEditViewState extends State<ProfileEditView> {
     final birthDate = _birthDate == null
         ? null
         : '${_birthDate!.year.toString().padLeft(4, '0')}-'
-            '${_birthDate!.month.toString().padLeft(2, '0')}-'
-            '${_birthDate!.day.toString().padLeft(2, '0')}';
+              '${_birthDate!.month.toString().padLeft(2, '0')}-'
+              '${_birthDate!.day.toString().padLeft(2, '0')}';
 
     final request = UpdateProfileRequest(
       fullName: fullName,
@@ -229,18 +226,19 @@ class _ProfileEditViewState extends State<ProfileEditView> {
     try {
       try {
         final prefs = await SharedPrefsService.getInstance();
-        await prefs.saveUserProfile(ProfileModel(
-          firstName: _firstNameController.text.trim(),
-          lastName: _lastNameController.text.trim(),
-          phone: phone,
-          dateOfBirth: birthDate,
-          heightCm: int.tryParse(_heightController.text.trim()),
-          weightKg: int.tryParse(_weightController.text.trim()),
-        ));
+        await prefs.saveUserProfile(
+          ProfileModel(
+            firstName: _firstNameController.text.trim(),
+            lastName: _lastNameController.text.trim(),
+            phone: phone,
+            dateOfBirth: birthDate,
+            heightCm: int.tryParse(_heightController.text.trim()),
+            weightKg: int.tryParse(_weightController.text.trim()),
+          ),
+        );
       } catch (_) {}
 
-      final result =
-          await getIt<ProfileRepository>().updateProfile(request);
+      final result = await getIt<ProfileRepository>().updateProfile(request);
 
       if (!mounted) return;
 
@@ -250,7 +248,7 @@ class _ProfileEditViewState extends State<ProfileEditView> {
         },
         (profile) async {
           if (!mounted) return;
-          AppSnackbar.success(context, 'Profil saqlandi');
+          AppSnackbar.success(context, Tr.t('profileSaved'));
           context.pop<Profile>(profile);
         },
       );
@@ -286,7 +284,7 @@ class _ProfileEditViewState extends State<ProfileEditView> {
                         onCameraTap: _pickAvatar,
                       ),
                       SizedBox(height: AppSpacing.xxl.h),
-                      AppSectionHeader(title: 'Shaxsiy ma\'lumotlar'),
+                      AppSectionHeader(title: Tr.t('personalInformation')),
                       SizedBox(height: AppSpacing.md.h),
                       AppCard(
                         child: Column(
@@ -296,23 +294,25 @@ class _ProfileEditViewState extends State<ProfileEditView> {
                                 Expanded(
                                   child: CustomTextField(
                                     controller: _firstNameController,
-                                    hintText: 'Ism',
-                                    prefixIcon: const Icon(Icons.person_outline),
+                                    hintText: Tr.t('firstName'),
+                                    prefixIcon: const Icon(
+                                      Icons.person_outline,
+                                    ),
                                     validator: (v) =>
                                         (v == null || v.trim().isEmpty)
-                                            ? 'Ism kiriting'
-                                            : null,
+                                        ? Tr.t('firstNameRequired')
+                                        : null,
                                   ),
                                 ),
                                 SizedBox(width: AppSpacing.md.w),
                                 Expanded(
                                   child: CustomTextField(
                                     controller: _lastNameController,
-                                    hintText: 'Familiya',
+                                    hintText: Tr.t('lastName'),
                                     validator: (v) =>
                                         (v == null || v.trim().isEmpty)
-                                            ? 'Familiya kiriting'
-                                            : null,
+                                        ? Tr.t('lastNameRequired')
+                                        : null,
                                   ),
                                 ),
                               ],
@@ -323,7 +323,7 @@ class _ProfileEditViewState extends State<ProfileEditView> {
                         ),
                       ),
                       SizedBox(height: AppSpacing.sectionGap.h),
-                      AppSectionHeader(title: 'Jismoniy ko\'rsatkichlar'),
+                      AppSectionHeader(title: Tr.t('physicalInformation')),
                       SizedBox(height: AppSpacing.md.h),
                       AppCard(
                         child: Column(
@@ -333,10 +333,11 @@ class _ProfileEditViewState extends State<ProfileEditView> {
                               child: AbsorbPointer(
                                 child: CustomTextField(
                                   controller: _dobController,
-                                  hintText: 'Tug\'ilgan sana (YYYY-MM-DD)',
+                                  hintText: Tr.t('birthDateFormatHint'),
                                   prefixIcon: const Icon(Icons.cake_outlined),
-                                  suffixIcon:
-                                      const Icon(Icons.calendar_today_rounded),
+                                  suffixIcon: const Icon(
+                                    Icons.calendar_today_rounded,
+                                  ),
                                 ),
                               ),
                             ),
@@ -346,21 +347,24 @@ class _ProfileEditViewState extends State<ProfileEditView> {
                                 Expanded(
                                   child: CustomTextField(
                                     controller: _heightController,
-                                    hintText: 'Bo\'y',
+                                    hintText: Tr.t('height'),
                                     keyboardType: TextInputType.number,
-                                    prefixIcon: const Icon(Icons.height_rounded),
-                                    suffixText: 'sm',
+                                    prefixIcon: const Icon(
+                                      Icons.height_rounded,
+                                    ),
+                                    suffixText: Tr.t('centimetersShort'),
                                   ),
                                 ),
                                 SizedBox(width: AppSpacing.md.w),
                                 Expanded(
                                   child: CustomTextField(
                                     controller: _weightController,
-                                    hintText: 'Vazn',
+                                    hintText: Tr.t('weight'),
                                     keyboardType: TextInputType.number,
                                     prefixIcon: const Icon(
-                                        Icons.monitor_weight_outlined),
-                                    suffixText: 'kg',
+                                      Icons.monitor_weight_outlined,
+                                    ),
+                                    suffixText: Tr.t('kilogramsShort'),
                                   ),
                                 ),
                               ],
@@ -377,7 +381,7 @@ class _ProfileEditViewState extends State<ProfileEditView> {
           ? null
           : AppBottomBar(
               child: CustomButton(
-                text: _saving ? 'Saqlanmoqda...' : 'Saqlash',
+                text: _saving ? Tr.t('saving') : Tr.t('save'),
                 isLoading: _saving,
                 onPressed: _save,
                 trailingIcon: Icons.check_rounded,

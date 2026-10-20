@@ -195,10 +195,8 @@ class _CoachDashboardContent extends StatelessWidget {
                     title: Tr.t('reportsMenu'),
                     subtitle: Tr.t('reportsSub'),
                     showChevron: true,
-                    onTap: () => context.push(
-                      '/reports',
-                      extra: AppConstants.roleCoach,
-                    ),
+                    onTap: () =>
+                        context.push('/reports', extra: AppConstants.roleCoach),
                   ),
                 ],
               ),

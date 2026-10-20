@@ -30,11 +30,11 @@ class _GroupSelectionViewState extends State<GroupSelectionView> {
 
   // (title, subtitle, selectable)
   static const List<(String, String, bool)> _groups = [
-    ('SSG', 'sport-sog\'lomlashtirish guruhi', false),
-    ('BTG', 'boshlang\'ich tayyorgarlik guruhi', false),
-    ('O\'MG', 'o\'quv-mashg\'ulot guruhi', true),
-    ('SKEG', 'sportda kamolotga erishish guruhi', false),
-    ('OSMG', 'oliy sport mahorati guruhi', false),
+    ('SSG', 'groupSsg', false),
+    ('BTG', 'groupBtg', false),
+    ('O\'MG', 'groupOmg', true),
+    ('SKEG', 'groupSkeg', false),
+    ('OSMG', 'groupOsmg', false),
   ];
 
   @override
@@ -45,7 +45,7 @@ class _GroupSelectionViewState extends State<GroupSelectionView> {
 
   void _onSelect(String group, bool selectable) {
     if (!selectable) {
-      AppSnackbar.info(context, 'Tez orada 🚀');
+      AppSnackbar.info(context, Tr.t('comingSoon'));
       return;
     }
     setState(() => _selectedGroup = group);
@@ -63,10 +63,7 @@ class _GroupSelectionViewState extends State<GroupSelectionView> {
 
     return Scaffold(
       backgroundColor: palette.background,
-      appBar: const KarateAppBar(
-        title: 'Mashg\'ulot guruhini tanlang',
-        showLogo: true,
-      ),
+      appBar: KarateAppBar(title: Tr.t('chooseTrainingGroup'), showLogo: true),
       body: SafeArea(
         top: false,
         child: Column(
@@ -81,26 +78,29 @@ class _GroupSelectionViewState extends State<GroupSelectionView> {
                 ),
                 children: [
                   Text(
-                    'Guruhni tanlang',
-                    style: AppTextStyles.screenTitle
-                        .copyWith(color: palette.textPrimary),
+                    Tr.t('chooseGroup'),
+                    style: AppTextStyles.screenTitle.copyWith(
+                      color: palette.textPrimary,
+                    ),
                   ),
                   SizedBox(height: AppSpacing.sm.h),
                   Text(
                     Tr.t('groupSelectHint'),
-                    style: AppTextStyles.body
-                        .copyWith(color: palette.textSecondary),
+                    style: AppTextStyles.body.copyWith(
+                      color: palette.textSecondary,
+                    ),
                   ),
                   SizedBox(height: AppSpacing.xxl.h),
                   for (final (title, subtitle, selectable) in _groups) ...[
                     AppSelectionCard(
                       icon: Icons.workspace_premium_outlined,
                       title: title,
-                      subtitle: subtitle,
+                      subtitle: Tr.t(subtitle),
                       selected: _selectedGroup == title,
                       enabled: selectable,
-                      trailingLabel:
-                          selectable ? null : Tr.t('comingSoonBadge'),
+                      trailingLabel: selectable
+                          ? null
+                          : Tr.t('comingSoonBadge'),
                       onTap: () => _onSelect(title, selectable),
                     ),
                     if (title != _groups.last.$1)

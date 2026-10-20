@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:video_player/video_player.dart';
+import '../api/api_constants.dart';
 import '../constants/app_colors.dart';
+import '../l10n/app_translations.dart';
 import '../theme/app_palette.dart';
 import '../theme/app_radius.dart';
 import '../theme/app_spacing.dart';
@@ -20,8 +22,14 @@ import 'app_snackbar.dart';
 class MediaUploadSection extends StatefulWidget {
   final ValueChanged<File?>? onImagePicked;
   final ValueChanged<File?>? onVideoPicked;
+  final String? initialImageUrl;
 
-  const MediaUploadSection({super.key, this.onImagePicked, this.onVideoPicked});
+  const MediaUploadSection({
+    super.key,
+    this.onImagePicked,
+    this.onVideoPicked,
+    this.initialImageUrl,
+  });
 
   @override
   State<MediaUploadSection> createState() => _MediaUploadSectionState();
@@ -30,8 +38,15 @@ class MediaUploadSection extends StatefulWidget {
 class _MediaUploadSectionState extends State<MediaUploadSection> {
   File? _image;
   File? _video;
+  late String? _initialImageUrl;
   final ImagePicker _picker = ImagePicker();
   bool _busy = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _initialImageUrl = widget.initialImageUrl;
+  }
 
   Future<void> _choose() async {
     if (_busy) return;
@@ -44,14 +59,14 @@ class _MediaUploadSectionState extends State<MediaUploadSection> {
             children: [
               AppMenuRow(
                 icon: Icons.image_outlined,
-                title: 'Rasm',
+                title: Tr.t('image'),
                 tint: AppColors.primaryBlue,
                 onTap: () => Navigator.of(sheetContext).pop('image'),
               ),
               const AppTileDivider(),
               AppMenuRow(
                 icon: Icons.videocam_outlined,
-                title: 'Video',
+                title: Tr.t('video'),
                 tint: AppColors.success,
                 onTap: () => Navigator.of(sheetContext).pop('video'),
               ),
@@ -73,18 +88,21 @@ class _MediaUploadSectionState extends State<MediaUploadSection> {
   Future<void> _pickImage() async {
     setState(() => _busy = true);
     try {
-      final picked =
-          await _picker.pickImage(source: ImageSource.gallery, maxWidth: 1600);
+      final picked = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1600,
+      );
       if (picked != null) {
         setState(() {
           _image = File(picked.path);
           _video = null;
+          _initialImageUrl = null;
         });
         widget.onImagePicked?.call(_image);
         widget.onVideoPicked?.call(null);
       }
     } catch (_) {
-      _showToast('Rasm tanlashda xatolik yuz berdi');
+      _showToast(Tr.t('imagePickError'));
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -101,12 +119,13 @@ class _MediaUploadSectionState extends State<MediaUploadSection> {
         setState(() {
           _video = File(picked.path);
           _image = null;
+          _initialImageUrl = null;
         });
         widget.onVideoPicked?.call(_video);
         widget.onImagePicked?.call(null);
       }
     } catch (_) {
-      _showToast('Video tanlashda xatolik yuz berdi');
+      _showToast(Tr.t('videoPickError'));
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -131,7 +150,8 @@ class _MediaUploadSectionState extends State<MediaUploadSection> {
           color: palette.backgroundLight,
           borderRadius: radius,
           border: Border.all(
-            color: (_image != null || _video != null)
+            color:
+                (_image != null || _video != null || _initialImageUrl != null)
                 ? AppColors.primaryBlue
                 : palette.border,
           ),
@@ -140,10 +160,12 @@ class _MediaUploadSectionState extends State<MediaUploadSection> {
         child: _busy
             ? const Center(child: CircularProgressIndicator())
             : _video != null
-                ? _VideoPreview(file: _video!)
-                : _image != null
-                    ? _buildImagePreview()
-                    : _buildPlaceholder(),
+            ? _VideoPreview(file: _video!)
+            : _image != null
+            ? _buildImagePreview()
+            : _initialImageUrl != null
+            ? _buildExistingImagePreview()
+            : _buildPlaceholder(),
       ),
     );
   }
@@ -160,14 +182,47 @@ class _MediaUploadSectionState extends State<MediaUploadSection> {
           child: Container(
             padding: EdgeInsets.symmetric(vertical: AppSpacing.sm.h),
             color: Colors.black.withValues(alpha: 0.55),
-            child: const Row(
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(Icons.image, color: Colors.white, size: 16),
                 SizedBox(width: 8),
                 Text(
-                  'Rasmni almashtirish',
-                  style: TextStyle(color: Colors.white, fontSize: 12),
+                  Tr.t('replaceImage'),
+                  style: const TextStyle(color: Colors.white, fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildExistingImagePreview() {
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        Image.network(
+          ApiConstants.resolveMediaUrl(_initialImageUrl!),
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) => _buildPlaceholder(),
+        ),
+        PositionedDirectional(
+          bottom: 0,
+          start: 0,
+          end: 0,
+          child: Container(
+            padding: EdgeInsets.symmetric(vertical: AppSpacing.sm.h),
+            color: Colors.black.withValues(alpha: 0.55),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.image, color: Colors.white, size: 16),
+                SizedBox(width: 8),
+                Text(
+                  Tr.t('replaceImage'),
+                  style: const TextStyle(color: Colors.white, fontSize: 12),
                 ),
               ],
             ),
@@ -190,12 +245,12 @@ class _MediaUploadSectionState extends State<MediaUploadSection> {
           ),
           SizedBox(height: AppSpacing.sm.h),
           Text(
-            'Rasm yoki video qo\'shish',
+            Tr.t('addImageOrVideo'),
             style: AppTextStyles.body.copyWith(color: palette.textHint),
           ),
           SizedBox(height: AppSpacing.xs.h),
           Text(
-            'Birini tanlang',
+            Tr.t('chooseOne'),
             style: AppTextStyles.caption.copyWith(color: palette.textHint),
           ),
         ],
@@ -304,14 +359,14 @@ class _VideoPreviewState extends State<_VideoPreview> {
           child: Container(
             padding: EdgeInsets.symmetric(vertical: AppSpacing.sm.h),
             color: Colors.black.withValues(alpha: 0.55),
-            child: const Row(
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(Icons.videocam, color: Colors.white, size: 16),
                 SizedBox(width: 8),
                 Text(
-                  'Videoni ko\'rish uchun bosing',
-                  style: TextStyle(color: Colors.white, fontSize: 12),
+                  Tr.t('tapToViewVideo'),
+                  style: const TextStyle(color: Colors.white, fontSize: 12),
                 ),
               ],
             ),

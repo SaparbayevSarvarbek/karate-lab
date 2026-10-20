@@ -2,6 +2,8 @@
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import '../../l10n/app_translations.dart';
+
 part 'test_models.freezed.dart';
 part 'test_models.g.dart';
 
@@ -18,13 +20,13 @@ enum TestStatus {
   String get label {
     switch (this) {
       case TestStatus.pending:
-        return 'Kutilmoqda';
+        return Tr.t('testStatusPending');
       case TestStatus.inProgress:
-        return 'Jarayonda';
+        return Tr.t('testStatusInProgress');
       case TestStatus.completed:
-        return 'Bajarildi';
+        return Tr.t('testStatusCompleted');
       case TestStatus.unknown:
-        return 'Noma\'lum';
+        return Tr.t('unknown');
     }
   }
 }
@@ -181,12 +183,12 @@ class TestStepInput {
   });
 
   Map<String, dynamic> toJson() => {
-        if (id != null) 'id': id,
-        'title': title,
-        'description': description,
-        'repetitions': repetitions,
-        'duration': duration,
-      };
+    if (id != null) 'id': id,
+    'title': title,
+    'description': description,
+    'repetitions': repetitions,
+    'duration': duration,
+  };
 }
 
 /// Test bajarilganda bitta qadam natijasi (`finish` so'rovida).

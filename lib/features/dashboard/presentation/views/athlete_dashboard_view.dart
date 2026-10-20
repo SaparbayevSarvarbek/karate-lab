@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
@@ -118,9 +118,8 @@ class _AthleteDashboardContent extends StatelessWidget {
             return AppErrorView(
               message: state.message,
               retryLabel: Tr.t('retry'),
-              onRetry: () => context
-                  .read<DashboardBloc>()
-                  .add(LoadAthleteDashboard()),
+              onRetry: () =>
+                  context.read<DashboardBloc>().add(LoadAthleteDashboard()),
             );
           }
 
@@ -146,10 +145,7 @@ class _AthleteDashboardContent extends StatelessWidget {
                     onAction: _gotoTests,
                   ),
                   SizedBox(height: AppSpacing.md.h),
-                  _RecentResults(
-                    data: state.data,
-                    onTapResult: _gotoTests,
-                  ),
+                  _RecentResults(data: state.data, onTapResult: _gotoTests),
                 ],
               ),
             );
@@ -242,8 +238,9 @@ class _HeroAction extends StatelessWidget {
               SizedBox(width: AppSpacing.xs.w),
               Text(
                 label,
-                style: AppTextStyles.button
-                    .copyWith(color: AppColors.primaryNavy),
+                style: AppTextStyles.button.copyWith(
+                  color: AppColors.primaryNavy,
+                ),
               ),
             ],
           ),
@@ -312,7 +309,7 @@ class _RecentResults extends StatelessWidget {
       return AppEmptyView(
         icon: Icons.assignment_outlined,
         title: Tr.t('noResults'),
-        message: 'Birinchi testingizni boshlang va natijani shu yerda ko\'ring.',
+        message: Tr.t('firstTestPrompt'),
         actionLabel: Tr.t('startTests'),
         onAction: onTapResult,
       );
@@ -372,25 +369,24 @@ class _ResultCard extends StatelessWidget {
                   result.testName,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.cardTitle
-                      .copyWith(color: palette.textPrimary),
+                  style: AppTextStyles.cardTitle.copyWith(
+                    color: palette.textPrimary,
+                  ),
                 ),
                 if (date.isNotEmpty) ...[
                   SizedBox(height: 2.h),
                   Text(
                     date,
-                    style: AppTextStyles.caption
-                        .copyWith(color: palette.textSecondary),
+                    style: AppTextStyles.caption.copyWith(
+                      color: palette.textSecondary,
+                    ),
                   ),
                 ],
               ],
             ),
           ),
           SizedBox(width: AppSpacing.sm.w),
-          AppBadge(
-            label: result.score.toStringAsFixed(1),
-            color: color,
-          ),
+          AppBadge(label: result.score.toStringAsFixed(1), color: color),
         ],
       ),
     );

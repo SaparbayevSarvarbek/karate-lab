@@ -14,11 +14,7 @@ class DashboardAppBar extends StatefulWidget implements PreferredSizeWidget {
   final String fallbackName;
   final List<Widget>? actions;
 
-  const DashboardAppBar({
-    super.key,
-    required this.fallbackName,
-    this.actions,
-  });
+  const DashboardAppBar({super.key, required this.fallbackName, this.actions});
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight + 1);
@@ -33,9 +29,9 @@ class _DashboardAppBarState extends State<DashboardAppBar> {
   @override
   void initState() {
     super.initState();
-    _profileFuture = getIt<ProfileRepository>()
-        .getProfile()
-        .then((result) => result.fold((_) => null, (profile) => profile));
+    _profileFuture = getIt<ProfileRepository>().getProfile().then(
+      (result) => result.fold((_) => null, (profile) => profile),
+    );
   }
 
   String get _greeting {

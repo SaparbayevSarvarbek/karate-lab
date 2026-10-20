@@ -89,8 +89,9 @@ class AppSelectionCard extends StatelessWidget {
                           subtitle!,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: AppTextStyles.caption
-                              .copyWith(color: palette.textSecondary),
+                          style: AppTextStyles.caption.copyWith(
+                            color: palette.textSecondary,
+                          ),
                         ),
                       ],
                     ],
@@ -116,8 +117,10 @@ class AppSelectionCard extends StatelessWidget {
         ),
         child: Text(
           trailingLabel!,
-          style: AppTextStyles.badge
-              .copyWith(color: palette.textHint, letterSpacing: 0),
+          style: AppTextStyles.badge.copyWith(
+            color: palette.textHint,
+            letterSpacing: 0,
+          ),
         ),
       );
     }

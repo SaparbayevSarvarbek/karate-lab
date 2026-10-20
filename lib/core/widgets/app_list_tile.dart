@@ -8,6 +8,7 @@ import '../theme/app_spacing.dart';
 import '../theme/app_text_styles.dart';
 import 'app_card.dart';
 import 'app_icon_tile.dart';
+
 /// Ro'yxatdagi yagona element: ikonka plitasi + sarlavha + izoh + o'ng tomon.
 ///
 /// Mashqlar, testlar, sportchilar va amallar ro'yxatlari shu widgetdan
@@ -60,8 +61,9 @@ class AppListTile extends StatelessWidget {
                   title,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.cardTitle
-                      .copyWith(color: palette.textPrimary),
+                  style: AppTextStyles.cardTitle.copyWith(
+                    color: palette.textPrimary,
+                  ),
                 ),
                 if (subtitle != null && subtitle!.isNotEmpty) ...[
                   SizedBox(height: AppSpacing.xxs.h),
@@ -69,8 +71,9 @@ class AppListTile extends StatelessWidget {
                     subtitle!,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: AppTextStyles.caption
-                        .copyWith(color: palette.textSecondary),
+                    style: AppTextStyles.caption.copyWith(
+                      color: palette.textSecondary,
+                    ),
                   ),
                 ],
                 if (footer != null) ...[
@@ -121,7 +124,12 @@ class AppMeta extends StatelessWidget {
   final String text;
   final Color? color;
 
-  const AppMeta({super.key, required this.icon, required this.text, this.color});
+  const AppMeta({
+    super.key,
+    required this.icon,
+    required this.text,
+    this.color,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -132,10 +140,7 @@ class AppMeta extends StatelessWidget {
       children: [
         Icon(icon, size: 13.5.w, color: tint),
         SizedBox(width: 4.w),
-        Text(
-          text,
-          style: AppTextStyles.caption.copyWith(color: tint),
-        ),
+        Text(text, style: AppTextStyles.caption.copyWith(color: tint)),
       ],
     );
   }
@@ -235,9 +240,7 @@ class AppMenuRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
-    final accent = danger
-        ? palette.error
-        : (tint ?? AppColors.primaryBlue);
+    final accent = danger ? palette.error : (tint ?? AppColors.primaryBlue);
 
     final row = Padding(
       padding: EdgeInsets.symmetric(
@@ -246,7 +249,12 @@ class AppMenuRow extends StatelessWidget {
       ),
       child: Row(
         children: [
-          AppIconTile(icon: icon, color: accent, size: 40, radius: AppRadius.tile),
+          AppIconTile(
+            icon: icon,
+            color: accent,
+            size: 40,
+            radius: AppRadius.tile,
+          ),
           SizedBox(width: AppSpacing.md.w),
           Expanded(
             child: Column(
@@ -267,8 +275,9 @@ class AppMenuRow extends StatelessWidget {
                     subtitle!,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: AppTextStyles.caption
-                        .copyWith(color: palette.textSecondary),
+                    style: AppTextStyles.caption.copyWith(
+                      color: palette.textSecondary,
+                    ),
                   ),
                 ],
               ],

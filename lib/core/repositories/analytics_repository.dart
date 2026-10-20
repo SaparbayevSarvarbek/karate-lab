@@ -4,13 +4,16 @@ import '../api/api_client.dart';
 import '../api/api_constants.dart';
 import '../api/api_exception.dart';
 import '../api/models/analytics_models.dart';
+import '../l10n/app_translations.dart';
 
 /// Analytics repository for athlete and coach statistics.
 abstract class AnalyticsRepository {
   Future<Either<ApiException, AthleteStatistics>> getAthleteStatistics();
   Future<Either<ApiException, CoachStatistics>> getCoachStatistics();
   Future<Either<ApiException, List<AthleteSummary>>> getCoachAthletes();
-  Future<Either<ApiException, AthleteStatistics>> getCoachAthleteStatistics(int athleteId);
+  Future<Either<ApiException, AthleteStatistics>> getCoachAthleteStatistics(
+    int athleteId,
+  );
 }
 
 class AnalyticsRepositoryImpl implements AnalyticsRepository {
@@ -23,7 +26,7 @@ class AnalyticsRepositoryImpl implements AnalyticsRepository {
     try {
       final data = await _apiClient.getObject(ApiConstants.athleteStatistics);
       if (data == null) {
-        return const Left(ApiException(message: 'Statistika topilmadi'));
+        return Left(ApiException(message: Tr.t('statisticsNotFound')));
       }
       return Right(AthleteStatistics.fromJson(data));
     } on ApiException catch (e) {
@@ -36,7 +39,7 @@ class AnalyticsRepositoryImpl implements AnalyticsRepository {
     try {
       final data = await _apiClient.getObject(ApiConstants.coachStatistics);
       if (data == null) {
-        return const Left(ApiException(message: 'Statistika topilmadi'));
+        return Left(ApiException(message: Tr.t('statisticsNotFound')));
       }
       return Right(CoachStatistics.fromJson(data));
     } on ApiException catch (e) {
@@ -63,7 +66,7 @@ class AnalyticsRepositoryImpl implements AnalyticsRepository {
         ApiConstants.coachAthleteStatistics(athleteId),
       );
       if (data == null) {
-        return const Left(ApiException(message: 'Statistika topilmadi'));
+        return Left(ApiException(message: Tr.t('statisticsNotFound')));
       }
       return Right(AthleteStatistics.fromJson(data));
     } on ApiException catch (e) {

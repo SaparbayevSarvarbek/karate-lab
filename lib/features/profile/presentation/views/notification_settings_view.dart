@@ -18,7 +18,8 @@ class NotificationSettingsView extends StatefulWidget {
   const NotificationSettingsView({super.key});
 
   @override
-  State<NotificationSettingsView> createState() => _NotificationSettingsViewState();
+  State<NotificationSettingsView> createState() =>
+      _NotificationSettingsViewState();
 }
 
 class _NotificationSettingsViewState extends State<NotificationSettingsView> {
@@ -31,7 +32,8 @@ class _NotificationSettingsViewState extends State<NotificationSettingsView> {
   };
 
   bool _loading = true;
-  bool _saving = false;
+  final Set<String> _savingKeys = {};
+  Future<void> _saveQueue = Future<void>.value();
   final Map<String, bool> _prefs = Map.of(_defaults);
 
   @override
@@ -43,38 +45,39 @@ class _NotificationSettingsViewState extends State<NotificationSettingsView> {
   Future<void> _load() async {
     final result = await getIt<SettingsRepository>().getSettings();
     if (!mounted) return;
-    result.fold(
-      (_) {},
-      (settings) {
-        final saved = settings.notificationPreferences;
-        if (saved != null) {
-          for (final key in _defaults.keys) {
-            final value = saved[key];
-            if (value is bool) _prefs[key] = value;
-          }
+    result.fold((_) {}, (settings) {
+      final saved = settings.notificationPreferences;
+      if (saved != null) {
+        for (final key in _defaults.keys) {
+          final value = saved[key];
+          if (value is bool) _prefs[key] = value;
         }
-      },
-    );
+      }
+    });
     setState(() => _loading = false);
   }
 
   Future<void> _toggle(String key, bool value) async {
-    if (_saving) return;
+    if (_savingKeys.contains(key)) return;
+    final previousValue = _prefs[key] ?? false;
     setState(() {
       _prefs[key] = value;
-      _saving = true;
+      _savingKeys.add(key);
     });
-    final result = await getIt<SettingsRepository>()
-        .updateNotificationPreferences({'preferences': Map.of(_prefs)});
-    if (!mounted) return;
-    setState(() => _saving = false);
-    result.fold(
-      (error) {
-        setState(() => _prefs[key] = !_prefs[key]!);
+
+    _saveQueue = _saveQueue.then((_) async {
+      final result = await getIt<SettingsRepository>()
+          .updateNotificationPreferences({'preferences': Map.of(_prefs)});
+      if (!mounted) return;
+
+      setState(() => _savingKeys.remove(key));
+      result.fold((error) {
+        setState(() {
+          if (_prefs[key] == value) _prefs[key] = previousValue;
+        });
         AppSnackbar.error(context, error.message);
-      },
-      (_) {},
-    );
+      }, (_) {});
+    });
   }
 
   /// Bitta qator — profil menyusidagi `AppMenuRow` bilan bir xil ko'rinishda,
@@ -92,9 +95,10 @@ class _NotificationSettingsViewState extends State<NotificationSettingsView> {
       title: title,
       subtitle: subtitle,
       trailing: Switch(
+        key: ValueKey(key),
         value: _prefs[key] ?? false,
         activeThumbColor: AppColors.primaryBlue,
-        onChanged: _saving ? null : (v) => _toggle(key, v),
+        onChanged: _savingKeys.contains(key) ? null : (v) => _toggle(key, v),
       ),
     );
   }
@@ -106,66 +110,63 @@ class _NotificationSettingsViewState extends State<NotificationSettingsView> {
       appBar: KarateAppBar(title: Tr.t('notifications')),
       body: _loading
           ? const AppLoadingView()
-          : AbsorbPointer(
-              absorbing: _saving,
-              child: ListView(
-                padding: EdgeInsets.fromLTRB(
-                  AppSpacing.screenH.w,
-                  AppSpacing.screenTop.h,
-                  AppSpacing.screenH.w,
-                  AppSpacing.screenBottom.h,
-                ),
-                children: [
-                  AppGroupLabel(title: Tr.t('notifications')),
-                  SizedBox(height: AppSpacing.sm.h),
-                  AppGroup(
-                    children: [
-                      _toggleRow(
-                        key: 'newTests',
-                        icon: Icons.assignment_outlined,
-                        tint: AppColors.primaryBlue,
-                        title: Tr.t('notifNewTests'),
-                        subtitle: Tr.t('notifNewTestsSub'),
-                      ),
-                      _toggleRow(
-                        key: 'trainingReminders',
-                        icon: Icons.alarm_rounded,
-                        tint: AppColors.warning,
-                        title: Tr.t('notifTraining'),
-                        subtitle: Tr.t('notifTrainingSub'),
-                      ),
-                      _toggleRow(
-                        key: 'testResults',
-                        icon: Icons.bar_chart_rounded,
-                        tint: AppColors.success,
-                        title: Tr.t('notifResults'),
-                        subtitle: Tr.t('notifResultsSub'),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: AppSpacing.sectionGap.h),
-                  AppGroupLabel(title: Tr.t('social')),
-                  SizedBox(height: AppSpacing.sm.h),
-                  AppGroup(
-                    children: [
-                      _toggleRow(
-                        key: 'communityUpdates',
-                        icon: Icons.people_outline_rounded,
-                        tint: AppColors.purple,
-                        title: Tr.t('notifCommunity'),
-                        subtitle: Tr.t('notifCommunitySub'),
-                      ),
-                      _toggleRow(
-                        key: 'marketing',
-                        icon: Icons.campaign_outlined,
-                        tint: context.palette.textSecondary,
-                        title: Tr.t('notifMarketing'),
-                        subtitle: Tr.t('notifMarketingSub'),
-                      ),
-                    ],
-                  ),
-                ],
+          : ListView(
+              padding: EdgeInsets.fromLTRB(
+                AppSpacing.screenH.w,
+                AppSpacing.screenTop.h,
+                AppSpacing.screenH.w,
+                AppSpacing.screenBottom.h,
               ),
+              children: [
+                AppGroupLabel(title: Tr.t('notifications')),
+                SizedBox(height: AppSpacing.sm.h),
+                AppGroup(
+                  children: [
+                    _toggleRow(
+                      key: 'newTests',
+                      icon: Icons.assignment_outlined,
+                      tint: AppColors.primaryBlue,
+                      title: Tr.t('notifNewTests'),
+                      subtitle: Tr.t('notifNewTestsSub'),
+                    ),
+                    _toggleRow(
+                      key: 'trainingReminders',
+                      icon: Icons.alarm_rounded,
+                      tint: AppColors.warning,
+                      title: Tr.t('notifTraining'),
+                      subtitle: Tr.t('notifTrainingSub'),
+                    ),
+                    _toggleRow(
+                      key: 'testResults',
+                      icon: Icons.bar_chart_rounded,
+                      tint: AppColors.success,
+                      title: Tr.t('notifResults'),
+                      subtitle: Tr.t('notifResultsSub'),
+                    ),
+                  ],
+                ),
+                SizedBox(height: AppSpacing.sectionGap.h),
+                AppGroupLabel(title: Tr.t('social')),
+                SizedBox(height: AppSpacing.sm.h),
+                AppGroup(
+                  children: [
+                    _toggleRow(
+                      key: 'communityUpdates',
+                      icon: Icons.people_outline_rounded,
+                      tint: AppColors.purple,
+                      title: Tr.t('notifCommunity'),
+                      subtitle: Tr.t('notifCommunitySub'),
+                    ),
+                    _toggleRow(
+                      key: 'marketing',
+                      icon: Icons.campaign_outlined,
+                      tint: context.palette.textSecondary,
+                      title: Tr.t('notifMarketing'),
+                      subtitle: Tr.t('notifMarketingSub'),
+                    ),
+                  ],
+                ),
+              ],
             ),
     );
   }

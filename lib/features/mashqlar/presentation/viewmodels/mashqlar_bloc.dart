@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/api/models/exercise_models.dart';
 import '../../../../core/api/models/mjt_models.dart';
 import '../../../../core/api/models/ujt_models.dart';
+import '../../../../core/l10n/app_translations.dart';
 import '../../../../core/repositories/ujt_repository.dart';
 
 part 'mashqlar_event.dart';
@@ -41,6 +42,14 @@ class MashqItem extends Equatable {
     return kind == 'texnik' && _catIs('MJT');
   }
 
+  bool matchesCategory(String category) {
+    final selected = Tr.categoryKey(category);
+    if (kind == 'ujt' || kind == 'mjt') {
+      return Tr.categoryKey(kind) == selected;
+    }
+    return Tr.categoryKey(subtitle) == selected;
+  }
+
   /// Texnik mashqning `subtitle` (category) — UJT/MJT/Texnika bo'ladi.
   bool _catIs(String name) => subtitle.toUpperCase() == name.toUpperCase();
 
@@ -76,11 +85,13 @@ class MashqlarBloc extends Bloc<MashqlarEvent, MashqlarState> {
       return;
     }
 
-    emit(MashqlarLoaded(
-      texnik: texnik,
-      ujt: ujt,
-      mjt: mjt,
-      warning: errors.isEmpty ? null : errors.join('\n'),
-    ));
+    emit(
+      MashqlarLoaded(
+        texnik: texnik,
+        ujt: ujt,
+        mjt: mjt,
+        warning: errors.isEmpty ? null : errors.join('\n'),
+      ),
+    );
   }
 }

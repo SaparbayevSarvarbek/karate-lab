@@ -46,7 +46,8 @@ class CustomButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
-    final accent = color ??
+    final accent =
+        color ??
         switch (tone) {
           AppButtonTone.primary => AppColors.primaryBlue,
           AppButtonTone.neutral => palette.textPrimary,

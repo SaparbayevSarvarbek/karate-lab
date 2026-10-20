@@ -49,7 +49,8 @@ class KarateAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     final palette = context.palette;
     final canPop = ModalRoute.of(context)?.canPop ?? false;
-    final effectiveLeading = leading ??
+    final effectiveLeading =
+        leading ??
         (canPop
             ? IconButton(
                 icon: const Icon(Icons.arrow_back_rounded),
@@ -85,8 +86,9 @@ class KarateAppBar extends StatelessWidget implements PreferredSizeWidget {
                     title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: AppTextStyles.sectionTitle
-                        .copyWith(color: palette.textPrimary),
+                    style: AppTextStyles.sectionTitle.copyWith(
+                      color: palette.textPrimary,
+                    ),
                   )
                 : Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -96,15 +98,17 @@ class KarateAppBar extends StatelessWidget implements PreferredSizeWidget {
                         title,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: AppTextStyles.sectionTitle
-                            .copyWith(color: palette.textPrimary),
+                        style: AppTextStyles.sectionTitle.copyWith(
+                          color: palette.textPrimary,
+                        ),
                       ),
                       Text(
                         subtitle!,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: AppTextStyles.caption
-                            .copyWith(color: palette.textSecondary),
+                        style: AppTextStyles.caption.copyWith(
+                          color: palette.textSecondary,
+                        ),
                       ),
                     ],
                   ),

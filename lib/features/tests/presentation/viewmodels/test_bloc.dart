@@ -105,12 +105,9 @@ class TestBloc extends Bloc<TestEvent, TestState> {
       steps: event.steps,
       stepImages: event.stepImages.cast<File?>(),
     );
-    result.fold(
-      (error) => emit(TestError(error.message)),
-      (test) {
-        emit(TestCreated(test));
-        add(const LoadCoachTests());
-      },
-    );
+    result.fold((error) => emit(TestError(error.message)), (test) {
+      emit(TestCreated(test));
+      add(const LoadCoachTests());
+    });
   }
 }

@@ -26,19 +26,19 @@ class _OnboardingViewState extends State<OnboardingView> {
       'title': 'AI yordamida chempionlik sari',
       'description':
           'KarateLab AI ga xush kelibsiz. Bizning tizim sun\'iy intellekt yordamida sportchilarni tahlil qilib, chempionlik sari yetaklaydi.',
-      'icon': 'sports_martial_arts',
+      'image': 'assets/images/kata_competition.jpg',
     },
     {
       'title': 'Mashqlarni kuzatish',
       'description':
           'Barcha mashqlar natijalarini va statistikasini bir joyda kuzatib boring.',
-      'icon': 'fitness_center',
+      'image': 'assets/images/kihon_kiai.jpg',
     },
     {
       'title': 'Murabbiy va Sportchi',
       'description':
           'Ilova murabbiylar va sportchilar uchun alohida qulayliklarni taklif etadi.',
-      'icon': 'people',
+      'image': 'assets/images/karate_do.jpg',
     },
   ];
 
@@ -68,9 +68,7 @@ class _OnboardingViewState extends State<OnboardingView> {
                 },
                 itemCount: _onboardingData.length,
                 itemBuilder: (context, index) {
-                  return OnboardingPageWidget(
-                    data: _onboardingData[index],
-                  );
+                  return OnboardingPageWidget(data: _onboardingData[index]);
                 },
               ),
             ),

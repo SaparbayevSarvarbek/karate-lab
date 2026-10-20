@@ -51,6 +51,7 @@ class PhoneTextField extends StatelessWidget {
       keyboardType: TextInputType.phone,
       style: TextStyle(fontSize: 16.sp, color: palette.textPrimary),
       onChanged: _onChanged,
+      onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
       validator: (v) => UzPhoneFormatter.validateField(v ?? ''),
       decoration: InputDecoration(
         hintText: hintText,

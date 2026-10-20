@@ -38,8 +38,8 @@ class AppFilterChips<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final horizontal = padding ??
-        EdgeInsets.symmetric(horizontal: AppSpacing.screenH.w);
+    final horizontal =
+        padding ?? EdgeInsets.symmetric(horizontal: AppSpacing.screenH.w);
 
     if (!scrollable) {
       return Padding(
@@ -120,8 +120,9 @@ class _Chip<T> extends StatelessWidget {
             ),
             child: Row(
               mainAxisSize: fill ? MainAxisSize.max : MainAxisSize.min,
-              mainAxisAlignment:
-                  fill ? MainAxisAlignment.center : MainAxisAlignment.start,
+              mainAxisAlignment: fill
+                  ? MainAxisAlignment.center
+                  : MainAxisAlignment.start,
               children: [
                 if (item.icon != null) ...[
                   Icon(item.icon, size: 15.w, color: foreground),

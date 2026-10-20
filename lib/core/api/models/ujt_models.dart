@@ -16,7 +16,8 @@ abstract class UjtStep with _$UjtStep {
     @Default(<String>[]) List<String> images,
   }) = _UjtStep;
 
-  factory UjtStep.fromJson(Map<String, dynamic> json) => _$UjtStepFromJson(json);
+  factory UjtStep.fromJson(Map<String, dynamic> json) =>
+      _$UjtStepFromJson(json);
 }
 
 /// `GET /ujt-tests/` — UJT testi (ro'yxat ko'rinishida steps siz).
@@ -35,7 +36,8 @@ abstract class UjtTest with _$UjtTest {
     String? createdAt,
   }) = _UjtTest;
 
-  factory UjtTest.fromJson(Map<String, dynamic> json) => _$UjtTestFromJson(json);
+  factory UjtTest.fromJson(Map<String, dynamic> json) =>
+      _$UjtTestFromJson(json);
 
   bool get hasCover => coverUrl != null && coverUrl!.isNotEmpty;
 }

@@ -8,6 +8,7 @@ import '../api/api_client.dart';
 import '../api/api_constants.dart';
 import '../api/api_exception.dart';
 import '../api/models/test_models.dart';
+import '../l10n/app_translations.dart';
 
 /// Testlar repository (Swagger: Tests, Athlete Tests).
 abstract class TestRepository {
@@ -55,7 +56,7 @@ class TestRepositoryImpl implements TestRepository {
     try {
       final data = await _apiClient.postObject(ApiConstants.startTest(id));
       if (data == null) {
-        return const Left(ApiException(message: 'Server javob bermadi'));
+        return Left(ApiException(message: Tr.t('serverNoResponse')));
       }
       return Right(TestResult.fromJson(data));
     } on ApiException catch (e) {
@@ -74,7 +75,7 @@ class TestRepositoryImpl implements TestRepository {
         data: request.toJson(),
       );
       if (data == null) {
-        return const Left(ApiException(message: 'Server javob bermadi'));
+        return Left(ApiException(message: Tr.t('serverNoResponse')));
       }
       return Right(TestResult.fromJson(data));
     } on ApiException catch (e) {
@@ -107,7 +108,7 @@ class TestRepositoryImpl implements TestRepository {
     try {
       final data = await _apiClient.getObject(ApiConstants.testDetail(id));
       if (data == null) {
-        return const Left(ApiException(message: 'Server javob bermadi'));
+        return Left(ApiException(message: Tr.t('serverNoResponse')));
       }
       return Right(TestEntity.fromJson(data));
     } on ApiException catch (e) {
@@ -130,7 +131,7 @@ class TestRepositoryImpl implements TestRepository {
           data: request.toJson(),
         );
         if (data == null) {
-          return const Left(ApiException(message: 'Server javob bermadi'));
+          return Left(ApiException(message: Tr.t('serverNoResponse')));
         }
         return Right(TestEntity.fromJson(data));
       }
@@ -154,13 +155,15 @@ class TestRepositoryImpl implements TestRepository {
       for (var i = 0; i < stepImages.length; i++) {
         final f = stepImages[i];
         if (f != null) {
-          formData.files.add(MapEntry(
-            'step_image_$i',
-            await MultipartFile.fromFile(
-              f.path,
-              filename: f.path.split(Platform.pathSeparator).last,
+          formData.files.add(
+            MapEntry(
+              'step_image_$i',
+              await MultipartFile.fromFile(
+                f.path,
+                filename: f.path.split(Platform.pathSeparator).last,
+              ),
             ),
-          ));
+          );
         }
       }
 
@@ -169,7 +172,7 @@ class TestRepositoryImpl implements TestRepository {
         formData: formData,
       );
       if (data == null) {
-        return const Left(ApiException(message: 'Server javob bermadi'));
+        return Left(ApiException(message: Tr.t('serverNoResponse')));
       }
       return Right(TestEntity.fromJson(data));
     } on ApiException catch (e) {
@@ -204,13 +207,15 @@ class TestRepositoryImpl implements TestRepository {
       for (var i = 0; i < stepImages.length; i++) {
         final image = stepImages[i];
         if (image != null) {
-          formData.files.add(MapEntry(
-            'step_image_$i',
-            await MultipartFile.fromFile(
-              image.path,
-              filename: image.path.split(Platform.pathSeparator).last,
+          formData.files.add(
+            MapEntry(
+              'step_image_$i',
+              await MultipartFile.fromFile(
+                image.path,
+                filename: image.path.split(Platform.pathSeparator).last,
+              ),
             ),
-          ));
+          );
         }
       }
 
@@ -219,7 +224,7 @@ class TestRepositoryImpl implements TestRepository {
         data: formData,
       );
       if (data == null) {
-        return const Left(ApiException(message: 'Server javob bermadi'));
+        return Left(ApiException(message: Tr.t('serverNoResponse')));
       }
       return Right(TestEntity.fromJson(data));
     } on ApiException catch (e) {

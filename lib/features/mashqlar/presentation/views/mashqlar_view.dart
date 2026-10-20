@@ -9,12 +9,12 @@ import '../../../../core/l10n/app_translations.dart';
 import '../../../../core/theme/app_palette.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_badge.dart';
-import '../../../../core/widgets/app_fab.dart';
 import '../../../../core/widgets/app_filter_chips.dart';
 import '../../../../core/widgets/app_list_tile.dart';
 import '../../../../core/widgets/app_search_field.dart';
 import '../../../../core/widgets/app_state_views.dart';
 import '../../../../core/widgets/karate_app_bar.dart';
+import '../../../../core/widgets/remote_image.dart';
 import '../../../../core/widgets/shimmer_placeholder.dart';
 import '../viewmodels/mashqlar_bloc.dart';
 import '../../../../core/widgets/app_snackbar.dart';
@@ -32,11 +32,11 @@ class _MashqlarViewState extends State<MashqlarView> {
   String _query = '';
   String _category = 'all'; // all | texnik | ujt | mjt
 
-  static const _categories = <AppChipItem<String>>[
-    AppChipItem(value: 'all', label: 'Barchasi'),
-    AppChipItem(value: 'texnik', label: 'Texnik'),
-    AppChipItem(value: 'ujt', label: 'UJT'),
-    AppChipItem(value: 'mjt', label: 'MJT'),
+  List<AppChipItem<String>> get _categories => [
+    AppChipItem(value: 'all', label: Tr.t('all')),
+    AppChipItem(value: 'texnik', label: Tr.categoryName('Texnik')),
+    AppChipItem(value: 'ujt', label: Tr.categoryName('UJT')),
+    AppChipItem(value: 'mjt', label: Tr.categoryName('MJT')),
   ];
 
   @override
@@ -48,10 +48,7 @@ class _MashqlarViewState extends State<MashqlarView> {
   List<MashqItem> _filtered(List<MashqItem> items) {
     Iterable<MashqItem> result = items;
     if (_category != 'all') {
-      result = result.where((m) =>
-          m.kind == _category ||
-          (m.kind == 'texnik' &&
-              m.subtitle.toUpperCase() == _category.toUpperCase()));
+      result = result.where((item) => item.matchesCategory(_category));
     }
     if (_query.isNotEmpty) {
       final q = _query.toLowerCase();
@@ -76,19 +73,7 @@ class _MashqlarViewState extends State<MashqlarView> {
         child: Builder(
           builder: (context) => Scaffold(
             backgroundColor: context.palette.background,
-            appBar: KarateAppBar(
-              title: Tr.t('navExercises'),
-              showLogo: true,
-            ),
-            floatingActionButton: AppFab(
-              label: 'Mashq',
-              onPressed: () async {
-                final added = await context.push('/add-exercise');
-                if (added == true && context.mounted) {
-                  context.read<MashqlarBloc>().add(const LoadMashqlar());
-                }
-              },
-            ),
+            appBar: KarateAppBar(title: Tr.t('navExercises'), showLogo: true),
             body: Column(
               children: [
                 Padding(
@@ -162,7 +147,7 @@ class _MashqlarViewState extends State<MashqlarView> {
         }
 
         return AppErrorView(
-          message: 'Mashqlarni yuklab bo\'lmadi',
+          message: Tr.t('exercisesLoadFailed'),
           retryLabel: Tr.t('retry'),
           onRetry: () => context.read<MashqlarBloc>().add(const LoadMashqlar()),
         );
@@ -179,21 +164,33 @@ class _MashqCard extends StatelessWidget {
   Color get _accent => item.isMjt
       ? AppColors.warning
       : item.isUjt
-          ? AppColors.success
-          : AppColors.primaryBlue;
+      ? AppColors.success
+      : AppColors.primaryBlue;
 
   IconData get _icon => item.isMjt
       ? Icons.fitness_center_rounded
       : item.isUjt
-          ? Icons.bolt_rounded
-          : Icons.sports_martial_arts_rounded;
+      ? Icons.bolt_rounded
+      : Icons.sports_martial_arts_rounded;
 
-  String get _label =>
-      item.isMjt ? 'MJT' : item.isUjt ? 'UJT' : 'Texnik';
+  String get _label => item.isMjt
+      ? Tr.categoryName('MJT')
+      : item.isUjt
+      ? Tr.categoryName('UJT')
+      : Tr.categoryName('Texnik');
 
   @override
   Widget build(BuildContext context) {
     return AppListTile(
+      leading: item.imageUrl == null || item.imageUrl!.isEmpty
+          ? null
+          : RemoteImage(
+              url: item.imageUrl,
+              width: 44.w,
+              height: 44.h,
+              borderRadius: BorderRadius.circular(12.r),
+              fallbackIcon: _icon,
+            ),
       icon: _icon,
       iconColor: _accent,
       title: item.title,

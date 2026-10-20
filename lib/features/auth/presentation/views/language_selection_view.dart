@@ -70,7 +70,7 @@ class _LanguageSelectionViewState extends State<LanguageSelectionView> {
 
     return Scaffold(
       backgroundColor: palette.background,
-      appBar: const KarateAppBar(title: 'KarateLab AI', showLogo: true),
+      appBar: const KarateAppBar(title: 'KarateLab AI'),
       body: SafeArea(
         top: false,
         child: Column(
@@ -86,14 +86,16 @@ class _LanguageSelectionViewState extends State<LanguageSelectionView> {
                 children: [
                   Text(
                     Tr.t('chooseLanguage'),
-                    style: AppTextStyles.screenTitle
-                        .copyWith(color: palette.textPrimary),
+                    style: AppTextStyles.screenTitle.copyWith(
+                      color: palette.textPrimary,
+                    ),
                   ),
                   SizedBox(height: AppSpacing.sm.h),
                   Text(
                     Tr.t('chooseLanguageHint'),
-                    style: AppTextStyles.body
-                        .copyWith(color: palette.textSecondary),
+                    style: AppTextStyles.body.copyWith(
+                      color: palette.textSecondary,
+                    ),
                   ),
                   SizedBox(height: AppSpacing.xxl.h),
                   LanguageOptionWidget(

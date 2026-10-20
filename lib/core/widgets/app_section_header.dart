@@ -39,8 +39,9 @@ class AppSectionHeader extends StatelessWidget {
                 title,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: AppTextStyles.sectionTitle
-                    .copyWith(color: palette.textPrimary),
+                style: AppTextStyles.sectionTitle.copyWith(
+                  color: palette.textPrimary,
+                ),
               ),
               if (subtitle != null && subtitle!.isNotEmpty) ...[
                 SizedBox(height: 2.h),
@@ -48,8 +49,9 @@ class AppSectionHeader extends StatelessWidget {
                   subtitle!,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.caption
-                      .copyWith(color: palette.textSecondary),
+                  style: AppTextStyles.caption.copyWith(
+                    color: palette.textSecondary,
+                  ),
                 ),
               ],
             ],

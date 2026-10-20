@@ -29,9 +29,9 @@ class _UserGreetingRowState extends State<UserGreetingRow> {
   @override
   void initState() {
     super.initState();
-    _profileFuture = getIt<ProfileRepository>()
-        .getProfile()
-        .then((result) => result.fold((_) => null, (profile) => profile));
+    _profileFuture = getIt<ProfileRepository>().getProfile().then(
+      (result) => result.fold((_) => null, (profile) => profile),
+    );
   }
 
   String get _greeting {
@@ -63,16 +63,18 @@ class _UserGreetingRowState extends State<UserGreetingRow> {
                 children: [
                   Text(
                     _greeting,
-                    style: AppTextStyles.caption
-                        .copyWith(color: palette.textSecondary),
+                    style: AppTextStyles.caption.copyWith(
+                      color: palette.textSecondary,
+                    ),
                   ),
                   SizedBox(height: 2.h),
                   Text(
                     profile?.fullName ?? widget.fallbackName,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: AppTextStyles.title
-                        .copyWith(color: palette.textPrimary),
+                    style: AppTextStyles.title.copyWith(
+                      color: palette.textPrimary,
+                    ),
                   ),
                 ],
               ),

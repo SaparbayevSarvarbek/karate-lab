@@ -4,6 +4,7 @@ import '../api/api_client.dart';
 import '../api/api_constants.dart';
 import '../api/api_exception.dart';
 import '../api/models/auth_models.dart';
+import '../l10n/app_translations.dart';
 import '../services/shared_prefs_service.dart';
 
 /// Autentifikatsiya repository (Swagger: Authentication).
@@ -12,9 +13,7 @@ abstract class AuthRepository {
     String username,
     String password,
   );
-  Future<Either<ApiException, LoginResponse>> register(
-    RegisterRequest request,
-  );
+  Future<Either<ApiException, LoginResponse>> register(RegisterRequest request);
   Future<Either<ApiException, void>> logout();
   Future<Either<ApiException, String>> refreshAccessToken();
 }
@@ -37,9 +36,7 @@ class AuthRepositoryImpl implements AuthRepository {
         data: request.toJson(),
       );
       if (data == null) {
-        return const Left(
-          ApiException(message: 'Server javob bermadi'),
-        );
+        return Left(ApiException(message: Tr.t('serverNoResponse')));
       }
 
       final loginResponse = LoginResponse.fromJson(data);
@@ -64,9 +61,7 @@ class AuthRepositoryImpl implements AuthRepository {
         data: request.toJson(),
       );
       if (data == null) {
-        return const Left(
-          ApiException(message: 'Server javob bermadi'),
-        );
+        return Left(ApiException(message: Tr.t('serverNoResponse')));
       }
 
       final loginResponse = LoginResponse.fromJson(data);
@@ -83,19 +78,18 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<Either<ApiException, void>> logout() async {
+    final refreshToken = _prefs.getRefreshToken();
+    await _prefs.clearTokens();
+    if (refreshToken == null) return const Right(null);
+
     try {
-      final refreshToken = _prefs.getRefreshToken();
-      if (refreshToken != null) {
-        await _apiClient.postObject(
-          ApiConstants.logout,
-          data: RefreshTokenRequest(refreshToken: refreshToken).toJson(),
-        );
-      }
-      await _prefs.clearTokens();
+      await _apiClient.postObject(
+        ApiConstants.logout,
+        data: RefreshTokenRequest(refreshToken: refreshToken).toJson(),
+      );
       return const Right(null);
-    } on ApiException catch (e) {
-      await _prefs.clearTokens();
-      return Left(e);
+    } on ApiException catch (error) {
+      return Left(error);
     }
   }
 
@@ -104,8 +98,8 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       final refreshToken = _prefs.getRefreshToken();
       if (refreshToken == null) {
-        return const Left(
-          ApiException(message: 'Refresh token topilmadi', statusCode: 401),
+        return Left(
+          ApiException(message: Tr.t('refreshTokenMissing'), statusCode: 401),
         );
       }
 
@@ -114,7 +108,7 @@ class AuthRepositoryImpl implements AuthRepository {
         data: RefreshTokenRequest(refreshToken: refreshToken).toJson(),
       );
       if (data == null) {
-        return const Left(ApiException(message: 'Server javob bermadi'));
+        return Left(ApiException(message: Tr.t('serverNoResponse')));
       }
 
       final response = RefreshTokenResponse.fromJson(data);

@@ -45,15 +45,22 @@ class CustomTextField extends StatelessWidget {
       keyboardType: keyboardType,
       validator: validator,
       onChanged: onChanged,
+      onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
       decoration: InputDecoration(
         hintText: hintText,
         prefixIcon: prefixIcon != null
-            ? IconTheme(data: IconThemeData(color: hintColor), child: prefixIcon!)
+            ? IconTheme(
+                data: IconThemeData(color: hintColor),
+                child: prefixIcon!,
+              )
             : null,
         prefixText: prefixText,
         suffixText: suffixText,
         suffixIcon: suffixIcon != null
-            ? IconTheme(data: IconThemeData(color: hintColor), child: suffixIcon!)
+            ? IconTheme(
+                data: IconThemeData(color: hintColor),
+                child: suffixIcon!,
+              )
             : null,
       ),
     );
@@ -65,8 +72,9 @@ class CustomTextField extends StatelessWidget {
       children: [
         Text(
           label!,
-          style: AppTextStyles.label
-              .copyWith(color: context.palette.textSecondary),
+          style: AppTextStyles.label.copyWith(
+            color: context.palette.textSecondary,
+          ),
         ),
         SizedBox(height: 8.h),
         field,

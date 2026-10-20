@@ -43,8 +43,9 @@ class RegistrationStepIndicator extends StatelessWidget {
             SizedBox(width: AppSpacing.xs.w),
             Text(
               isCoach ? 'Murabbiy' : 'Sportchi',
-              style: AppTextStyles.caption
-                  .copyWith(color: palette.textSecondary),
+              style: AppTextStyles.caption.copyWith(
+                color: palette.textSecondary,
+              ),
             ),
             const Spacer(),
             Text(

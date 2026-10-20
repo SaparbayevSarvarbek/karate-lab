@@ -150,7 +150,7 @@ cd C:\Users\sarva\Desktop\Karate\krate_backend
 ```
 
 **Demo akkauntlar:**
-- `coach` / `coach1234` (murabbiy)
+- `coach` / `coach123` (murabbiy)
 - `athlete` / `athlete123` (sportchi)
 
 **Swagger:** http://127.0.0.1:8000/api/docs/

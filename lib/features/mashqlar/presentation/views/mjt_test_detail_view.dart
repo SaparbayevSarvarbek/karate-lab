@@ -5,6 +5,7 @@ import '../../../../core/api/api_constants.dart';
 import '../../../../core/api/models/mjt_models.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/di/injection.dart';
+import '../../../../core/l10n/app_translations.dart';
 import '../../../../core/repositories/ujt_repository.dart';
 import '../../../../core/theme/app_palette.dart';
 import '../../../../core/theme/app_radius.dart';
@@ -39,15 +40,12 @@ class _MjtTestDetailViewState extends State<MjtTestDetailView> {
 
   Future<MjtTest?> _load() async {
     final result = await getIt<UjtRepository>().getMjtTestById(widget.testId);
-    return result.fold(
-      (error) {
-        if (mounted) {
-          AppSnackbar.error(context, error.message);
-        }
-        return null;
-      },
-      (test) => test,
-    );
+    return result.fold((error) {
+      if (mounted) {
+        AppSnackbar.error(context, error.message);
+      }
+      return null;
+    }, (test) => test);
   }
 
   @override
@@ -60,16 +58,18 @@ class _MjtTestDetailViewState extends State<MjtTestDetailView> {
         return Scaffold(
           backgroundColor: context.palette.background,
           appBar: KarateAppBar(
-            title: (test?.title.isNotEmpty ?? false) ? test!.title : 'MJT testi',
+            title: (test?.title.isNotEmpty ?? false)
+                ? test!.title
+                : Tr.t('mjtTest'),
           ),
           body: loading
               ? const AppLoadingView()
               : test == null
-                  ? const AppEmptyView(
-                      icon: Icons.search_off_rounded,
-                      title: 'Test topilmadi',
-                    )
-                  : _Content(test: test),
+              ? AppEmptyView(
+                  icon: Icons.search_off_rounded,
+                  title: Tr.t('testNotFound'),
+                )
+              : _Content(test: test),
         );
       },
     );
@@ -123,7 +123,7 @@ class _HeroMedia extends StatelessWidget {
                       end: 16.w,
                       bottom: 12.h,
                       child: Text(
-                        'MJT testi',
+                        Tr.t('mjtTest'),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
@@ -170,7 +170,7 @@ class _Content extends StatelessWidget {
           runSpacing: AppSpacing.sm.h,
           children: [
             AppBadge(
-              label: 'MJT',
+              label: Tr.categoryName('MJT'),
               color: accent,
               icon: Icons.fitness_center_rounded,
             ),
@@ -184,13 +184,13 @@ class _Content extends StatelessWidget {
         ),
         if (test.goal.isNotEmpty) ...[
           SizedBox(height: AppSpacing.sectionGap.h),
-          const AppSectionHeader(title: 'Maqsad'),
+          AppSectionHeader(title: Tr.t('goal')),
           SizedBox(height: AppSpacing.md.h),
           _TextCard(text: test.goal),
         ],
         if (test.qualities.isNotEmpty) ...[
           SizedBox(height: AppSpacing.sectionGap.h),
-          const AppSectionHeader(title: 'Rivojlanadigan sifatlar'),
+          AppSectionHeader(title: Tr.t('developedQualities')),
           SizedBox(height: AppSpacing.md.h),
           Wrap(
             spacing: AppSpacing.sm.w,
@@ -202,12 +202,14 @@ class _Content extends StatelessWidget {
           ),
         ],
         SizedBox(height: AppSpacing.sectionGap.h),
-        AppSectionHeader(title: 'Mashqlar (${test.steps.length})'),
+        AppSectionHeader(
+          title: Tr.t('exercisesCount', {'count': '${test.steps.length}'}),
+        ),
         SizedBox(height: AppSpacing.md.h),
         if (test.steps.isEmpty)
-          const AppEmptyView(
+          AppEmptyView(
             icon: Icons.list_alt_rounded,
-            title: 'Mashqlar kiritilmagan',
+            title: Tr.t('noExercisesAdded'),
             compact: true,
           )
         else
@@ -275,8 +277,9 @@ class _StepCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   step.title,
-                  style: AppTextStyles.cardTitle
-                      .copyWith(color: palette.textPrimary),
+                  style: AppTextStyles.cardTitle.copyWith(
+                    color: palette.textPrimary,
+                  ),
                 ),
               ),
             ],
@@ -337,13 +340,13 @@ class _StepCard extends StatelessWidget {
                 if (step.repetitions.isNotEmpty)
                   _StepMeta(
                     icon: Icons.repeat_rounded,
-                    label: 'Takrorlash',
+                    label: Tr.t('repetitions'),
                     value: step.repetitions,
                   ),
                 if (step.rest.isNotEmpty)
                   _StepMeta(
                     icon: Icons.timer_outlined,
-                    label: 'Dam olish',
+                    label: Tr.t('rest'),
                     value: step.rest,
                   ),
               ],
@@ -372,10 +375,7 @@ class _StepBadge extends StatelessWidget {
         color: accent.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(AppRadius.tile.r),
       ),
-      child: Text(
-        '$index',
-        style: AppTextStyles.badge.copyWith(color: accent),
-      ),
+      child: Text('$index', style: AppTextStyles.badge.copyWith(color: accent)),
     );
   }
 }
@@ -395,10 +395,7 @@ class _StepMeta extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = context.palette;
     return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: AppSpacing.md.w,
-        vertical: 6.h,
-      ),
+      padding: EdgeInsets.symmetric(horizontal: AppSpacing.md.w, vertical: 6.h),
       decoration: BoxDecoration(
         color: palette.backgroundLight,
         borderRadius: BorderRadius.circular(AppRadius.pill.r),

@@ -2,8 +2,10 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../../core/api/api_constants.dart';
 import '../../../../core/api/models/exercise_models.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/di/injection.dart';
@@ -26,7 +28,9 @@ import '../../../../core/widgets/app_snackbar.dart';
 /// maqsad, sifatlar va har biri nom/tavsif/rasm/takrorlash/vaqtdan iborat
 /// bosqichlar.
 class AddExerciseView extends StatefulWidget {
-  const AddExerciseView({super.key});
+  final Exercise? exercise;
+
+  const AddExerciseView({super.key, this.exercise});
 
   @override
   State<AddExerciseView> createState() => _AddExerciseViewState();
@@ -49,28 +53,40 @@ class _AddExerciseViewState extends State<AddExerciseView> {
 
   List<String> _categories = const ['Texnik', 'UJT', 'MJT'];
 
+  bool get _isEditing => widget.exercise != null;
+
   @override
   void initState() {
     super.initState();
+    final exercise = widget.exercise;
+    if (exercise != null) {
+      _nameController.text = exercise.title;
+      _ageController.text = exercise.age;
+      _goalController.text = exercise.goal;
+      _qualitiesController.text = exercise.qualities.join(', ');
+      _selectedCategory = exercise.category;
+      _steps.addAll(exercise.steps.map(_StepDraft.fromExerciseStep));
+    }
     _loadCategories();
   }
 
   Future<void> _loadCategories() async {
     final result = await getIt<ExerciseRepository>().getCategories();
     if (!mounted) return;
-    result.fold(
-      (_) {},
-      (categories) {
-        if (categories.isNotEmpty) {
-          setState(() {
-            _categories = categories.map((c) => c.name).toList();
-            if (!_categories.contains(_selectedCategory)) {
-              _selectedCategory = _categories.first;
-            }
-          });
-        }
-      },
-    );
+    result.fold((_) {}, (categories) {
+      if (categories.isNotEmpty) {
+        setState(() {
+          _categories = categories.map((c) => c.name).toList();
+          if (_selectedCategory.isNotEmpty &&
+              !_categories.contains(_selectedCategory)) {
+            _categories.add(_selectedCategory);
+          }
+          if (!_categories.contains(_selectedCategory)) {
+            _selectedCategory = _categories.first;
+          }
+        });
+      }
+    });
   }
 
   @override
@@ -97,10 +113,15 @@ class _AddExerciseViewState extends State<AddExerciseView> {
     if (_stepBusy) return;
     setState(() => _stepBusy = true);
     try {
-      final picked =
-          await _picker.pickImage(source: ImageSource.gallery, maxWidth: 1600);
+      final picked = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1600,
+      );
       if (picked != null && mounted) {
-        setState(() => _steps[index].image = File(picked.path));
+        setState(() {
+          _steps[index].image = File(picked.path);
+          _steps[index].imageUrl = null;
+        });
       }
     } catch (_) {
       _showToast(Tr.t('imagePickError'));
@@ -132,6 +153,8 @@ class _AddExerciseViewState extends State<AddExerciseView> {
 
     final request = CreateExerciseRequest(
       title: _nameController.text.trim(),
+      duration: widget.exercise?.duration ?? 0,
+      description: widget.exercise?.description ?? '',
       category: _selectedCategory,
       age: _ageController.text.trim(),
       goal: _goalController.text.trim(),
@@ -141,27 +164,40 @@ class _AddExerciseViewState extends State<AddExerciseView> {
     final stepInputs = <ExerciseStepInput>[];
     final stepFiles = <File?>[];
     for (final s in _steps) {
-      stepInputs.add(ExerciseStepInput(
-        title: s.title.text.trim(),
-        description: s.description.text.trim(),
-        repetitions: s.repetitions.text.trim(),
-        rest: s.rest.text.trim(),
-        duration: int.tryParse(s.duration.text.trim()) ?? 0,
-      ));
+      stepInputs.add(
+        ExerciseStepInput(
+          id: s.id,
+          title: s.title.text.trim(),
+          description: s.description.text.trim(),
+          repetitions: s.repetitions.text.trim(),
+          rest: s.rest.text.trim(),
+          duration: int.tryParse(s.duration.text.trim()) ?? 0,
+        ),
+      );
       stepFiles.add(s.image);
     }
 
-    final result = await getIt<ExerciseRepository>().createExercise(
-      request,
-      image: _image,
-      video: _video,
-      category: _selectedCategory,
-      age: _ageController.text.trim(),
-      goal: _goalController.text.trim(),
-      qualities: _qualities,
-      steps: stepInputs,
-      stepImages: stepFiles,
-    );
+    final repository = getIt<ExerciseRepository>();
+    final result = _isEditing
+        ? await repository.updateExercise(
+            widget.exercise!.id,
+            request,
+            image: _image,
+            video: _video,
+            steps: stepInputs,
+            stepImages: stepFiles,
+          )
+        : await repository.createExercise(
+            request,
+            image: _image,
+            video: _video,
+            category: _selectedCategory,
+            age: _ageController.text.trim(),
+            goal: _goalController.text.trim(),
+            qualities: _qualities,
+            steps: stepInputs,
+            stepImages: stepFiles,
+          );
 
     if (!mounted) return;
 
@@ -170,8 +206,15 @@ class _AddExerciseViewState extends State<AddExerciseView> {
         setState(() => _saving = false);
         AppSnackbar.error(context, error.message);
       },
-      (_) {
-        AppSnackbar.success(context, Tr.t('exerciseAddedSuccess'));
+      (savedExercise) {
+        AppSnackbar.success(
+          context,
+          Tr.t(_isEditing ? 'exerciseUpdatedSuccess' : 'exerciseAddedSuccess'),
+        );
+        if (_isEditing) {
+          context.pop<Exercise>(savedExercise);
+          return;
+        }
         final navigator = Navigator.of(context);
         navigator.popUntil((route) => route is! PopupRoute);
         if (!mounted) return;
@@ -185,7 +228,9 @@ class _AddExerciseViewState extends State<AddExerciseView> {
     final palette = context.palette;
     return Scaffold(
       backgroundColor: palette.background,
-      appBar: KarateAppBar(title: Tr.t('addExerciseTitle')),
+      appBar: KarateAppBar(
+        title: Tr.t(_isEditing ? 'editExerciseTitle' : 'addExerciseTitle'),
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.fromLTRB(
@@ -208,6 +253,7 @@ class _AddExerciseViewState extends State<AddExerciseView> {
                       MediaUploadSection(
                         onImagePicked: (f) => setState(() => _image = f),
                         onVideoPicked: (f) => setState(() => _video = f),
+                        initialImageUrl: widget.exercise?.image,
                       ),
                     ],
                   ),
@@ -235,7 +281,8 @@ class _AddExerciseViewState extends State<AddExerciseView> {
                         label: Tr.t('exerciseType'),
                         value: _selectedCategory,
                         items: _categories,
-                        onChanged: (v) => setState(() => _selectedCategory = v!),
+                        onChanged: (v) =>
+                            setState(() => _selectedCategory = v!),
                       ),
                       SizedBox(height: AppSpacing.md.h),
                       CustomTextField(
@@ -259,8 +306,9 @@ class _AddExerciseViewState extends State<AddExerciseView> {
                 SizedBox(height: AppSpacing.xs.h),
                 Text(
                   Tr.t('stepsHint'),
-                  style: AppTextStyles.caption
-                      .copyWith(color: palette.textSecondary),
+                  style: AppTextStyles.caption.copyWith(
+                    color: palette.textSecondary,
+                  ),
                 ),
                 for (var i = 0; i < _steps.length; i++) ...[
                   SizedBox(height: AppSpacing.md.h),
@@ -281,7 +329,9 @@ class _AddExerciseViewState extends State<AddExerciseView> {
       ),
       bottomNavigationBar: AppBottomBar(
         child: CustomButton(
-          text: _saving ? Tr.t('saving') : Tr.t('saveExercise'),
+          text: _saving
+              ? Tr.t('saving')
+              : Tr.t(_isEditing ? 'saveChanges' : 'saveExercise'),
           isLoading: _saving,
           onPressed: _save,
         ),
@@ -321,8 +371,9 @@ class _AddStepButton extends StatelessWidget {
               SizedBox(width: AppSpacing.sm.w),
               Text(
                 Tr.t('addStep'),
-                style: AppTextStyles.button
-                    .copyWith(color: AppColors.primaryBlue),
+                style: AppTextStyles.button.copyWith(
+                  color: AppColors.primaryBlue,
+                ),
               ),
             ],
           ),
@@ -367,7 +418,9 @@ class AddExerciseDropdown extends StatelessWidget {
         ),
       ),
       items: items
-          .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+          .map(
+            (e) => DropdownMenuItem(value: e, child: Text(Tr.categoryName(e))),
+          )
           .toList(),
       onChanged: onChanged,
     );
@@ -376,12 +429,27 @@ class AddExerciseDropdown extends StatelessWidget {
 
 /// Bosqich (step) yaratish formasi uchun doimiy controllerlar to'plami.
 class _StepDraft {
+  final int? id;
   final TextEditingController title = TextEditingController();
   final TextEditingController description = TextEditingController();
   final TextEditingController repetitions = TextEditingController();
   final TextEditingController rest = TextEditingController();
   final TextEditingController duration = TextEditingController();
   File? image;
+
+  _StepDraft({this.id});
+  String? imageUrl;
+
+  factory _StepDraft.fromExerciseStep(ExerciseStep step) {
+    final draft = _StepDraft(id: step.id);
+    draft.imageUrl = step.imageUrl;
+    draft.title.text = step.title;
+    draft.description.text = step.description;
+    draft.repetitions.text = step.repetitions;
+    draft.rest.text = step.rest;
+    draft.duration.text = '${step.duration}';
+    return draft;
+  }
 
   void dispose() {
     title.dispose();
@@ -428,16 +496,18 @@ class _StepCard extends StatelessWidget {
                 ),
                 child: Text(
                   '$index',
-                  style: AppTextStyles.badge
-                      .copyWith(color: AppColors.primaryBlue),
+                  style: AppTextStyles.badge.copyWith(
+                    color: AppColors.primaryBlue,
+                  ),
                 ),
               ),
               SizedBox(width: AppSpacing.md.w),
               Expanded(
                 child: Text(
                   Tr.t('stepLabel', {'index': '$index'}),
-                  style: AppTextStyles.cardTitle
-                      .copyWith(color: palette.textPrimary),
+                  style: AppTextStyles.cardTitle.copyWith(
+                    color: palette.textPrimary,
+                  ),
                 ),
               ),
               IconButton(
@@ -463,6 +533,7 @@ class _StepCard extends StatelessWidget {
           TextFormField(
             controller: draft.description,
             maxLines: 3,
+            onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
             style: AppTextStyles.body.copyWith(color: palette.textPrimary),
             decoration: InputDecoration(
               hintText: Tr.t('stepDescriptionHint'),
@@ -516,7 +587,7 @@ class _StepCard extends StatelessWidget {
                 color: palette.backgroundLight,
                 borderRadius: BorderRadius.circular(AppRadius.button.r),
                 border: Border.all(
-                  color: draft.image != null
+                  color: draft.image != null || draft.imageUrl != null
                       ? AppColors.primaryBlue
                       : palette.border,
                 ),
@@ -525,20 +596,31 @@ class _StepCard extends StatelessWidget {
                         image: FileImage(draft.image!),
                         fit: BoxFit.cover,
                       )
+                    : draft.imageUrl != null
+                    ? DecorationImage(
+                        image: NetworkImage(
+                          ApiConstants.resolveMediaUrl(draft.imageUrl!),
+                        ),
+                        fit: BoxFit.cover,
+                      )
                     : null,
               ),
-              child: draft.image == null
+              child: draft.image == null && draft.imageUrl == null
                   ? Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.image_outlined,
-                              size: 36.w, color: palette.textHint),
+                          Icon(
+                            Icons.image_outlined,
+                            size: 36.w,
+                            color: palette.textHint,
+                          ),
                           SizedBox(height: AppSpacing.sm.h),
                           Text(
                             Tr.t('addImageOptional'),
-                            style: AppTextStyles.caption
-                                .copyWith(color: palette.textHint),
+                            style: AppTextStyles.caption.copyWith(
+                              color: palette.textHint,
+                            ),
                           ),
                         ],
                       ),
@@ -552,8 +634,11 @@ class _StepCard extends StatelessWidget {
                           color: Colors.black.withValues(alpha: 0.45),
                           shape: BoxShape.circle,
                         ),
-                        child: Icon(Icons.edit,
-                            color: Colors.white, size: 14.w),
+                        child: Icon(
+                          Icons.edit,
+                          color: Colors.white,
+                          size: 14.w,
+                        ),
                       ),
                     ),
             ),

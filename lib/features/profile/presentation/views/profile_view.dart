@@ -45,8 +45,8 @@ class _ProfileViewState extends State<ProfileView> {
             final profile = state is ProfileLoaded
                 ? state.profile
                 : state is ProfileUpdated
-                    ? state.profile
-                    : null;
+                ? state.profile
+                : null;
             final loading = state is ProfileLoading && profile == null;
 
             final role = profile != null && profile.role.isNotEmpty
@@ -163,20 +163,7 @@ class _ProfileHeader extends StatelessWidget {
         SizedBox(height: AppSpacing.sm.h),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            AppBadge(
-              label: roleLabel,
-              color: AppColors.primaryBlue,
-            ),
-            if (!isCoach && (profile?.phone ?? '').isNotEmpty) ...[
-              SizedBox(width: AppSpacing.sm.w),
-              AppBadge(
-                label: profile!.phone,
-                color: palette.textSecondary,
-                icon: Icons.phone_rounded,
-              ),
-            ],
-          ],
+          children: [AppBadge(label: roleLabel, color: AppColors.primaryBlue)],
         ),
       ],
     );

@@ -4,6 +4,7 @@ import '../api/api_client.dart';
 import '../api/api_constants.dart';
 import '../api/api_exception.dart';
 import '../api/models/settings_models.dart';
+import '../l10n/app_translations.dart';
 
 /// Sozlamalar, bildirishnomalar va xavfsizlik repository
 /// (Swagger: Settings, Notifications, Security).
@@ -32,7 +33,7 @@ class SettingsRepositoryImpl implements SettingsRepository {
     try {
       final data = await _apiClient.getObject(ApiConstants.settings);
       if (data == null) {
-        return const Left(ApiException(message: 'Server javob bermadi'));
+        return Left(ApiException(message: Tr.t('serverNoResponse')));
       }
       return Right(AppSettings.fromJson(data));
     } on ApiException catch (e) {

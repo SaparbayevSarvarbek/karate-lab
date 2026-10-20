@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../../../../core/constants/app_colors.dart';
 import '../../../../core/theme/app_palette.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/karate_logo.dart';
 
 class OnboardingPageWidget extends StatelessWidget {
   final Map<String, String> data;
@@ -24,7 +24,9 @@ class OnboardingPageWidget extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          OnboardingIllustration(iconName: data['icon'] ?? 'sports_martial_arts'),
+          OnboardingIllustration(
+            imagePath: data['image'] ?? 'assets/images/karate_do.jpg',
+          ),
           SizedBox(height: AppSpacing.xxl.h),
           OnboardingPageTitle(title: data['title'] ?? ''),
           SizedBox(height: AppSpacing.md.h),
@@ -35,23 +37,10 @@ class OnboardingPageWidget extends StatelessWidget {
   }
 }
 
-/// Sahifa rasmi — brend gradient paneli ustida katta, juda past shaffoflikdagi
-/// ikonka. Rasm yuklamaydi (vektor), shu sababli render yengil qoladi.
 class OnboardingIllustration extends StatelessWidget {
-  final String iconName;
+  final String imagePath;
 
-  const OnboardingIllustration({super.key, required this.iconName});
-
-  IconData get _icon {
-    switch (iconName) {
-      case 'fitness_center':
-        return Icons.fitness_center_rounded;
-      case 'people':
-        return Icons.groups_rounded;
-      default:
-        return Icons.sports_martial_arts_rounded;
-    }
-  }
+  const OnboardingIllustration({super.key, required this.imagePath});
 
   @override
   Widget build(BuildContext context) {
@@ -59,20 +48,42 @@ class OnboardingIllustration extends StatelessWidget {
       aspectRatio: 4 / 3,
       child: Container(
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [AppColors.primaryNavy, AppColors.primaryBlue],
-            begin: AlignmentDirectional.topStart,
-            end: AlignmentDirectional.bottomEnd,
-          ),
           borderRadius: BorderRadius.circular(AppRadius.panel.r),
         ),
         clipBehavior: Clip.antiAlias,
-        child: Center(
-          child: Icon(
-            _icon,
-            size: 120.w,
-            color: Colors.white.withValues(alpha: 0.16),
-          ),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            Image.asset(imagePath, fit: BoxFit.cover),
+            Positioned(
+              top: AppSpacing.md.h,
+              left: AppSpacing.md.w,
+              child: Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: AppSpacing.sm.w,
+                  vertical: AppSpacing.xs.h,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.94),
+                  borderRadius: BorderRadius.circular(AppRadius.pill.r),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    KarateLabLogo(size: 28.w),
+                    SizedBox(width: AppSpacing.xs.w),
+                    Text(
+                      'KarateLab AI',
+                      style: AppTextStyles.caption.copyWith(
+                        color: context.palette.textPrimary,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -106,9 +117,7 @@ class OnboardingPageDescription extends StatelessWidget {
     return Text(
       description,
       textAlign: TextAlign.center,
-      style: AppTextStyles.body.copyWith(
-        color: context.palette.textSecondary,
-      ),
+      style: AppTextStyles.body.copyWith(color: context.palette.textSecondary),
     );
   }
 }

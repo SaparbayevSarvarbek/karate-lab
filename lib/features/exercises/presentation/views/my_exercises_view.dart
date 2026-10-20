@@ -18,7 +18,9 @@ import '../../../../core/widgets/app_list_tile.dart';
 import '../../../../core/widgets/app_search_field.dart';
 import '../../../../core/widgets/app_state_views.dart';
 import '../../../../core/widgets/karate_app_bar.dart';
+import '../../../../core/widgets/remote_image.dart';
 import '../../../../core/widgets/shimmer_placeholder.dart';
+import 'exercise_detail_view.dart';
 import '../viewmodels/exercise_bloc.dart';
 
 /// Murabbiy uchun mashqlarni boshqarish sahifasi (Swagger: `GET /exercises/`).
@@ -37,11 +39,11 @@ class _MyExercisesViewState extends State<MyExercisesView> {
   String _query = '';
   String _category = 'all';
 
-  static const _categories = <AppChipItem<String>>[
-    AppChipItem(value: 'all', label: 'Barchasi'),
-    AppChipItem(value: 'UJT', label: 'UJT'),
-    AppChipItem(value: 'MJT', label: 'MJT'),
-    AppChipItem(value: 'Texnik', label: 'Texnik'),
+  List<AppChipItem<String>> get _categories => [
+    AppChipItem(value: 'all', label: Tr.t('all')),
+    AppChipItem(value: 'UJT', label: Tr.categoryName('UJT')),
+    AppChipItem(value: 'MJT', label: Tr.categoryName('MJT')),
+    AppChipItem(value: 'Texnik', label: Tr.categoryName('Texnik')),
   ];
 
   @override
@@ -54,7 +56,7 @@ class _MyExercisesViewState extends State<MyExercisesView> {
     Iterable<Exercise> result = items;
     if (_category != 'all') {
       result = result.where(
-        (e) => e.category.toLowerCase() == _category.toLowerCase(),
+        (e) => Tr.categoryKey(e.category) == Tr.categoryKey(_category),
       );
     }
     if (_query.isNotEmpty) {
@@ -96,7 +98,7 @@ class _MyExercisesViewState extends State<MyExercisesView> {
             ],
           ),
           floatingActionButton: AppFab(
-            label: 'Mashq',
+            label: Tr.t('exercise'),
             onPressed: () async {
               final added = await context.push('/add-exercise');
               if (added == true && context.mounted) {
@@ -142,7 +144,7 @@ class _MyExercisesViewState extends State<MyExercisesView> {
                 ? AppEmptyView(
                     icon: Icons.fitness_center_outlined,
                     title: Tr.t('myExercisesEmpty'),
-                    message: 'Birinchi mashqni qo\'shing va u shu yerda ko\'rinadi.',
+                    message: Tr.t('firstExercisePrompt'),
                   )
                 : AppEmptyView(
                     icon: Icons.search_off_rounded,
@@ -190,8 +192,9 @@ class _MyExercisesViewState extends State<MyExercisesView> {
                         SizedBox(width: AppSpacing.sm.w),
                         Text(
                           Tr.t('delete'),
-                          style: AppTextStyles.button
-                              .copyWith(color: context.palette.error),
+                          style: AppTextStyles.button.copyWith(
+                            color: context.palette.error,
+                          ),
                         ),
                       ],
                     ),
@@ -200,8 +203,20 @@ class _MyExercisesViewState extends State<MyExercisesView> {
                     padding: EdgeInsets.only(bottom: AppSpacing.md.h),
                     child: _ExerciseManageCard(
                       exercise: exercise,
-                      onTap: () =>
-                          context.push('/exercise-detail', extra: exercise),
+                      onTap: () async {
+                        final changed = await context.push<bool>(
+                          '/exercise-detail',
+                          extra: ExerciseDetailArgs(
+                            exercise: exercise,
+                            canEdit: true,
+                          ),
+                        );
+                        if (changed == true && context.mounted) {
+                          context.read<ExerciseBloc>().add(
+                            const LoadExercises(),
+                          );
+                        }
+                      },
                     ),
                   ),
                 );
@@ -234,7 +249,10 @@ class _MyExercisesViewState extends State<MyExercisesView> {
             onPressed: () => Navigator.of(dialogContext).pop(true),
             child: Text(
               Tr.t('delete'),
-              style: TextStyle(color: palette.error, fontWeight: FontWeight.w700),
+              style: TextStyle(
+                color: palette.error,
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
         ],
@@ -264,24 +282,35 @@ class _ExerciseManageCard extends StatelessWidget {
     final badgeColor = isMjt
         ? AppColors.warning
         : isUjt
-            ? AppColors.success
-            : AppColors.primaryBlue;
+        ? AppColors.success
+        : AppColors.primaryBlue;
     final badgeLabel = isMjt
-        ? 'MJT'
+        ? Tr.categoryName('MJT')
         : isUjt
-            ? 'UJT'
-            : 'Texnik';
+        ? Tr.categoryName('UJT')
+        : Tr.categoryName('Texnik');
     final icon = isMjt
         ? Icons.fitness_center_rounded
         : isUjt
-            ? Icons.bolt_rounded
-            : Icons.sports_martial_arts_rounded;
+        ? Icons.bolt_rounded
+        : Icons.sports_martial_arts_rounded;
 
     return AppListTile(
+      leading: exercise.image == null || exercise.image!.isEmpty
+          ? null
+          : RemoteImage(
+              url: exercise.image,
+              width: 44.w,
+              height: 44.h,
+              borderRadius: BorderRadius.circular(12.r),
+              fallbackIcon: icon,
+            ),
       icon: icon,
       iconColor: badgeColor,
       title: exercise.title,
-      subtitle: exercise.category.isEmpty ? null : exercise.category,
+      subtitle: exercise.category.isEmpty
+          ? null
+          : Tr.categoryName(exercise.category),
       trailing: AppBadge(label: badgeLabel, color: badgeColor),
       showChevron: true,
       onTap: onTap,

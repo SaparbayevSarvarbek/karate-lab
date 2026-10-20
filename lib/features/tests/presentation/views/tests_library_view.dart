@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
@@ -17,6 +17,7 @@ import '../../../../core/widgets/app_list_tile.dart';
 import '../../../../core/widgets/app_search_field.dart';
 import '../../../../core/widgets/app_state_views.dart';
 import '../../../../core/widgets/karate_app_bar.dart';
+import '../../../../core/widgets/remote_image.dart';
 import '../../../../core/widgets/shimmer_placeholder.dart';
 import '../viewmodels/test_bloc.dart';
 
@@ -44,18 +45,24 @@ class _TestsLibraryViewState extends State<TestsLibraryView> {
   _TestFilter _filter = _TestFilter.all;
   String _category = 'all';
 
-  static const _coachCategories = <AppChipItem<String>>[
-    AppChipItem(value: 'all', label: 'Barchasi'),
-    AppChipItem(value: 'Texnik', label: 'Texnik'),
-    AppChipItem(value: 'UJT', label: 'UJT'),
-    AppChipItem(value: 'MJT', label: 'MJT'),
+  List<AppChipItem<String>> get _coachCategories => [
+    AppChipItem(value: 'all', label: Tr.t('all')),
+    AppChipItem(value: 'Texnik', label: Tr.categoryName('Texnik')),
+    AppChipItem(value: 'UJT', label: Tr.categoryName('UJT')),
+    AppChipItem(value: 'MJT', label: Tr.categoryName('MJT')),
   ];
 
-  static const _statusFilters = <AppChipItem<_TestFilter>>[
-    AppChipItem(value: _TestFilter.all, label: 'Barchasi'),
-    AppChipItem(value: _TestFilter.pending, label: 'Boshlanmagan'),
-    AppChipItem(value: _TestFilter.inProgress, label: 'Jarayonda'),
-    AppChipItem(value: _TestFilter.completed, label: 'Bajarilgan'),
+  List<AppChipItem<_TestFilter>> get _statusFilters => [
+    AppChipItem(value: _TestFilter.all, label: Tr.t('all')),
+    AppChipItem(value: _TestFilter.pending, label: Tr.t('testStatusPending')),
+    AppChipItem(
+      value: _TestFilter.inProgress,
+      label: Tr.t('testStatusInProgress'),
+    ),
+    AppChipItem(
+      value: _TestFilter.completed,
+      label: Tr.t('testStatusCompleted'),
+    ),
   ];
 
   @override
@@ -65,8 +72,8 @@ class _TestsLibraryViewState extends State<TestsLibraryView> {
   }
 
   void _reload(BuildContext context) => context.read<TestBloc>().add(
-        _isCoach ? const LoadCoachTests() : const LoadMyTests(),
-      );
+    _isCoach ? const LoadCoachTests() : const LoadMyTests(),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -114,7 +121,7 @@ class _TestsLibraryViewState extends State<TestsLibraryView> {
           ),
           floatingActionButton: _isCoach
               ? AppFab(
-                  label: 'Test',
+                  label: Tr.t('test'),
                   onPressed: () async {
                     final created = await context.push('/create-test');
                     if (created == true && context.mounted) {
@@ -129,11 +136,11 @@ class _TestsLibraryViewState extends State<TestsLibraryView> {
   }
 
   EdgeInsets get _listPadding => EdgeInsets.fromLTRB(
-        AppSpacing.screenH.w,
-        AppSpacing.md.h,
-        AppSpacing.screenH.w,
-        _isCoach ? 96.h : AppSpacing.screenBottom.h,
-      );
+    AppSpacing.screenH.w,
+    AppSpacing.md.h,
+    AppSpacing.screenH.w,
+    _isCoach ? 96.h : AppSpacing.screenBottom.h,
+  );
 
   Widget _buildBody(BuildContext context, TestState state) {
     if (state is TestLoading) {
@@ -167,7 +174,7 @@ class _TestsLibraryViewState extends State<TestsLibraryView> {
           padding: _listPadding,
           children: [
             if (tests.isEmpty)
-              _emptyState('Testlar yo\'q')
+              _emptyState(Tr.t('noTests'))
             else
               for (final test in tests) ...[
                 _CoachTestCard(
@@ -214,7 +221,7 @@ class _TestsLibraryViewState extends State<TestsLibraryView> {
 
   bool _matchesCoach(TestEntity test) {
     if (_category != 'all' &&
-        test.category.toLowerCase() != _category.toLowerCase()) {
+        Tr.categoryKey(test.category) != Tr.categoryKey(_category)) {
       return false;
     }
     return _matchesQuery(test.name);
@@ -234,12 +241,12 @@ class _TestsLibraryViewState extends State<TestsLibraryView> {
       _query.isEmpty || name.toLowerCase().contains(_query.toLowerCase());
 
   Widget _emptyState(String title) => AppEmptyView(
-        icon: Icons.assignment_outlined,
-        title: title,
-        message: _query.isNotEmpty || _category != 'all'
-            ? 'Bu shartlarga mos test topilmadi.'
-            : null,
-      );
+    icon: Icons.assignment_outlined,
+    title: title,
+    message: _query.isNotEmpty || _category != 'all'
+        ? Tr.t('noTestsMatch')
+        : null,
+  );
 }
 
 /// Sportchi uchun test kartasi: holat nishoni + meta.
@@ -252,13 +259,13 @@ class _AthleteTestCard extends StatelessWidget {
   (String, Color) _statusVisual(AppPalette palette) {
     switch (test.status) {
       case TestStatus.pending:
-        return ('Boshlash', palette.info);
+        return (Tr.t('testStatusStart'), palette.info);
       case TestStatus.inProgress:
-        return ('Davom etish', palette.warning);
+        return (Tr.t('testStatusContinue'), palette.warning);
       case TestStatus.completed:
-        return ('Bajarildi', palette.success);
+        return (Tr.t('testStatusCompleted'), palette.success);
       case TestStatus.unknown:
-        return ('Natija', palette.textSecondary);
+        return (Tr.t('testStatusResult'), palette.textSecondary);
     }
   }
 
@@ -269,6 +276,15 @@ class _AthleteTestCard extends StatelessWidget {
     final (label, color) = _statusVisual(palette);
 
     return AppListTile(
+      leading: test.hasCover
+          ? RemoteImage(
+              url: test.coverUrl,
+              width: 44.w,
+              height: 44.h,
+              borderRadius: BorderRadius.circular(12.r),
+              fallbackIcon: Icons.assignment_rounded,
+            )
+          : null,
       icon: Icons.assignment_rounded,
       iconColor: AppColors.primaryBlue,
       title: test.name,
@@ -309,6 +325,15 @@ class _CoachTestCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppListTile(
+      leading: test.hasCover
+          ? RemoteImage(
+              url: test.coverUrl,
+              width: 44.w,
+              height: 44.h,
+              borderRadius: BorderRadius.circular(12.r),
+              fallbackIcon: Icons.assignment_rounded,
+            )
+          : null,
       icon: Icons.assignment_rounded,
       iconColor: AppColors.primaryBlue,
       title: test.name,
@@ -327,7 +352,10 @@ class _CoachTestCard extends StatelessWidget {
               text: '${test.totalDuration}${Tr.t('seconds')}',
             ),
           if (test.category.isNotEmpty)
-            AppMeta(icon: Icons.category_outlined, text: test.category),
+            AppMeta(
+              icon: Icons.category_outlined,
+              text: Tr.categoryName(test.category),
+            ),
         ],
       ),
     );

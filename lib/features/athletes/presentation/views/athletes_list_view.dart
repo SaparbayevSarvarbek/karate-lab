@@ -31,11 +31,11 @@ class _AthletesListViewState extends State<AthletesListView> {
   String _query = '';
 
   EdgeInsets get _listPadding => EdgeInsets.fromLTRB(
-        AppSpacing.screenH.w,
-        AppSpacing.md.h,
-        AppSpacing.screenH.w,
-        AppSpacing.screenBottom.h,
-      );
+    AppSpacing.screenH.w,
+    AppSpacing.md.h,
+    AppSpacing.screenH.w,
+    AppSpacing.screenBottom.h,
+  );
 
   @override
   void dispose() {
@@ -192,8 +192,9 @@ class _AthletesListViewState extends State<AthletesListView> {
         ),
         title: Text(
           Tr.t('deleteAthleteTitle'),
-          style:
-              AppTextStyles.sectionTitle.copyWith(color: palette.textPrimary),
+          style: AppTextStyles.sectionTitle.copyWith(
+            color: palette.textPrimary,
+          ),
         ),
         content: Text(
           Tr.t('deleteAthleteConfirm', {'name': athlete.fullName}),

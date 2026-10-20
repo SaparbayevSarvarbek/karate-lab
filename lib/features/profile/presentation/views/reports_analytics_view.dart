@@ -32,9 +32,8 @@ class ReportsAnalyticsView extends StatelessWidget {
 
   bool get _isCoach => userRole == AppConstants.roleCoach;
 
-  AnalyticsEvent get _loadEvent => _isCoach
-      ? const LoadCoachStatistics()
-      : const LoadAthleteStatistics();
+  AnalyticsEvent get _loadEvent =>
+      _isCoach ? const LoadCoachStatistics() : const LoadAthleteStatistics();
 
   @override
   Widget build(BuildContext context) {
@@ -45,12 +44,13 @@ class ReportsAnalyticsView extends StatelessWidget {
           return Scaffold(
             backgroundColor: context.palette.background,
             appBar: KarateAppBar(
-              title: 'Analytics',
+              title: Tr.t('reportsTitle'),
               actions: [
                 IconButton(
                   icon: const Icon(Icons.refresh_rounded),
                   color: context.palette.textPrimary,
-                  onPressed: () => context.read<AnalyticsBloc>().add(_loadEvent),
+                  onPressed: () =>
+                      context.read<AnalyticsBloc>().add(_loadEvent),
                 ),
               ],
             ),
@@ -280,12 +280,7 @@ class ReportsSummaryCard extends StatelessWidget {
             style: AppTextStyles.caption.copyWith(color: palette.textSecondary),
           ),
           SizedBox(height: AppSpacing.md.h),
-          AppIconTile(
-            icon: icon,
-            color: color,
-            size: 28,
-            radius: AppRadius.xs,
-          ),
+          AppIconTile(icon: icon, color: color, size: 28, radius: AppRadius.xs),
         ],
       ),
     );
@@ -478,7 +473,8 @@ class ReportsMetricListCard extends StatelessWidget {
       child: Column(
         children: [
           for (var i = 0; i < items.length; i++) ...[
-            if (i > 0) Divider(height: AppSpacing.xxl.h, color: palette.divider),
+            if (i > 0)
+              Divider(height: AppSpacing.xxl.h, color: palette.divider),
             ReportsMetricRow(label: items[i].label, value: items[i].value),
           ],
         ],
@@ -513,14 +509,16 @@ class ReportsMetricRow extends StatelessWidget {
                 label,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: AppTextStyles.cardTitle
-                    .copyWith(color: palette.textPrimary),
+                style: AppTextStyles.cardTitle.copyWith(
+                  color: palette.textPrimary,
+                ),
               ),
               SizedBox(height: AppSpacing.xxs.h),
               Text(
                 _scoreBand(value),
-                style: AppTextStyles.caption
-                    .copyWith(color: palette.textSecondary),
+                style: AppTextStyles.caption.copyWith(
+                  color: palette.textSecondary,
+                ),
               ),
             ],
           ),
@@ -573,7 +571,8 @@ class _RecentResultsCard extends StatelessWidget {
       child: Column(
         children: [
           for (var i = 0; i < results.length; i++) ...[
-            if (i > 0) Divider(height: AppSpacing.xxl.h, color: palette.divider),
+            if (i > 0)
+              Divider(height: AppSpacing.xxl.h, color: palette.divider),
             Row(
               children: [
                 const AppIconTile(
@@ -591,14 +590,16 @@ class _RecentResultsCard extends StatelessWidget {
                         results[i].testName,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: AppTextStyles.cardTitle
-                            .copyWith(color: palette.textPrimary),
+                        style: AppTextStyles.cardTitle.copyWith(
+                          color: palette.textPrimary,
+                        ),
                       ),
                       SizedBox(height: AppSpacing.xxs.h),
                       Text(
                         _formatDate(results[i].completedAt),
-                        style: AppTextStyles.caption
-                            .copyWith(color: palette.textSecondary),
+                        style: AppTextStyles.caption.copyWith(
+                          color: palette.textSecondary,
+                        ),
                       ),
                     ],
                   ),
@@ -700,7 +701,9 @@ class ReportsRankingItem extends StatelessWidget {
               name,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: AppTextStyles.cardTitle.copyWith(color: palette.textPrimary),
+              style: AppTextStyles.cardTitle.copyWith(
+                color: palette.textPrimary,
+              ),
             ),
           ),
           SizedBox(width: AppSpacing.md.w),

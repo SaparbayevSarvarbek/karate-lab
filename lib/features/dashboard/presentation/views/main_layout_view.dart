@@ -86,10 +86,7 @@ class _MainLayoutViewState extends State<MainLayoutView> {
       },
       child: Scaffold(
         backgroundColor: context.palette.background,
-        body: _LazyIndexedStack(
-          index: _currentIndex,
-          children: _screens,
-        ),
+        body: _LazyIndexedStack(index: _currentIndex, children: _screens),
         bottomNavigationBar: MainBottomNavBar(
           currentIndex: _currentIndex,
           isCoach: isCoach,
@@ -117,8 +114,10 @@ class _LazyIndexedStack extends StatefulWidget {
 }
 
 class _LazyIndexedStackState extends State<_LazyIndexedStack> {
-  late final List<bool> _activated =
-      List<bool>.filled(widget.children.length, false);
+  late final List<bool> _activated = List<bool>.filled(
+    widget.children.length,
+    false,
+  );
 
   @override
   void initState() {
@@ -210,55 +209,55 @@ class MainBottomNavBar extends StatelessWidget {
   }
 
   List<_NavItemData> get _coachItems => [
-        _NavItemData(
-          icon: Icons.space_dashboard_outlined,
-          activeIcon: Icons.space_dashboard_rounded,
-          label: Tr.t('navDashboard'),
-        ),
-        _NavItemData(
-          icon: Icons.people_alt_outlined,
-          activeIcon: Icons.people_alt_rounded,
-          label: Tr.t('navAthletes'),
-        ),
-        _NavItemData(
-          icon: Icons.fitness_center_outlined,
-          activeIcon: Icons.fitness_center_rounded,
-          label: Tr.t('navExercises'),
-        ),
-        _NavItemData(
-          icon: Icons.assignment_outlined,
-          activeIcon: Icons.assignment_rounded,
-          label: Tr.t('navTests'),
-        ),
-        _NavItemData(
-          icon: Icons.person_outline_rounded,
-          activeIcon: Icons.person_rounded,
-          label: Tr.t('navProfile'),
-        ),
-      ];
+    _NavItemData(
+      icon: Icons.space_dashboard_outlined,
+      activeIcon: Icons.space_dashboard_rounded,
+      label: Tr.t('navDashboard'),
+    ),
+    _NavItemData(
+      icon: Icons.people_alt_outlined,
+      activeIcon: Icons.people_alt_rounded,
+      label: Tr.t('navAthletes'),
+    ),
+    _NavItemData(
+      icon: Icons.fitness_center_outlined,
+      activeIcon: Icons.fitness_center_rounded,
+      label: Tr.t('navExercises'),
+    ),
+    _NavItemData(
+      icon: Icons.assignment_outlined,
+      activeIcon: Icons.assignment_rounded,
+      label: Tr.t('navTests'),
+    ),
+    _NavItemData(
+      icon: Icons.person_outline_rounded,
+      activeIcon: Icons.person_rounded,
+      label: Tr.t('navProfile'),
+    ),
+  ];
 
   List<_NavItemData> get _athleteItems => [
-        _NavItemData(
-          icon: Icons.home_outlined,
-          activeIcon: Icons.home_rounded,
-          label: Tr.t('navHome'),
-        ),
-        _NavItemData(
-          icon: Icons.fitness_center_outlined,
-          activeIcon: Icons.fitness_center_rounded,
-          label: Tr.t('navExercises'),
-        ),
-        _NavItemData(
-          icon: Icons.assignment_outlined,
-          activeIcon: Icons.assignment_rounded,
-          label: Tr.t('navTests'),
-        ),
-        _NavItemData(
-          icon: Icons.person_outline_rounded,
-          activeIcon: Icons.person_rounded,
-          label: Tr.t('navProfile'),
-        ),
-      ];
+    _NavItemData(
+      icon: Icons.home_outlined,
+      activeIcon: Icons.home_rounded,
+      label: Tr.t('navHome'),
+    ),
+    _NavItemData(
+      icon: Icons.fitness_center_outlined,
+      activeIcon: Icons.fitness_center_rounded,
+      label: Tr.t('navExercises'),
+    ),
+    _NavItemData(
+      icon: Icons.assignment_outlined,
+      activeIcon: Icons.assignment_rounded,
+      label: Tr.t('navTests'),
+    ),
+    _NavItemData(
+      icon: Icons.person_outline_rounded,
+      activeIcon: Icons.person_rounded,
+      label: Tr.t('navProfile'),
+    ),
+  ];
 }
 
 class _NavItemData {
@@ -291,8 +290,9 @@ class _NavBarItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
-    final foreground =
-        isSelected ? AppColors.primaryBlue : palette.textSecondary;
+    final foreground = isSelected
+        ? AppColors.primaryBlue
+        : palette.textSecondary;
 
     return Semantics(
       button: true,

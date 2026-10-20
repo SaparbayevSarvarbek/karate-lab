@@ -12,22 +12,23 @@ class AppTheme {
     final isDark = palette.isDark;
     final brightness = isDark ? Brightness.dark : Brightness.light;
 
-    final colorScheme = ColorScheme.fromSeed(
-      seedColor: AppColors.primaryBlue,
-      brightness: brightness,
-    ).copyWith(
-      primary: AppColors.primaryBlue,
-      onPrimary: palette.onBrand,
-      secondary: AppColors.primaryBlue,
-      onSecondary: palette.onBrand,
-      surface: palette.surface,
-      onSurface: palette.textPrimary,
-      surfaceContainerHighest: palette.backgroundLight,
-      outline: palette.border,
-      outlineVariant: palette.divider,
-      error: palette.error,
-      onError: Colors.white,
-    );
+    final colorScheme =
+        ColorScheme.fromSeed(
+          seedColor: AppColors.primaryBlue,
+          brightness: brightness,
+        ).copyWith(
+          primary: AppColors.primaryBlue,
+          onPrimary: palette.onBrand,
+          secondary: AppColors.primaryBlue,
+          onSecondary: palette.onBrand,
+          surface: palette.surface,
+          onSurface: palette.textPrimary,
+          surfaceContainerHighest: palette.backgroundLight,
+          outline: palette.border,
+          outlineVariant: palette.divider,
+          error: palette.error,
+          onError: Colors.white,
+        );
 
     return ThemeData(
       useMaterial3: true,
@@ -52,18 +53,36 @@ class AppTheme {
       ),
       textTheme: TextTheme(
         displayLarge: TextStyle(
-            fontSize: 32, fontWeight: FontWeight.w800, color: palette.textPrimary),
+          fontSize: 32,
+          fontWeight: FontWeight.w800,
+          color: palette.textPrimary,
+        ),
         displayMedium: TextStyle(
-            fontSize: 24, fontWeight: FontWeight.w800, color: palette.textPrimary),
+          fontSize: 24,
+          fontWeight: FontWeight.w800,
+          color: palette.textPrimary,
+        ),
         titleLarge: TextStyle(
-            fontSize: 20, fontWeight: FontWeight.w700, color: palette.textPrimary),
+          fontSize: 20,
+          fontWeight: FontWeight.w700,
+          color: palette.textPrimary,
+        ),
         titleMedium: TextStyle(
-            fontSize: 16, fontWeight: FontWeight.w600, color: palette.textPrimary),
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+          color: palette.textPrimary,
+        ),
         bodyLarge: TextStyle(
-            fontSize: 15, fontWeight: FontWeight.w500, color: palette.textPrimary),
+          fontSize: 15,
+          fontWeight: FontWeight.w500,
+          color: palette.textPrimary,
+        ),
         bodyMedium: TextStyle(fontSize: 14, color: palette.textSecondary),
         labelLarge: TextStyle(
-            fontSize: 14, fontWeight: FontWeight.w700, color: palette.onBrand),
+          fontSize: 14,
+          fontWeight: FontWeight.w700,
+          color: palette.onBrand,
+        ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -99,7 +118,10 @@ class AppTheme {
         hintStyle: TextStyle(color: palette.textHint, fontSize: 14.5),
         labelStyle: TextStyle(color: palette.textSecondary, fontSize: 13.5),
         errorStyle: TextStyle(fontSize: 12.5, color: palette.error),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 18,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.button),
           borderSide: BorderSide(color: palette.border),
@@ -110,7 +132,10 @@ class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.button),
-          borderSide: const BorderSide(color: AppColors.primaryBlue, width: 1.6),
+          borderSide: const BorderSide(
+            color: AppColors.primaryBlue,
+            width: 1.6,
+          ),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.button),
@@ -135,9 +160,15 @@ class AppTheme {
           side: BorderSide(color: palette.border),
         ),
         titleTextStyle: TextStyle(
-            fontSize: 17, fontWeight: FontWeight.w700, color: palette.textPrimary),
-        contentTextStyle:
-            TextStyle(color: palette.textSecondary, fontSize: 14, height: 1.4),
+          fontSize: 17,
+          fontWeight: FontWeight.w700,
+          color: palette.textPrimary,
+        ),
+        contentTextStyle: TextStyle(
+          color: palette.textSecondary,
+          fontSize: 14,
+          height: 1.4,
+        ),
       ),
       bottomSheetTheme: BottomSheetThemeData(
         backgroundColor: palette.surface,
@@ -145,7 +176,9 @@ class AppTheme {
         elevation: 0,
         showDragHandle: true,
         shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.lg)),
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(AppRadius.lg),
+          ),
         ),
       ),
       snackBarTheme: SnackBarThemeData(

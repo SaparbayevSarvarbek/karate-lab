@@ -47,7 +47,9 @@ class ApiPayload {
     if (data is Map) {
       final map = Map<String, dynamic>.from(data);
       final nested = map['data'];
-      if (nested is Map) return normalizeKeys(Map<String, dynamic>.from(nested));
+      if (nested is Map) {
+        return normalizeKeys(Map<String, dynamic>.from(nested));
+      }
       return normalizeKeys(map);
     }
     return null;

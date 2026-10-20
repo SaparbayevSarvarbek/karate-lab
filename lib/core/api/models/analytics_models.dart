@@ -1,5 +1,5 @@
-/// Analytics models for athlete and coach statistics.
-/// Using plain Dart classes instead of freezed to save time.
+// Analytics models for athlete and coach statistics.
+// Using plain Dart classes instead of freezed to save time.
 
 class DataPoint {
   final String label;
@@ -8,9 +8,9 @@ class DataPoint {
   const DataPoint({required this.label, required this.value});
 
   factory DataPoint.fromJson(Map<String, dynamic> json) => DataPoint(
-        label: json['label']?.toString() ?? '',
-        value: (json['value'] as num?)?.toDouble() ?? 0.0,
-      );
+    label: json['label']?.toString() ?? '',
+    value: (json['value'] as num?)?.toDouble() ?? 0.0,
+  );
 }
 
 class AthleteStatistics {
@@ -47,15 +47,18 @@ class AthleteStatistics {
       averageScore: (json['averageScore'] as num?)?.toDouble(),
       bestScore: (json['bestScore'] as num?)?.toDouble(),
       successRate: (json['successRate'] as num?)?.toDouble() ?? 0.0,
-      recentResults: (json['recentResults'] as List<dynamic>?)
+      recentResults:
+          (json['recentResults'] as List<dynamic>?)
               ?.map((e) => RecentResult.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
-      scoreOverTime: (json['scoreOverTime'] as List<dynamic>?)
+      scoreOverTime:
+          (json['scoreOverTime'] as List<dynamic>?)
               ?.map((e) => DataPoint.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
-      testPerformance: (json['testPerformance'] as List<dynamic>?)
+      testPerformance:
+          (json['testPerformance'] as List<dynamic>?)
               ?.map((e) => DataPoint.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
@@ -77,13 +80,13 @@ class RecentResult {
   });
 
   factory RecentResult.fromJson(Map<String, dynamic> json) => RecentResult(
-        testId: json['testId'] as int? ?? 0,
-        testName: json['testName']?.toString() ?? '',
-        score: (json['score'] as num?)?.toDouble() ?? 0.0,
-        completedAt: json['completedAt'] != null
-            ? DateTime.tryParse(json['completedAt'].toString())
-            : null,
-      );
+    testId: json['testId'] as int? ?? 0,
+    testName: json['testName']?.toString() ?? '',
+    score: (json['score'] as num?)?.toDouble() ?? 0.0,
+    completedAt: json['completedAt'] != null
+        ? DateTime.tryParse(json['completedAt'].toString())
+        : null,
+  );
 }
 
 class CompletionData {
@@ -93,9 +96,9 @@ class CompletionData {
   const CompletionData({required this.completed, required this.pending});
 
   factory CompletionData.fromJson(Map<String, dynamic> json) => CompletionData(
-        completed: json['completed'] as int? ?? 0,
-        pending: json['pending'] as int? ?? 0,
-      );
+    completed: json['completed'] as int? ?? 0,
+    pending: json['pending'] as int? ?? 0,
+  );
 }
 
 class CoachStatistics {
@@ -134,18 +137,21 @@ class CoachStatistics {
       pendingTests: json['pendingTests'] as int? ?? 0,
       averageScore: (json['averageScore'] as num?)?.toDouble(),
       averagePerformance: (json['averagePerformance'] as num?)?.toDouble(),
-      athletesPerformance: (json['athletesPerformance'] as List<dynamic>?)
+      athletesPerformance:
+          (json['athletesPerformance'] as List<dynamic>?)
               ?.map((e) => DataPoint.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
-      scoreOverTime: (json['scoreOverTime'] as List<dynamic>?)
+      scoreOverTime:
+          (json['scoreOverTime'] as List<dynamic>?)
               ?.map((e) => DataPoint.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
       completion: json['completion'] != null
           ? CompletionData.fromJson(json['completion'] as Map<String, dynamic>)
           : const CompletionData(completed: 0, pending: 0),
-      performanceDistribution: (json['performanceDistribution'] as List<dynamic>?)
+      performanceDistribution:
+          (json['performanceDistribution'] as List<dynamic>?)
               ?.map((e) => DataPoint.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
@@ -181,20 +187,20 @@ class AthleteSummary {
   });
 
   factory AthleteSummary.fromJson(Map<String, dynamic> json) => AthleteSummary(
-        id: json['id'] as int? ?? 0,
-        username: json['username']?.toString() ?? '',
-        firstName: json['firstName']?.toString() ?? '',
-        lastName: json['lastName']?.toString() ?? '',
-        avatar: json['avatar']?.toString(),
-        totalTests: json['totalTests'] as int? ?? 0,
-        completedTests: json['completedTests'] as int? ?? 0,
-        averageScore: (json['averageScore'] as num?)?.toDouble(),
-        bestScore: (json['bestScore'] as num?)?.toDouble(),
-        lastActivity: json['lastActivity'] != null
-            ? DateTime.tryParse(json['lastActivity'].toString())
-            : null,
-        performance: json['performance']?.toString() ?? 'none',
-      );
+    id: json['id'] as int? ?? 0,
+    username: json['username']?.toString() ?? '',
+    firstName: json['firstName']?.toString() ?? '',
+    lastName: json['lastName']?.toString() ?? '',
+    avatar: json['avatar']?.toString(),
+    totalTests: json['totalTests'] as int? ?? 0,
+    completedTests: json['completedTests'] as int? ?? 0,
+    averageScore: (json['averageScore'] as num?)?.toDouble(),
+    bestScore: (json['bestScore'] as num?)?.toDouble(),
+    lastActivity: json['lastActivity'] != null
+        ? DateTime.tryParse(json['lastActivity'].toString())
+        : null,
+    performance: json['performance']?.toString() ?? 'none',
+  );
 
   String get fullName => '$firstName $lastName'.trim();
 }

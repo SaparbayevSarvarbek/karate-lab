@@ -16,7 +16,8 @@ abstract class MjtStep with _$MjtStep {
     @Default(<String>[]) List<String> images,
   }) = _MjtStep;
 
-  factory MjtStep.fromJson(Map<String, dynamic> json) => _$MjtStepFromJson(json);
+  factory MjtStep.fromJson(Map<String, dynamic> json) =>
+      _$MjtStepFromJson(json);
 }
 
 /// `GET /mjt-tests/` — MJT testi (ro'yxat ko'rinishida steps siz).
@@ -35,7 +36,8 @@ abstract class MjtTest with _$MjtTest {
     String? createdAt,
   }) = _MjtTest;
 
-  factory MjtTest.fromJson(Map<String, dynamic> json) => _$MjtTestFromJson(json);
+  factory MjtTest.fromJson(Map<String, dynamic> json) =>
+      _$MjtTestFromJson(json);
 
   bool get hasCover => coverUrl != null && coverUrl!.isNotEmpty;
 }

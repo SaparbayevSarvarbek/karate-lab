@@ -4,6 +4,7 @@ import '../api/api_client.dart';
 import '../api/api_constants.dart';
 import '../api/api_exception.dart';
 import '../api/models/dashboard_models.dart';
+import '../l10n/app_translations.dart';
 
 /// Dashboard va statistika repository (Swagger: Dashboard & Analytics).
 abstract class DashboardRepository {
@@ -20,7 +21,7 @@ class DashboardRepositoryImpl implements DashboardRepository {
     try {
       final data = await _apiClient.getObject(ApiConstants.dashboard);
       if (data == null) {
-        return const Left(ApiException(message: 'Server javob bermadi'));
+        return Left(ApiException(message: Tr.t('serverNoResponse')));
       }
       return Right(DashboardData.fromJson(data));
     } on ApiException catch (e) {

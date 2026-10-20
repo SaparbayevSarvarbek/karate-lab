@@ -119,7 +119,9 @@ class AppErrorView extends StatelessWidget {
               decoration: BoxDecoration(
                 color: palette.error.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(AppRadius.panel.r),
-                border: Border.all(color: palette.error.withValues(alpha: 0.18)),
+                border: Border.all(
+                  color: palette.error.withValues(alpha: 0.18),
+                ),
               ),
               child: Icon(
                 Icons.cloud_off_rounded,
@@ -175,7 +177,9 @@ class AppLoadingView extends StatelessWidget {
             SizedBox(height: AppSpacing.md.h),
             Text(
               label!,
-              style: AppTextStyles.caption.copyWith(color: palette.textSecondary),
+              style: AppTextStyles.caption.copyWith(
+                color: palette.textSecondary,
+              ),
             ),
           ],
         ],

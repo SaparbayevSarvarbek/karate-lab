@@ -6,10 +6,7 @@ class ApiException implements Exception {
   final String message;
   final int statusCode;
 
-  const ApiException({
-    required this.message,
-    this.statusCode = 0,
-  });
+  const ApiException({required this.message, this.statusCode = 0});
 
   factory ApiException.fromDioException(DioException e) {
     return ApiException(

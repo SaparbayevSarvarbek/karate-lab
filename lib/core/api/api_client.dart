@@ -1,6 +1,9 @@
 import 'dart:async';
 
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 
 import '../services/shared_prefs_service.dart';
@@ -15,32 +18,36 @@ class ApiClient {
   static void Function()? onUnauthorized;
 
   static const _retryKey = '_authRetry';
+  static Future<String?>? _deviceModelFuture;
 
   bool _isRefreshing = false;
   final List<Completer<String?>> _refreshWaiters = [];
 
   ApiClient(this._prefs)
-      : _dio = Dio(
-          BaseOptions(
-            baseUrl: ApiConstants.baseUrl,
-            connectTimeout: const Duration(
-              milliseconds: ApiConstants.connectTimeout,
-            ),
-            receiveTimeout: const Duration(
-              milliseconds: ApiConstants.receiveTimeout,
-            ),
-            sendTimeout: const Duration(
-              milliseconds: ApiConstants.sendTimeout,
-            ),
-            headers: {
-              'Content-Type': 'application/json',
-              'Accept': 'application/json',
-            },
+    : _dio = Dio(
+        BaseOptions(
+          baseUrl: ApiConstants.baseUrl,
+          connectTimeout: const Duration(
+            milliseconds: ApiConstants.connectTimeout,
           ),
-        ) {
+          receiveTimeout: const Duration(
+            milliseconds: ApiConstants.receiveTimeout,
+          ),
+          sendTimeout: const Duration(milliseconds: ApiConstants.sendTimeout),
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+        ),
+      ) {
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
+          final deviceModel = await (_deviceModelFuture ??= _loadDeviceModel());
+          if (deviceModel != null) {
+            options.headers['X-Device-Model'] = deviceModel;
+          }
+
           if (!_isPublicPath(options.path)) {
             final extra = options.extra;
             final alreadyRetried = extra[_retryKey] == true;
@@ -58,9 +65,11 @@ class ApiClient {
             final path = error.requestOptions.path;
             final authHeader =
                 error.requestOptions.headers['Authorization'] as String? ?? '';
-            final hadBearer = authHeader.startsWith('Bearer ') &&
+            final hadBearer =
+                authHeader.startsWith('Bearer ') &&
                 authHeader.length > 'Bearer '.length;
-            final alreadyRetried = error.requestOptions.extra[_retryKey] == true;
+            final alreadyRetried =
+                error.requestOptions.extra[_retryKey] == true;
 
             if (_isPublicPath(path)) {
               return handler.next(error);
@@ -105,10 +114,35 @@ class ApiClient {
     );
   }
 
+  static Future<String?> _loadDeviceModel() async {
+    try {
+      final device = await DeviceInfoPlugin().deviceInfo;
+      if (device is AndroidDeviceInfo) {
+        final parts = [
+          device.brand.trim(),
+          device.model.trim(),
+        ].where((part) => part.isNotEmpty);
+        return parts.join(' ');
+      }
+      if (device is IosDeviceInfo) {
+        final model = device.utsname.machine.trim();
+        return model.isEmpty ? device.model : '${device.model} ($model)';
+      }
+      return null;
+    } on PlatformException catch (error) {
+      debugPrint('[KarateLab] Device model unavailable: ${error.message}');
+      return null;
+    } on MissingPluginException catch (error) {
+      debugPrint('[KarateLab] Device info plugin unavailable: $error');
+      return null;
+    }
+  }
+
   bool _isPublicPath(String path) {
     return path.contains(ApiConstants.login) ||
         path.contains(ApiConstants.register) ||
-        path.contains(ApiConstants.refresh);
+        path.contains(ApiConstants.refresh) ||
+        path.contains(ApiConstants.appVersion);
   }
 
   Future<String?> _getRefreshedToken() async {
@@ -163,9 +197,14 @@ class ApiClient {
   Future<Map<String, dynamic>?> getObject(
     String path, {
     Map<String, dynamic>? queryParameters,
+    Options? options,
   }) async {
     final response = await _request(
-      () => _dio.get<dynamic>(path, queryParameters: queryParameters),
+      () => _dio.get<dynamic>(
+        path,
+        queryParameters: queryParameters,
+        options: options,
+      ),
     );
     return ApiPayload.asObject(response.data);
   }
@@ -187,8 +226,9 @@ class ApiClient {
   }
 
   Future<Map<String, dynamic>?> patchObject(String path, {dynamic data}) async {
-    final response =
-        await _request(() => _dio.patch<dynamic>(path, data: data));
+    final response = await _request(
+      () => _dio.patch<dynamic>(path, data: data),
+    );
     return ApiPayload.asObject(response.data);
   }
 

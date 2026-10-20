@@ -26,7 +26,7 @@ class ApiConstants {
   /// ⚠️ Router IP ni o'zgartirsa, bu qiymat eskiradi. Ishonchli yo'l —
   /// `--dart-define=API_BASE_URL=...` bilan berish (pastdagi misolga qarang).
   /// Joriy IP: `ipconfig | findstr IPv4`.
-  static const String devLanUrl = 'http://192.168.13.116:8000';
+  static const String devLanUrl = 'http://10.192.126.230:8000';
 
   static String get baseUrl {
     if (_override.isNotEmpty) return _override;
@@ -41,6 +41,7 @@ class ApiConstants {
   static const String register = '/auth/register/';
   static const String logout = '/auth/logout/';
   static const String refresh = '/auth/refresh/';
+  static const String appVersion = '/app/version/';
 
   static const String categories = '/categories/';
 

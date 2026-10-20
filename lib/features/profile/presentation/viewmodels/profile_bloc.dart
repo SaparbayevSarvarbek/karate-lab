@@ -14,7 +14,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   final SettingsRepository _settingsRepository;
 
   ProfileBloc(this._profileRepository, this._settingsRepository)
-      : super(ProfileInitial()) {
+    : super(ProfileInitial()) {
     on<LoadProfile>(_onLoadProfile);
     on<UpdateProfileData>(_onUpdateProfileData);
     on<UploadProfileAvatar>(_onUploadAvatar);

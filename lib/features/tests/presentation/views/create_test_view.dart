@@ -118,8 +118,10 @@ class _CreateTestViewState extends State<CreateTestView> {
     if (_pickingCover) return;
     setState(() => _pickingCover = true);
     try {
-      final picked =
-          await _picker.pickImage(source: ImageSource.gallery, maxWidth: 1600);
+      final picked = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1600,
+      );
       if (picked != null && mounted) {
         setState(() {
           _cover = File(picked.path);
@@ -135,8 +137,10 @@ class _CreateTestViewState extends State<CreateTestView> {
 
   Future<void> _pickStepImage(int index) async {
     try {
-      final picked =
-          await _picker.pickImage(source: ImageSource.gallery, maxWidth: 1600);
+      final picked = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1600,
+      );
       if (picked != null && mounted) {
         setState(() {
           _steps[index].image = File(picked.path);
@@ -180,13 +184,15 @@ class _CreateTestViewState extends State<CreateTestView> {
     final stepInputs = <TestStepInput>[];
     final stepFiles = <File?>[];
     for (final s in _steps) {
-      stepInputs.add(TestStepInput(
-        id: s.id,
-        title: s.title.text.trim(),
-        description: s.description.text.trim(),
-        repetitions: s.repetitions.text.trim(),
-        duration: int.tryParse(s.duration.text.trim()) ?? 0,
-      ));
+      stepInputs.add(
+        TestStepInput(
+          id: s.id,
+          title: s.title.text.trim(),
+          description: s.description.text.trim(),
+          repetitions: s.repetitions.text.trim(),
+          duration: int.tryParse(s.duration.text.trim()) ?? 0,
+        ),
+      );
       stepFiles.add(s.image);
     }
 
@@ -216,7 +222,7 @@ class _CreateTestViewState extends State<CreateTestView> {
       (savedTest) {
         AppSnackbar.success(
           context,
-          _isEditing ? 'Test yangilandi.' : Tr.t('testCreatedSuccess'),
+          _isEditing ? Tr.t('testUpdatedSuccess') : Tr.t('testCreatedSuccess'),
         );
         if (_isEditing) {
           context.pop<TestEntity>(savedTest);
@@ -232,13 +238,13 @@ class _CreateTestViewState extends State<CreateTestView> {
     return Scaffold(
       backgroundColor: context.palette.background,
       appBar: KarateAppBar(
-        title: _isEditing ? 'Testni tahrirlash' : Tr.t('createTestTitle'),
+        title: _isEditing ? Tr.t('editTestTitle') : Tr.t('createTestTitle'),
       ),
       bottomNavigationBar: _saving
           ? null
           : AppBottomBar(
               child: CustomButton(
-                text: _isEditing ? 'O‘zgarishlarni saqlash' : Tr.t('saveTest'),
+                text: _isEditing ? Tr.t('saveChanges') : Tr.t('saveTest'),
                 trailingIcon: Icons.arrow_forward_rounded,
                 onPressed: _save,
               ),
@@ -269,8 +275,9 @@ class _CreateTestViewState extends State<CreateTestView> {
                         controller: _nameController,
                         hintText: Tr.t('testNameHint'),
                         prefixIcon: const Icon(Icons.assignment),
-                        validator: (v) =>
-                            (v == null || v.isEmpty) ? Tr.t('testNameRequired') : null,
+                        validator: (v) => (v == null || v.isEmpty)
+                            ? Tr.t('testNameRequired')
+                            : null,
                       ),
                       SizedBox(height: AppSpacing.lg.h),
                       CustomTextField(
@@ -283,7 +290,8 @@ class _CreateTestViewState extends State<CreateTestView> {
                         label: Tr.t('categoryLabel'),
                         value: _selectedCategory,
                         items: _categories,
-                        onChanged: (v) => setState(() => _selectedCategory = v!),
+                        onChanged: (v) =>
+                            setState(() => _selectedCategory = v!),
                       ),
                       SizedBox(height: AppSpacing.lg.h),
                       CustomTextField(
@@ -370,13 +378,11 @@ class _CoverPicker extends StatelessWidget {
           image: cover != null
               ? DecorationImage(image: FileImage(cover!), fit: BoxFit.cover)
               : coverUrl != null && coverUrl!.isNotEmpty
-                  ? DecorationImage(
-                      image: NetworkImage(
-                        ApiConstants.resolveMediaUrl(coverUrl!),
-                      ),
-                      fit: BoxFit.cover,
-                    )
-                  : null,
+              ? DecorationImage(
+                  image: NetworkImage(ApiConstants.resolveMediaUrl(coverUrl!)),
+                  fit: BoxFit.cover,
+                )
+              : null,
         ),
         child: cover == null && (coverUrl == null || coverUrl!.isEmpty)
             ? Center(
@@ -407,11 +413,7 @@ class _CoverPicker extends StatelessWidget {
                     color: Colors.black.withValues(alpha: 0.4),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(
-                    Icons.edit,
-                    color: Colors.white,
-                    size: 16.w,
-                  ),
+                  child: Icon(Icons.edit, color: Colors.white, size: 16.w),
                 ),
               ),
       ),
@@ -452,7 +454,11 @@ class _Dropdown extends StatelessWidget {
           borderSide: BorderSide(color: palette.border),
         ),
       ),
-      items: items.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+      items: items
+          .map(
+            (e) => DropdownMenuItem(value: e, child: Text(Tr.categoryName(e))),
+          )
+          .toList(),
       onChanged: onChanged,
     );
   }
@@ -591,15 +597,16 @@ class _StepCard extends StatelessWidget {
                         fit: BoxFit.cover,
                       )
                     : draft.imageUrl != null && draft.imageUrl!.isNotEmpty
-                        ? DecorationImage(
-                            image: NetworkImage(
-                              ApiConstants.resolveMediaUrl(draft.imageUrl!),
-                            ),
-                            fit: BoxFit.cover,
-                          )
-                        : null,
+                    ? DecorationImage(
+                        image: NetworkImage(
+                          ApiConstants.resolveMediaUrl(draft.imageUrl!),
+                        ),
+                        fit: BoxFit.cover,
+                      )
+                    : null,
               ),
-              child: draft.image == null &&
+              child:
+                  draft.image == null &&
                       (draft.imageUrl == null || draft.imageUrl!.isEmpty)
                   ? Center(
                       child: Column(
@@ -648,10 +655,7 @@ class _DescriptionField extends StatelessWidget {
   final TextEditingController controller;
   final String hintText;
 
-  const _DescriptionField({
-    required this.controller,
-    required this.hintText,
-  });
+  const _DescriptionField({required this.controller, required this.hintText});
 
   @override
   Widget build(BuildContext context) {
@@ -659,6 +663,7 @@ class _DescriptionField extends StatelessWidget {
     return TextFormField(
       controller: controller,
       maxLines: 3,
+      onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
       style: AppTextStyles.body.copyWith(color: palette.textPrimary),
       decoration: InputDecoration(
         hintText: hintText,

@@ -13,12 +13,7 @@ class AppStepBadge extends StatelessWidget {
   final IconData? icon;
   final Color? color;
 
-  const AppStepBadge({
-    super.key,
-    required this.label,
-    this.icon,
-    this.color,
-  });
+  const AppStepBadge({super.key, required this.label, this.icon, this.color});
 
   @override
   Widget build(BuildContext context) {

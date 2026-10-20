@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:video_player/video_player.dart';
 
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/l10n/app_translations.dart';
 import '../../../../core/theme/app_radius.dart';
 
 class ExerciseVideoPlayer extends StatefulWidget {
@@ -75,17 +76,22 @@ class _ExerciseVideoPlayerState extends State<ExerciseVideoPlayer> {
         child: _hasError
             ? _error(context)
             : (!_initialized || c == null)
-                ? _loading(context)
-                : Stack(
-                    children: [
-                      Center(child: AspectRatio(aspectRatio: c.value.aspectRatio, child: VideoPlayer(c))),
-                      if (_buffering)
-                        const Center(
-                          child: CircularProgressIndicator(color: Colors.white70),
-                        ),
-                      _ControlsOverlay(controller: c),
-                    ],
+            ? _loading(context)
+            : Stack(
+                children: [
+                  Center(
+                    child: AspectRatio(
+                      aspectRatio: c.value.aspectRatio,
+                      child: VideoPlayer(c),
+                    ),
                   ),
+                  if (_buffering)
+                    const Center(
+                      child: CircularProgressIndicator(color: Colors.white70),
+                    ),
+                  _ControlsOverlay(controller: c),
+                ],
+              ),
       ),
     );
   }
@@ -149,11 +155,15 @@ class _ControlsOverlay extends StatelessWidget {
               width: 56.w,
               height: 56.w,
               decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: value.isPlaying ? 0.0 : 0.45),
+                color: Colors.black.withValues(
+                  alpha: value.isPlaying ? 0.0 : 0.45,
+                ),
                 shape: BoxShape.circle,
               ),
               child: Icon(
-                value.isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                value.isPlaying
+                    ? Icons.pause_rounded
+                    : Icons.play_arrow_rounded,
                 size: 36.w,
                 color: value.isPlaying ? Colors.transparent : Colors.white,
               ),
@@ -180,7 +190,9 @@ class _ControlsOverlay extends StatelessWidget {
                 Row(
                   children: [
                     Icon(
-                      value.isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                      value.isPlaying
+                          ? Icons.pause_rounded
+                          : Icons.play_arrow_rounded,
                       color: Colors.white,
                       size: 16.w,
                     ),
@@ -190,7 +202,11 @@ class _ControlsOverlay extends StatelessWidget {
                       style: TextStyle(color: Colors.white, fontSize: 12.sp),
                     ),
                     const Spacer(),
-                    const Icon(Icons.all_inclusive_rounded, color: Colors.white54, size: 14),
+                    const Icon(
+                      Icons.all_inclusive_rounded,
+                      color: Colors.white54,
+                      size: 14,
+                    ),
                   ],
                 ),
               ],
@@ -263,7 +279,11 @@ class VideoThumbnailCard extends StatelessWidget {
                     ),
                   ],
                 ),
-                child: Icon(Icons.play_arrow_rounded, size: 40.w, color: AppColors.primaryNavy),
+                child: Icon(
+                  Icons.play_arrow_rounded,
+                  size: 40.w,
+                  color: AppColors.primaryNavy,
+                ),
               ),
             ),
             PositionedDirectional(
@@ -278,9 +298,20 @@ class VideoThumbnailCard extends StatelessWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.videocam_rounded, size: 14.w, color: Colors.white),
+                    Icon(
+                      Icons.videocam_rounded,
+                      size: 14.w,
+                      color: Colors.white,
+                    ),
                     SizedBox(width: 4.w),
-                    Text('Video dars', style: TextStyle(color: Colors.white, fontSize: 12.sp, fontWeight: FontWeight.w600)),
+                    Text(
+                      Tr.t('videoLesson'),
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12.sp,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ],
                 ),
               ),

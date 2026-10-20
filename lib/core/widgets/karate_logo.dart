@@ -1,10 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../constants/app_colors.dart';
-
-/// Ilovaning brend belgisi — gradient kvadrat ichida karate ikonkasi.
-///
-/// Sarlavha (AppBar), splash va onboarding ekranlarida ishlatiladi.
 class KarateLabLogo extends StatelessWidget {
   final double size;
 
@@ -16,17 +11,13 @@ class KarateLabLogo extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [AppColors.primaryBlue, AppColors.primaryBlueLight],
-          begin: AlignmentDirectional.topStart,
-          end: AlignmentDirectional.bottomEnd,
-        ),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(size * 0.3),
       ),
-      child: Icon(
-        Icons.sports_martial_arts,
-        color: Colors.white,
-        size: size * 0.6,
+      clipBehavior: Clip.antiAlias,
+      child: Padding(
+        padding: EdgeInsets.all(size * 0.04),
+        child: Image.asset('assets/icon/app_icon.png', fit: BoxFit.contain),
       ),
     );
   }

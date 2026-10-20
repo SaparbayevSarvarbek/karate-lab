@@ -6,6 +6,7 @@ import '../../../../core/api/models/analytics_models.dart';
 import '../../../../core/api/models/athlete_models.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/di/injection.dart';
+import '../../../../core/l10n/app_translations.dart';
 import '../../../../core/repositories/analytics_repository.dart';
 import '../../../../core/theme/app_palette.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -54,13 +55,16 @@ class _AthleteProfileContent extends StatelessWidget {
       builder: (context, state) {
         final isLoading =
             state is AthleteLoading && (initial == null || initial!.id == 0);
-        final athlete =
-            state is AthleteLoaded ? state.athlete : (initial ?? const Athlete());
+        final athlete = state is AthleteLoaded
+            ? state.athlete
+            : (initial ?? const Athlete());
 
         return Scaffold(
           backgroundColor: context.palette.background,
           appBar: KarateAppBar(
-            title: athlete.fullName.isEmpty ? 'Sportchi' : athlete.fullName,
+            title: athlete.fullName.isEmpty
+                ? Tr.t('athlete')
+                : athlete.fullName,
           ),
           body: SingleChildScrollView(
             padding: EdgeInsets.fromLTRB(
@@ -80,28 +84,40 @@ class _AthleteProfileContent extends StatelessWidget {
                         _AthleteStatistics(athleteId: athlete.id),
                       ],
                       SizedBox(height: AppSpacing.sectionGap.h),
-                      const AppSectionHeader(title: 'Shaxsiy ma\'lumotlar'),
+                      AppSectionHeader(title: Tr.t('personalInformation')),
                       SizedBox(height: AppSpacing.md.h),
                       _InfoCard(
                         rows: [
-                          InfoRow(label: 'Ism', value: athlete.firstName),
-                          InfoRow(label: 'Familiya', value: athlete.lastName),
                           InfoRow(
-                            label: 'Tug\'ilgan sana',
+                            label: Tr.t('firstName'),
+                            value: athlete.firstName,
+                          ),
+                          InfoRow(
+                            label: Tr.t('lastName'),
+                            value: athlete.lastName,
+                          ),
+                          InfoRow(
+                            label: Tr.t('birthDate'),
                             value: athlete.birthDate ?? '—',
                           ),
                           InfoRow(
-                            label: 'Telefon',
+                            label: Tr.t('phone'),
                             value:
-                                (athlete.phone == null || athlete.phone!.isEmpty)
-                                    ? '—'
-                                    : athlete.phone!,
+                                (athlete.phone == null ||
+                                    athlete.phone!.isEmpty)
+                                ? '—'
+                                : athlete.phone!,
                           ),
                           InfoRow(
-                            label: 'Yosh',
-                            value: athlete.age > 0 ? '${athlete.age} yosh' : '—',
+                            label: Tr.t('age'),
+                            value: athlete.age > 0
+                                ? Tr.t('yearsOld', {'age': '${athlete.age}'})
+                                : '—',
                           ),
-                          InfoRow(label: 'Username', value: athlete.username),
+                          InfoRow(
+                            label: Tr.t('username'),
+                            value: athlete.username,
+                          ),
                         ],
                       ),
                     ],
@@ -164,7 +180,7 @@ class _AthleteStatisticsState extends State<_AthleteStatistics> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const AppSectionHeader(title: 'Statistika'),
+            AppSectionHeader(title: Tr.t('statistics')),
             SizedBox(height: AppSpacing.md.h),
             IntrinsicHeight(
               child: Row(
@@ -172,7 +188,7 @@ class _AthleteStatisticsState extends State<_AthleteStatistics> {
                 children: [
                   Expanded(
                     child: AppStatCard(
-                      label: 'Bajarilgan',
+                      label: Tr.t('completed'),
                       value: '${stats.completedTests}',
                       icon: Icons.task_alt_rounded,
                       color: palette.success,
@@ -181,7 +197,7 @@ class _AthleteStatisticsState extends State<_AthleteStatistics> {
                   SizedBox(width: AppSpacing.md.w),
                   Expanded(
                     child: AppStatCard(
-                      label: "O'rtacha ball",
+                      label: Tr.t('avgScore'),
                       value: stats.averageScore == null
                           ? '—'
                           : stats.averageScore!.toStringAsFixed(1),
@@ -192,7 +208,7 @@ class _AthleteStatisticsState extends State<_AthleteStatistics> {
                   SizedBox(width: AppSpacing.md.w),
                   Expanded(
                     child: AppStatCard(
-                      label: 'Muvaffaqiyat',
+                      label: Tr.t('successRate'),
                       value: '${stats.successRate.round()}%',
                       icon: Icons.trending_up_rounded,
                       color: palette.warning,
@@ -216,7 +232,9 @@ class _ProfileHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
-    final display = athlete.fullName.isEmpty ? 'Sportchi' : athlete.fullName;
+    final display = athlete.fullName.isEmpty
+        ? Tr.t('athlete')
+        : athlete.fullName;
 
     return SizedBox(
       width: double.infinity,

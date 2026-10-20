@@ -9,6 +9,7 @@ import '../api/api_constants.dart';
 import '../api/api_exception.dart';
 import '../api/models/category_models.dart';
 import '../api/models/exercise_models.dart';
+import '../l10n/app_translations.dart';
 
 /// Mashqlar repository (Swagger: Exercises).
 abstract class ExerciseRepository {
@@ -28,8 +29,12 @@ abstract class ExerciseRepository {
   });
   Future<Either<ApiException, Exercise>> updateExercise(
     int id,
-    CreateExerciseRequest request,
-  );
+    CreateExerciseRequest request, {
+    File? image,
+    File? video,
+    List<ExerciseStepInput> steps = const [],
+    List<File?> stepImages = const [],
+  });
   Future<Either<ApiException, void>> deleteExercise(int id);
 }
 
@@ -63,7 +68,7 @@ class ExerciseRepositoryImpl implements ExerciseRepository {
     try {
       final data = await _apiClient.getObject(ApiConstants.exerciseDetail(id));
       if (data == null) {
-        return const Left(ApiException(message: 'Mashq topilmadi'));
+        return Left(ApiException(message: Tr.t('exerciseNotFound')));
       }
       return Right(Exercise.fromJson(data));
     } on ApiException catch (e) {
@@ -113,13 +118,15 @@ class ExerciseRepositoryImpl implements ExerciseRepository {
         for (var i = 0; i < stepImages.length; i++) {
           final f = stepImages[i];
           if (f != null) {
-            formData.files.add(MapEntry(
-              'step_image_$i',
-              await MultipartFile.fromFile(
-                f.path,
-                filename: f.path.split(Platform.pathSeparator).last,
+            formData.files.add(
+              MapEntry(
+                'step_image_$i',
+                await MultipartFile.fromFile(
+                  f.path,
+                  filename: f.path.split(Platform.pathSeparator).last,
+                ),
               ),
-            ));
+            );
           }
         }
 
@@ -128,7 +135,7 @@ class ExerciseRepositoryImpl implements ExerciseRepository {
           formData: formData,
         );
         if (result == null) {
-          return const Left(ApiException(message: 'Server javob bermadi'));
+          return Left(ApiException(message: Tr.t('serverNoResponse')));
         }
         return Right(Exercise.fromJson(result));
       } else {
@@ -138,7 +145,7 @@ class ExerciseRepositoryImpl implements ExerciseRepository {
           data: payload,
         );
         if (result == null) {
-          return const Left(ApiException(message: 'Server javob bermadi'));
+          return Left(ApiException(message: Tr.t('serverNoResponse')));
         }
         return Right(Exercise.fromJson(result));
       }
@@ -150,17 +157,61 @@ class ExerciseRepositoryImpl implements ExerciseRepository {
   @override
   Future<Either<ApiException, Exercise>> updateExercise(
     int id,
-    CreateExerciseRequest request,
-  ) async {
+    CreateExerciseRequest request, {
+    File? image,
+    File? video,
+    List<ExerciseStepInput> steps = const [],
+    List<File?> stepImages = const [],
+  }) async {
     try {
-      final data = await _apiClient.putObject(
-        ApiConstants.exerciseDetail(id),
-        data: request.toJson(),
-      );
-      if (data == null) {
-        return const Left(ApiException(message: 'Server javob bermadi'));
+      final payload = {
+        ...request.toJson(),
+        'steps': jsonEncode(steps.map((step) => step.toJson()).toList()),
+      };
+      final hasFiles =
+          image != null ||
+          video != null ||
+          stepImages.any((stepImage) => stepImage != null);
+      dynamic payloadData = payload;
+      if (hasFiles) {
+        final formData = FormData.fromMap({
+          ...payload,
+          'qualities': jsonEncode(request.qualities),
+          if (image != null)
+            'image': await MultipartFile.fromFile(
+              image.path,
+              filename: image.path.split(Platform.pathSeparator).last,
+            ),
+          if (video != null)
+            'video': await MultipartFile.fromFile(
+              video.path,
+              filename: video.path.split(Platform.pathSeparator).last,
+            ),
+        });
+        for (var i = 0; i < stepImages.length; i++) {
+          final stepImage = stepImages[i];
+          if (stepImage != null) {
+            formData.files.add(
+              MapEntry(
+                'step_image_$i',
+                await MultipartFile.fromFile(
+                  stepImage.path,
+                  filename: stepImage.path.split(Platform.pathSeparator).last,
+                ),
+              ),
+            );
+          }
+        }
+        payloadData = formData;
       }
-      return Right(Exercise.fromJson(data));
+      final response = await _apiClient.putObject(
+        ApiConstants.exerciseDetail(id),
+        data: payloadData,
+      );
+      if (response == null) {
+        return Left(ApiException(message: Tr.t('serverNoResponse')));
+      }
+      return Right(Exercise.fromJson(response));
     } on ApiException catch (e) {
       return Left(e);
     }

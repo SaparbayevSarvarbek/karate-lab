@@ -40,9 +40,7 @@ class KarateLabApp extends StatelessWidget {
       useInheritedMediaQuery: true,
       builder: (context, child) {
         return MultiBlocProvider(
-          providers: [
-            BlocProvider(create: (context) => AuthBloc()),
-          ],
+          providers: [BlocProvider(create: (context) => AuthBloc())],
           child: ListenableBuilder(
             listenable: Listenable.merge([
               ThemeController.instance,
@@ -56,6 +54,11 @@ class KarateLabApp extends StatelessWidget {
                 theme: AppTheme.lightTheme,
                 darkTheme: AppTheme.darkTheme,
                 themeMode: ThemeController.instance.themeMode,
+                builder: (context, child) => GestureDetector(
+                  behavior: HitTestBehavior.translucent,
+                  onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+                  child: child ?? const SizedBox.shrink(),
+                ),
                 routerConfig: AppRouter.router,
               );
             },

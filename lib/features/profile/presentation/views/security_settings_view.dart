@@ -96,15 +96,12 @@ class _SecuritySettingsViewState extends State<SecuritySettingsView> {
 
     final result = await getIt<SettingsRepository>().deleteSession(session.id);
     if (!mounted) return;
-    result.fold(
-      (error) => AppSnackbar.error(context, error.message),
-      (_) {
-        AppSnackbar.success(context, Tr.t('sessionEnded'));
-        setState(() {
-          _sessions.removeWhere((s) => s.id == session.id);
-        });
-      },
-    );
+    result.fold((error) => AppSnackbar.error(context, error.message), (_) {
+      AppSnackbar.success(context, Tr.t('sessionEnded'));
+      setState(() {
+        _sessions.removeWhere((s) => s.id == session.id);
+      });
+    });
   }
 
   Future<void> _logoutOtherDevices() async {
@@ -138,17 +135,14 @@ class _SecuritySettingsViewState extends State<SecuritySettingsView> {
     final result = await getIt<SettingsRepository>().logoutOtherDevices();
     if (!mounted) return;
     setState(() => _sessionsBusy = false);
-    result.fold(
-      (error) => AppSnackbar.error(context, error.message),
-      (_) {
-        AppSnackbar.success(context, Tr.t('sessionsEndedAll'));
-        setState(() {
-          _sessions = [];
-          _sessionsLoading = true;
-        });
-        _loadSessions();
-      },
-    );
+    result.fold((error) => AppSnackbar.error(context, error.message), (_) {
+      AppSnackbar.success(context, Tr.t('sessionsEndedAll'));
+      setState(() {
+        _sessions = [];
+        _sessionsLoading = true;
+      });
+      _loadSessions();
+    });
   }
 
   Future<void> _changePassword() async {
@@ -219,9 +213,12 @@ class _SecuritySettingsViewState extends State<SecuritySettingsView> {
                       controller: _newPasswordController,
                       label: Tr.t('newPassword'),
                       obscure: _obscureNew,
-                      onToggle: () => setState(() => _obscureNew = !_obscureNew),
+                      onToggle: () =>
+                          setState(() => _obscureNew = !_obscureNew),
                       validator: (v) {
-                        if (v == null || v.isEmpty) return Tr.t('enterNewPassword');
+                        if (v == null || v.isEmpty) {
+                          return Tr.t('enterNewPassword');
+                        }
                         if (v.length < 6) return Tr.t('passwordMin');
                         return null;
                       },
@@ -314,7 +311,7 @@ class SecurityDeleteAccountSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        AppSectionHeader(title: 'Xavfli zona'),
+        AppSectionHeader(title: Tr.t('dangerZone')),
         SizedBox(height: AppSpacing.md.h),
         AppCard(
           tone: palette.error.withValues(alpha: 0.06),
@@ -334,8 +331,9 @@ class SecurityDeleteAccountSection extends StatelessWidget {
                   Expanded(
                     child: Text(
                       Tr.t('deleteAccountText'),
-                      style: AppTextStyles.caption
-                          .copyWith(color: palette.textSecondary),
+                      style: AppTextStyles.caption.copyWith(
+                        color: palette.textSecondary,
+                      ),
                     ),
                   ),
                 ],
@@ -418,8 +416,9 @@ class _ActiveSessionsSection extends StatelessWidget {
           title: Tr.t('activeSessions'),
           subtitle: Tr.t('swipeHint'),
           actionLabel: busy ? Tr.t('signingOut') : Tr.t('logOutOthersBtn'),
-          onAction:
-              (busy || loading || sessions.length < 2) ? null : onLogoutOthers,
+          onAction: (busy || loading || sessions.length < 2)
+              ? null
+              : onLogoutOthers,
         ),
         SizedBox(height: AppSpacing.md.h),
         if (loading)
@@ -520,8 +519,9 @@ class _SessionTile extends StatelessWidget {
                   session.deviceInfo,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.cardTitle
-                      .copyWith(color: palette.textPrimary),
+                  style: AppTextStyles.cardTitle.copyWith(
+                    color: palette.textPrimary,
+                  ),
                 ),
                 SizedBox(height: AppSpacing.xxs.h),
                 Text(
@@ -534,8 +534,9 @@ class _SessionTile extends StatelessWidget {
                   ].join(' • '),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.caption
-                      .copyWith(color: palette.textSecondary),
+                  style: AppTextStyles.caption.copyWith(
+                    color: palette.textSecondary,
+                  ),
                 ),
               ],
             ),

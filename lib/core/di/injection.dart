@@ -75,9 +75,7 @@ Future<void> setupDependencies() async {
     () => ExerciseBloc(getIt<ExerciseRepository>()),
   );
 
-  getIt.registerFactory<TestBloc>(
-    () => TestBloc(getIt<TestRepository>()),
-  );
+  getIt.registerFactory<TestBloc>(() => TestBloc(getIt<TestRepository>()));
 
   getIt.registerFactory<ProfileBloc>(
     () => ProfileBloc(getIt<ProfileRepository>(), getIt<SettingsRepository>()),

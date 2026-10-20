@@ -46,7 +46,7 @@ class _RoleSelectionViewState extends State<RoleSelectionView> {
 
     return Scaffold(
       backgroundColor: palette.background,
-      appBar: const KarateAppBar(title: 'KarateLab AI', showLogo: true),
+      appBar: KarateAppBar(title: Tr.t('appTitle'), showLogo: true),
       body: SafeArea(
         top: false,
         child: Column(
@@ -61,20 +61,22 @@ class _RoleSelectionViewState extends State<RoleSelectionView> {
                 ),
                 children: [
                   Text(
-                    'Rolingizni tanlang',
-                    style: AppTextStyles.screenTitle
-                        .copyWith(color: palette.textPrimary),
+                    Tr.t('chooseRole'),
+                    style: AppTextStyles.screenTitle.copyWith(
+                      color: palette.textPrimary,
+                    ),
                   ),
                   SizedBox(height: AppSpacing.sm.h),
                   Text(
-                    'Ilovadan qanday maqsadda foydalanmoqchisiz?',
-                    style: AppTextStyles.body
-                        .copyWith(color: palette.textSecondary),
+                    Tr.t('chooseRoleHint'),
+                    style: AppTextStyles.body.copyWith(
+                      color: palette.textSecondary,
+                    ),
                   ),
                   SizedBox(height: AppSpacing.xxl.h),
                   AppSelectionCard(
                     icon: Icons.sports_martial_arts,
-                    title: 'Sportchi',
+                    title: Tr.t('athlete'),
                     subtitle: Tr.t('athleteSubtitle'),
                     selected: _selectedRole == AppConstants.roleAthlete,
                     onTap: () => _onRoleSelected(AppConstants.roleAthlete),
@@ -82,7 +84,7 @@ class _RoleSelectionViewState extends State<RoleSelectionView> {
                   SizedBox(height: AppSpacing.cardGap.h),
                   AppSelectionCard(
                     icon: Icons.assignment_ind_outlined,
-                    title: 'Murabbiy',
+                    title: Tr.t('coach'),
                     subtitle: Tr.t('coachSubtitle'),
                     selected: _selectedRole == AppConstants.roleCoach,
                     onTap: () => _onRoleSelected(AppConstants.roleCoach),
@@ -92,7 +94,7 @@ class _RoleSelectionViewState extends State<RoleSelectionView> {
             ),
             AppBottomBar(
               child: CustomButton(
-                text: 'Davom etish',
+                text: Tr.t('continueText'),
                 trailingIcon: Icons.arrow_forward_rounded,
                 onPressed: _selectedRole != null ? _onContinue : null,
               ),

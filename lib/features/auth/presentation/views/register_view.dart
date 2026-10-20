@@ -14,7 +14,6 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/uz_phone_formatter.dart';
 import '../../../../core/widgets/app_bottom_bar.dart';
 import '../../../../core/widgets/app_card.dart';
-import '../../../../core/widgets/app_icon_tile.dart';
 import '../../../../core/widgets/app_snackbar.dart';
 import '../../../../core/widgets/app_state_views.dart';
 import '../../../../core/widgets/custom_button.dart';
@@ -139,8 +138,9 @@ class _RegisterViewState extends State<RegisterView> {
         lastName: _lastNameController.text.trim(),
         role: widget.role,
         phone: UzPhoneFormatter.full(_phoneController.text.trim()),
-        dateOfBirth:
-            _dobController.text.isEmpty ? null : _dobController.text.trim(),
+        dateOfBirth: _dobController.text.isEmpty
+            ? null
+            : _dobController.text.trim(),
         height: _heightController.text.isEmpty
             ? null
             : int.tryParse(_heightController.text.trim()),
@@ -163,7 +163,10 @@ class _RegisterViewState extends State<RegisterView> {
           setState(() => _serverError = error.message);
         },
         (response) {
-          AppSnackbar.success(context, 'Xush kelibsiz, ${response.user.displayName}!');
+          AppSnackbar.success(
+            context,
+            Tr.t('welcomeUser', {'name': response.user.displayName}),
+          );
           context.go('/main', extra: response.role.toLowerCase());
         },
       );
@@ -207,11 +210,7 @@ class _RegisterViewState extends State<RegisterView> {
                     child: PageView(
                       controller: _pageController,
                       physics: const NeverScrollableScrollPhysics(),
-                      children: [
-                        _buildStep1(),
-                        _buildStep2(),
-                        _buildStep3(),
-                      ],
+                      children: [_buildStep1(), _buildStep2(), _buildStep3()],
                     ),
                   ),
                   AppBottomBar(
@@ -271,35 +270,34 @@ class _RegisterViewState extends State<RegisterView> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _stepHeader(
-              Tr.t('personalInfo'),
-              'Ism, familiya va telefon raqamingizni kiriting.',
-            ),
+            _stepHeader(Tr.t('personalInfo'), Tr.t('personalInfoHint')),
             Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                  CustomTextField(
-                    controller: _firstNameController,
-                    label: 'Ism',
-                    hintText: 'Ismingizni kiriting',
-                    prefixIcon: const Icon(Icons.person_outline),
-                    validator: (v) => v!.isEmpty ? 'Ismni kiriting' : null,
-                  ),
-                  SizedBox(height: AppSpacing.lg.h),
-                  CustomTextField(
-                    controller: _lastNameController,
-                    label: 'Familiya',
-                    hintText: 'Familiyangizni kiriting',
-                    prefixIcon: const Icon(Icons.person_outline),
-                    validator: (v) => v!.isEmpty ? 'Familiyani kiriting' : null,
-                  ),
-                  SizedBox(height: AppSpacing.lg.h),
-                  PhoneTextField(
-                    controller: _phoneController,
-                    label: 'Telefon raqami',
-                  ),
-                ],
-              ),
+                CustomTextField(
+                  controller: _firstNameController,
+                  label: Tr.t('firstName'),
+                  hintText: Tr.t('enterFirstName'),
+                  prefixIcon: const Icon(Icons.person_outline),
+                  validator: (v) =>
+                      v!.isEmpty ? Tr.t('firstNameRequired') : null,
+                ),
+                SizedBox(height: AppSpacing.lg.h),
+                CustomTextField(
+                  controller: _lastNameController,
+                  label: Tr.t('lastName'),
+                  hintText: Tr.t('enterLastName'),
+                  prefixIcon: const Icon(Icons.person_outline),
+                  validator: (v) =>
+                      v!.isEmpty ? Tr.t('lastNameRequired') : null,
+                ),
+                SizedBox(height: AppSpacing.lg.h),
+                PhoneTextField(
+                  controller: _phoneController,
+                  label: Tr.t('phone'),
+                ),
+              ],
+            ),
           ],
         ),
       ),
@@ -319,89 +317,88 @@ class _RegisterViewState extends State<RegisterView> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _stepHeader(
-              Tr.t('physicalInfo'),
-              'Aniq natijalar uchun parametrlarni to\'ldiring.',
-            ),
+            _stepHeader(Tr.t('physicalInfo'), Tr.t('physicalInfoHint')),
             Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                  GestureDetector(
-                    onTap: () => _selectDate(context),
-                    child: AbsorbPointer(
-                      child: CustomTextField(
-                        controller: _dobController,
-                        label: 'Tug\'ilgan sana',
-                        hintText: 'KK/OO/YYYY',
-                        prefixIcon: const Icon(Icons.calendar_today_outlined),
-                        validator: (v) =>
-                            v!.isEmpty ? 'Tug\'ilgan sanani tanlang' : null,
-                      ),
+                GestureDetector(
+                  onTap: () => _selectDate(context),
+                  child: AbsorbPointer(
+                    child: CustomTextField(
+                      controller: _dobController,
+                      label: Tr.t('birthDate'),
+                      hintText: Tr.t('dateFormatHint'),
+                      prefixIcon: const Icon(Icons.calendar_today_outlined),
+                      validator: (v) =>
+                          v!.isEmpty ? Tr.t('selectBirthDate') : null,
                     ),
                   ),
-                  SizedBox(height: AppSpacing.lg.h),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: CustomTextField(
-                          controller: _heightController,
-                          label: 'Bo\'y',
-                          hintText: '178',
-                          suffixText: 'sm',
-                          keyboardType: TextInputType.number,
-                          validator: (v) {
-                            if (v == null || v.isEmpty) return 'Kiriting';
-                            final val = int.tryParse(v);
-                            if (val == null || val > 999) return 'Max 999';
-                            return null;
-                          },
-                          onChanged: (v) {
-                            if (v.length > 3) {
-                              _heightController.text = v.substring(0, 3);
-                              _heightController.selection =
-                                  TextSelection.fromPosition(
-                                TextPosition(
-                                    offset: _heightController.text.length),
-                              );
-                            }
-                          },
-                        ),
+                ),
+                SizedBox(height: AppSpacing.lg.h),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: CustomTextField(
+                        controller: _heightController,
+                        label: Tr.t('height'),
+                        hintText: '180',
+                        suffixText: Tr.t('centimetersShort'),
+                        keyboardType: TextInputType.number,
+                        validator: (v) {
+                          if (v == null || v.isEmpty) return Tr.t('enterValue');
+                          final val = int.tryParse(v);
+                          if (val == null || val > 999) {
+                            return Tr.t('maximum999');
+                          }
+                          return null;
+                        },
+                        onChanged: (v) {
+                          if (v.length > 3) {
+                            _heightController.text = v.substring(0, 3);
+                            _heightController.selection =
+                                TextSelection.fromPosition(
+                                  TextPosition(
+                                    offset: _heightController.text.length,
+                                  ),
+                                );
+                          }
+                        },
                       ),
-                      SizedBox(width: AppSpacing.md.w),
-                      Expanded(
-                        child: CustomTextField(
-                          controller: _weightController,
-                          label: 'Vazn',
-                          hintText: '68',
-                          suffixText: 'kg',
-                          keyboardType: TextInputType.number,
-                          validator: (v) {
-                            if (v == null || v.isEmpty) return 'Kiriting';
-                            final val = int.tryParse(v);
-                            if (val == null || val > 999) return 'Max 999';
-                            return null;
-                          },
-                          onChanged: (v) {
-                            if (v.length > 3) {
-                              _weightController.text = v.substring(0, 3);
-                              _weightController.selection =
-                                  TextSelection.fromPosition(
-                                TextPosition(
-                                    offset: _weightController.text.length),
-                              );
-                            }
-                          },
-                        ),
+                    ),
+                    SizedBox(width: AppSpacing.md.w),
+                    Expanded(
+                      child: CustomTextField(
+                        controller: _weightController,
+                        label: Tr.t('weight'),
+                        hintText: '80',
+                        suffixText: Tr.t('kilogramsShort'),
+                        keyboardType: TextInputType.number,
+                        validator: (v) {
+                          if (v == null || v.isEmpty) return Tr.t('enterValue');
+                          final val = int.tryParse(v);
+                          if (val == null || val > 999) {
+                            return Tr.t('maximum999');
+                          }
+                          return null;
+                        },
+                        onChanged: (v) {
+                          if (v.length > 3) {
+                            _weightController.text = v.substring(0, 3);
+                            _weightController.selection =
+                                TextSelection.fromPosition(
+                                  TextPosition(
+                                    offset: _weightController.text.length,
+                                  ),
+                                );
+                          }
+                        },
                       ),
-                    ],
-                  ),
-                ],
-              ),
-            if (widget.role == AppConstants.roleCoach) ...[
-              SizedBox(height: AppSpacing.lg.h),
-              const RegistrationCoachNote(),
-            ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ],
         ),
       ),
@@ -421,49 +418,46 @@ class _RegisterViewState extends State<RegisterView> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _stepHeader(
-              Tr.t('accountSettings'),
-              'Tizimga kirish uchun login va parol o\'ylab toping.',
-            ),
+            _stepHeader(Tr.t('accountSettings'), Tr.t('accountSettingsHint')),
             Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                  CustomTextField(
-                    controller: _usernameController,
-                    label: 'Foydalanuvchi nomi',
-                    hintText: 'Masalan: sarvar01',
-                    prefixIcon: const Icon(Icons.person_outline),
-                    validator: (v) {
-                      if (v == null || v.isEmpty) return 'Username kiriting';
-                      if (v.length < 3) return 'Kamida 3 ta belgi kiriting';
-                      return null;
-                    },
-                  ),
-                  SizedBox(height: AppSpacing.lg.h),
-                  CustomTextField(
-                    controller: _passwordController,
-                    label: 'Parol',
-                    hintText: 'Kamida 6 ta belgi',
-                    obscureText: _obscurePassword,
-                    prefixIcon: const Icon(Icons.lock_outline),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscurePassword
-                            ? Icons.visibility_off_outlined
-                            : Icons.visibility_outlined,
-                        color: context.palette.textHint,
-                      ),
-                      onPressed: () =>
-                          setState(() => _obscurePassword = !_obscurePassword),
+                CustomTextField(
+                  controller: _usernameController,
+                  label: Tr.t('username'),
+                  hintText: 'username',
+                  prefixIcon: const Icon(Icons.person_outline),
+                  validator: (v) {
+                    if (v == null || v.isEmpty) return Tr.t('enterUsername');
+                    if (v.length < 3) return Tr.t('usernameMinLength');
+                    return null;
+                  },
+                ),
+                SizedBox(height: AppSpacing.lg.h),
+                CustomTextField(
+                  controller: _passwordController,
+                  label: Tr.t('password'),
+                  hintText: Tr.t('minimumPasswordLength'),
+                  obscureText: _obscurePassword,
+                  prefixIcon: const Icon(Icons.lock_outline),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscurePassword
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined,
+                      color: context.palette.textHint,
                     ),
-                    validator: (v) {
-                      if (v == null || v.isEmpty) return 'Parolni kiriting';
-                      if (v.length < 6) return 'Kamida 6 ta belgi kiriting';
-                      return null;
-                    },
+                    onPressed: () =>
+                        setState(() => _obscurePassword = !_obscurePassword),
                   ),
-                ],
-              ),
+                  validator: (v) {
+                    if (v == null || v.isEmpty) return Tr.t('enterPassword');
+                    if (v.length < 6) return Tr.t('minimumPasswordLength');
+                    return null;
+                  },
+                ),
+              ],
+            ),
           ],
         ),
       ),
@@ -494,36 +488,6 @@ class _ServerErrorBanner extends StatelessWidget {
             child: Text(
               message,
               style: AppTextStyles.label.copyWith(color: palette.error),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class RegistrationCoachNote extends StatelessWidget {
-  const RegistrationCoachNote({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = context.palette;
-    return AppCard(
-      tone: palette.info.withValues(alpha: 0.08),
-      borderColor: palette.info.withValues(alpha: 0.3),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          AppIconTile(
-            icon: Icons.info_outline_rounded,
-            color: palette.info,
-            size: 40,
-          ),
-          SizedBox(width: AppSpacing.md.w),
-          Expanded(
-            child: Text(
-              'Murabbiy sifatida ro\'yxatdan o\'tayapsiz. Siz sportchilarni boshqara olasiz.',
-              style: AppTextStyles.body.copyWith(color: palette.textPrimary),
             ),
           ),
         ],
